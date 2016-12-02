@@ -6,7 +6,7 @@ REFERENCE:
 BRILIA: Integrated tool for high-throughput annotation and lineage tree assembly of B-cell repertoires
 Donald W. Lee-1, Ilja Khavrutskii-1, Anders Wallqvist-1, Sina Bavari-2, Christopher L. Cooper-2, and Sidhartha Chaudhury-1*
 
-1-Biotechnology HPC Software Applications Institute (BHSAI), Telemedicine and Advanced Technology Research Center, U.S. Army Medical Research and Materiel Command, Fort Detrick, MD, USA
+1-Biotechnology HPC Software Applications Institute (BHSAI), Telemedicine and Advanced Technology Research Center, U.S. Army Medical \n Research and Materiel Command, Fort Detrick, MD, USA
 
 2-Molecular and Translational Sciences, U.S. Army Medical Research Institute of Infectious Diseases, Frederick, MD, USA
 
@@ -16,15 +16,13 @@ PURPOSE:
 
 BRILIA is designed to annotate a repertoire of B-cell receptor sequences across the VDJ junction. It returns the CDR3 regions, VDJ germline gene predictions, and also phylogeny relationships among B cells. For more information on how BRILIA works, please read the methods article cited above.
   
-INPUT FILES: 
+INPUT FILES (see ExampleFiles folder): 
 
 Takes fasta, fastq, csv, xlsx, or xlsx file containing the sequenceID (SeqName or SeqNum), sequence (nucleotide or Seq), and template count (TemplateCount) data. 
-See the example input files in the "Example" folder. 
 
-OUTPUT FILE: 
+OUTPUT FILE (see ExampleFiles folder): 
 
-Returns a tabulated spreadsheet or CSV file listing the annotation results and phylogeny relationships among sequences. 
-See the example output files in the "Example\BRILIAv13" folder.
+Returns a tabulated spreadsheet or CSV file listing the annotation results and phylogeny relationships among sequences. Will create and save to a new folder call BRILIAvXX, where "XX" is the version number (currently 13).
 
 MATLAB SOURCE CODE USAGE (requires bioinformatics toolbox):
 
