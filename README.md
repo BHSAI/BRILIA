@@ -1,4 +1,4 @@
-## BRILIA
+### BRILIA
 # (B-cell repertoire inductive lineage and immunosequence annotator)
 
 # REFERENCE:
