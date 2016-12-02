@@ -4,9 +4,13 @@
 REFERENCE:
 
 BRILIA: Integrated tool for high-throughput annotation and lineage tree assembly of B-cell repertoires
+
 Donald W. Lee-1, Ilja Khavrutskii-1, Anders Wallqvist-1, Sina Bavari-2, Christopher L. Cooper-2, and Sidhartha Chaudhury-1*
+
 1-Biotechnology HPC Software Applications Institute (BHSAI), Telemedicine and Advanced Technology Research Center, U.S. Army Medical  Research and Materiel Command, Fort Detrick, MD, USA
+
 2-Molecular and Translational Sciences, U.S. Army Medical Research Institute of Infectious Diseases, Frederick, MD, USA
+
 *-Corresponding author: schaudhury@bhsai.org
 
 PURPOSE:
