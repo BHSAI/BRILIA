@@ -17,11 +17,11 @@ Donald W. Lee-1, Ilja Khavrutskii-1, Anders Wallqvist-1, Sina Bavari-2, Christop
 
 BRILIA is designed to annotate a repertoire of B-cell receptor sequences across the VDJ junction. It returns the CDR3 regions, VDJ germline gene predictions, and also phylogeny relationships among B cells. For more information on how BRILIA works, please read the methods article cited above.
   
-## INPUT FILES (see ExampleFiles folder): 
+## INPUT FILES (see Example_Files folder): 
 
 Takes fasta, fastq, csv, xlsx, or xlsx file containing the sequenceID (SeqName or SeqNum), sequence (nucleotide or Seq), and template count (TemplateCount) data. 
 
-## OUTPUT FILE (see ExampleFiles folder): 
+## OUTPUT FILE (see Example_Files folder): 
 
 Returns a tabulated spreadsheet or CSV file listing the annotation results and phylogeny relationships among sequences. Will create and save to a new folder call BRILIAvXX, where "XX" is the version number (currently 13).
 
