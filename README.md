@@ -38,4 +38,4 @@ Returns a tabulated spreadsheet or CSV file listing the annotation results and p
 5) BRILIA should create a new folder called BRILIAvXX and save the output results in tabulated format.
 
 
-The program is distributed under the GNU General Public License.
+The program is distributed under the GNU General Public License [http://www.gnu.org/licenses/gpl.html].
