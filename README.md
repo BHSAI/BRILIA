@@ -1,7 +1,7 @@
-### BRILIA
-# (B-cell repertoire inductive lineage and immunosequence annotator)
+# BRILIA
+## (B-cell repertoire inductive lineage and immunosequence annotator)
 
-# REFERENCE:
+## REFERENCE:
 
 BRILIA: Integrated tool for high-throughput annotation and lineage tree assembly of B-cell repertoires
 
