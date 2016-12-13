@@ -30,7 +30,7 @@ Takes fasta, fastq, csv, xlsx, or xlsx file containing, hopefully, the full VDJ 
 
 Returns a semicolon-delimited CSV file listing the annotation results and phylogeny relationships among sequences. Will create and save to a new folder called BRILIA, and append BRILIAvXX at the end of the file name, where "XX" is the version number (currently 13).
 
-See output file column definitions [here](https://github.com/BHSAI/BRILIA/Dev14/Support_Files/Headers_BRILIA.csv).
+See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/Dev14/Support_Files/Headers_BRILIA.xlsx).
 
 ## MATLAB SOURCE CODE USAGE (requires bioinformatics toolbox):
 
