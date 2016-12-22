@@ -39,3 +39,11 @@ Returns a tabulated spreadsheet or CSV file listing the annotation results and p
 
 
 The program is distributed under the GNU General Public License [http://www.gnu.org/licenses/gpl.html].
+
+%% PENDING UPDATES
+2016-12-22: Here are a list of updates that we are currently working on. 
+  - Better error handling to prevent BRILIA from stopping due to one sequence
+  - Extra input sequence formatting and trimming features so that users don't have to do this
+  - Detailed code comments for readability
+  - Removing dependency on using Excel file reader and writer to increase usability
+  - Easier switching between human and mouse database searches
