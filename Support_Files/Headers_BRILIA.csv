@@ -1,0 +1,45 @@
+VDJdata;Description
+SeqNum;MAVRIC-asigned SeqNum  (differs from SeqName if this is not fully numeric)
+GroupNum;MAVRIC-asigned GrpNum
+FormattedSeq;Formatted Seq for easy visualization of annotation results
+CDR3_AminoAcid;CDR3 amino acid Seq
+CDR3_Length;CDR3 amino acid length
+CDR3_Start;CDR3 104C codon start
+CDR3_End;CDR3 118W codon end
+Seq;Trimmed-Aligned Seq (also the formatted seq)
+RefSeq;Parent Seq, or Germline Seq if 1st seq in group.
+Classifier;Labels each segment
+TemplateCount;DNA copy count
+TreeChildCount;Number of child seq for this seq
+Functional;Y for functional, N for nonfunctional VDJ
+V_GeneName;List of gene names
+V_MapNum;MAVRIC V gene DB #
+V_Deletion5;# of nts deleted 5' end 
+V_Deletion3;# of nts deleted 3' end
+V_Alignment;Alignment results
+D_GeneName;List of gene names
+D_MapNum;MAVRIC D gene DB #
+D_Deletion5;# of nts deleted 5' end 
+D_Deletion3;# of nts deleted 3' end
+D_Alignment;Alignment results
+J_GeneName;List of gene names
+J_MapNum;MAVRIC J gene DB #
+J_Deletion5;# of nts deleted 5' end 
+J_Deletion3;# of nts deleted 3' end
+J_Alignment;Alignment results
+Length_V;Length of V seg
+Length_Nvd;Length of Nvd seg
+Length_D;Length of D seg
+Length_Ndj;Length of Ndj seg
+Length_J;Length of J seg
+SHM_V;# of V nts mutated from germline
+SHM_Nvd;# of Nvd nts mutated from germline
+SHM_D;# of J nts mutated from germline
+SHM_Ndj;# of Ndj nts mutated from germline
+SHM_J;# of J nts mutated from germline
+SeqName;File-asigned Seq Name
+TrimmedSeqLeft;Nucleotides removed from Sequence, Left side
+TrimmedSeqRight;Nucleotides removed from Sequence, Right side
+Nvd_DDins;Splitting the Nvd into another N-D-N junction, for DD insertions
+Ndj_DDins;Splitting the Ndj into another N-D-N junction, for DD insertions
+Misc;Any extra info
