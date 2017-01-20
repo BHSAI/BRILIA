@@ -1,4 +1,4 @@
-%buildAncMap will take a cluster of sequences, and assemble a tree such
+%buildTreeLink will take a cluster of sequences, and assemble a tree such
 %that the maximum distance of X is preserved according to the
 %calcSHMHAMdist function.
 
@@ -13,7 +13,7 @@
 function [AncMapCell,varargout] = buildTreeLink(Tdata,NewHeader,varargin)
 %Remember, pairwise distance from SHMHAM is doubled the hamming distance
 %because original SHMHAM dist uses 0.5 fraction, which is bad for memory
-%usage of matrices that could have used int16 format. 
+%usage of matrices that could have used int16 format.
 if isempty(varargin)
     CutoffDist = 4*2; 
 else
@@ -22,6 +22,9 @@ end
 getHeaderVar;
 
 %==========================================================================
+% %Ensure all sequence lengths are the same, aligned based on the CDR3endLoc.
+% Tdata = trimSeq(Tdata,NewHeader);
+
 %Identify starting point clusters. Will do cluster-cluster linking later.
 [PairDist,~] = calcPairDist(Tdata(:,SeqLoc),'shmham'); %Parent is each rows, Child is each column. Note that SHMHAM distance is doubled by default, to ensure integer values.
 AncMap = [[1:size(PairDist,1)]' zeros(size(PairDist,1),4)]; %[ChildNum ParNum SHMHAMdist Template ClusterNum]
@@ -32,6 +35,8 @@ if TemplateLoc > 0
 else
     AncMap(:,4) = 1;
 end
+
+
 for j = 1:size(AncMap,1)
     ParLoc = find(PairDist(:,j) == min(PairDist(:,j)));
     AncMap(j,1:3) = [j ParLoc(1) min(PairDist(:,j))];
@@ -85,7 +90,7 @@ while max(AncCycle) > 0
                     Jscore = calcAlignScore(SeqDiff(sum(VMDNJ(1:4))+1:sum(VMDNJ)),inf);
 
                     %Fill in the score matrix
-                    VDJscore(g,:) = [Vscore Jscore Dscore TempCt  RootLoc(g)];
+                    VDJscore(g,:) = [Vscore Jscore Dscore TempCt RootLoc(g)];
                 end
                 VDJscore = sortrows(VDJscore,[-1 -2 -3 -4]); %Sort by highest alignment scores, then largest template count.
                 RootLoc = VDJscore(1,end); %Get the first one for now   

@@ -1,13 +1,43 @@
-%calcPairDist(Seq,DistMode) will compute the pairwise distance matrix and
-%return an NxN matrix, where diagonals are Inf. 
+%calcPairDist will compute the pairwise distance matrix and return an
+%square matrix, where diagonals are max value or Inf to prevent the
+%self-to-self sequence distance from being the lowest distance.
 %
-%  PairDist = calcPairDist(Seq,DistMode) where Seq is a cell of aligned,
-%  tirmmed sequences.
-%    DistMode = 'ham' for hamming distance
-%    DistMode = 'shm' for SHM distance
-%    DistMode = 'shmham' for hamming distance adjusted based on
-%    likelihood of Seq1 --> Seq2 or vice versa.
-
+%  PairDist = calcPairDist(Seq,DistMode)
+%
+%  INPUT 
+%    Seq: Mx1 cell of trimmed and aligned sequences
+%    DistMode: Method for calculating seq-to=seq distance 
+%      'ham' for hamming distance
+%      'shmham' for hamming distance adjusted based on SHM tendencies. 
+%
+%  OUTPUT
+%    PairDist: MxM matrix of pairwise sequence distance in UINT format.
+%    Each row is the parent seq, each col is the child sequence. See note
+%    about 'shmham' dist output below.
+% 
+%  NOTE
+%    'X' = wildcard match.
+%
+%    All sequences should be uppercase.
+%
+%    When using 'shmham', the PairDist matrix will be double the value to
+%    ensure all distance are integers, allowing for low-memory UINT format
+%    matricies. The real shmham dist computes a 0.5 correction per
+%    mismatched nt that follows SHM tendencies, which would require DOUBLE
+%    format matrices that are more memory intensive. This will not affect
+%    the lineage tree reconstruction.
+%
+%  EXAMPLE
+%    Seq = {'AAGGTG'; 'ACGCTG'; 'ACTCTG'}
+%    [PairDist, HamDist] = calcPairDist(Seq,'shmham')
+%    PairDist =
+%       255    5   20
+%         6  255    3
+%        21    3  255
+%    HamDist =
+%         0    2    3
+%         2    0    1
+%         3    1    0
 function [PairDist, varargout] = calcPairDist(Seq,DistMode,varargin)
 %Convert Seq cells to char array
 if ischar(Seq)
@@ -20,71 +50,34 @@ if ischar(Seq)
 end
 
 %Determine maximum distance value possible given SeqLength
-SeqLen = size(Seq{1},2)*3;
-if SeqLen <= 2^8-1
+MaxDist = length(Seq{1})*3; %full mismatch that all agree with SHM tendencies
+if MaxDist <= 2^8-1
     Class = 'uint8';
-elseif SeqLen <= 2^16-1
+elseif MaxDist <= 2^16-1
     Class = 'uint16';
-elseif SeqLen <= 2^32-1
+elseif MaxDist <= 2^32-1
     Class = 'uint32';
 end
 
 %Make pairwise difference matrix
-PairDist = zeros(size(Seq,1),Class);
+PairDist = zeros(length(Seq),Class);
 switch lower(DistMode)
     case 'ham' %Hamming distance
-        for r = 1:size(Seq,1)
+        for r = 1:length(Seq)
+            Seq1 = Seq{r};
+            Xloc1 = Seq1 == 'X';
             for c = 1:r-1
-                PairDist(r,c) = sum(Seq{r} ~= Seq{c});
+                Seq2 = Seq{c};
+                Xloc2 = Seq2 == 'X';
+                SeqMatch = (Seq1 == Seq2) | Xloc1 | Xloc2;
+                PairDist(r,c) = sum(~SeqMatch);
                 PairDist(c,r) = PairDist(r,c);
             end
         end
+        HamDist = PairDist; %They are the same
+    case 'shmham' %Hamming distance adjusted for SHM tendencies
         HamDist = PairDist;
-    case 'hampen' %Hamming distance with penalty for consec mismatches
-        for r = 1:size(Seq,1)
-            for c = 1:r-1
-                MissLoc = Seq{r} ~= Seq{c};
-                %Find max consec mismatch, and add that.
-                PenScore = 0; %Penalty score
-                MissCount = 0;
-                for k = 1:length(MissLoc)-1
-                    if MissLoc(k) && MissLoc(k+1)
-                        if MissCount == 0
-                            MissCount = 2;
-                        else
-                            MissCount = MissCount+1;
-                        end
-                    else
-                        if MissCount > 0
-                            PenScore = MissCount.^2 + PenScore - MissCount; %You are subtracting MissCount, since at the end, you don't want to double count the Miss Count AND Ham Dist.
-                            MissCount = 0;
-                        end
-                    end
-                end
-                if MissCount > 0 %Final Iteration, in case mismatch occurs at end
-                    PenScore = MissCount.^2 + PenScore - MissCount;
-                end
-                
-                %Final Score, add the hamming distance
-                FinalScore = PenScore + sum(MissLoc);
-                
-                PairDist(r,c) = FinalScore;
-                PairDist(c,r) = FinalScore;
-            end
-        end
-        HamDist = PairDist;
-%     case 'shm' %SHM distance
-%         HamDist = zeros(size(Seq,1),Class);
-%         for r = 1:size(Seq,1)
-%             for c = 1:size(Seq,1)
-%                 if r ~= c
-%                     [PairDist(r,c), ~, HamDist(r,c)] = calcSHMdist(Seq{r},Seq{c});
-%                 end
-%             end
-%         end
-    case 'shmham' %SHM distance, averaged over HAM distance
-        HamDist = zeros(size(Seq,1),Class);
-        for r = 1:size(Seq,1)
+        for r = 1:length(Seq)
             for c = 1:r-1
                 if ~isempty(varargin)
                     [Par2Child, Child2Par, HD] = calcSHMHAMdist(Seq{r},Seq{c},varargin{1});
