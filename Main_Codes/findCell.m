@@ -1,44 +1,69 @@
-%findCell will look in cell of A for any match to cell of B.
+%findCell will look in ListA for any match ListB, returning the index
+%of any matches in ListA.
 %
-%  Aidx = findCell(ListA,ListB) will search ListA that matches with
-%  ListB, where B is either a character or cell of string, number, NaN, or
-%  []. If there is no match, returns 0.
+%  Aidx = findCell(ListA,ListB)
 %
-%  Aidx = findCell(ListA,ListB,'anycase') will do a cell string
-%  search, but for any case match.
+%  Aidx = findCell(ListA,ListB,Param,Value,...) will allow certain
 %
-%  EX for string search: 
-%    ListA = {'a' [] 'C' 'c' 'D' '' NaN 3 4}
+%  INPUT
+%    ListA: 1xN or Nx1 list of string or nubmers
+%    ListB: 1xN or Nx1 list of contents you are searching for in ListA
+%    Param,Value:
+%       PARAM       VALUE               DESCRIPTION
+%       ----------  ------------------  -------------------------------
+%       MatchCase   'exact' or 'any'    Exact case or any case match    
+%       MatchWord   'all' or 'partial'  full word or partial word ma
 %
-%    ListB = {'c' 'd'}
-%    Aidx = findCell(ListA,ListB)
-%        Aidx = 4
+%  OUTPUT
+%    Aidx: The location in ListA that matches with any item in ListB.
+%      Returns 0 for no match.
 %
-%  EX for string any case search: 
-%    ListB = {'c' 'd'}
-%    Aidx = findCell(ListA,ListB,'anycase')
-%        Aidx = 3
-%               4
-%               5
+%  EXAMPLE 
+%      ListA = {'a' [] 'C' 'c'  'D' '' NaN 3 4 'cat' 'dog'}
 %
-%  EX for number search: 
+%    Case1) For string searches
+%      ListB = {'c' 'd'}
+%      Aidx = findCell(ListA,ListB)
+%          Aidx = 4
+%
+%    Case2) For string any case searches
+%      ListB = {'c' 'd'}
+%      Aidx = findCell(ListA,ListB,'MatchCase','any','MatchWord','all')
+%          Aidx = 3
+%                 4
+%                 5
+%
+%    Case3) For string partial match searches
+%      ListB = {'c' 'd'}
+%      Aidx = findCell(ListA,ListB,'MatchCase','exact','MatchWord','partial')
+%          Aidx = 4
+%                 10
+%                 11
+%
+%    Case4) For number searches 
 %    ListB = {3 4}
 %    Aidx = findCell(ListA,ListB)
-%        Aidx = 7
-%               8
+%          Aidx = 7
+%                 8
 %
-%  EX for NaN cell search: 
-%    ListB = NaN
-%    Aidx = findCell(ListA,ListB)
-%        Aidx = 7
+%    Case5) For NaN cell search: 
+%      ListB = NaN
+%      Aidx = findCell(ListA,ListB)
+%          Aidx = 7
 %
-%  EX for empty cell search: 
-%    ListB = [] 
-%    Aidx = findCell(ListA,ListB)
-%        Aidx = 2
-%               6
+%    Case6) For empty cell search: 
+%      ListB = [] 
+%      Aidx = findCell(ListA,ListB)
+%          Aidx = 2
+%                 6
 
 function Aidx = findCell(ListA,ListB,varargin)
+%Parse parameter inputs
+P = inputParser;
+addParameter(P,'MatchCase','exact',@ischar);
+addParameter(P,'MatchWord','all',@ischar);
+parse(P,varargin{:});
+
 %Make sure ListA and ListB are all cells, and a list.
 if ~iscell(ListA)
     ListA = {ListA};
@@ -53,19 +78,17 @@ if min(size(ListB)) > 1
     error('ListB must be a 1xN or Nx1 cell matrix');
 end
 
-%if you have an option for 'anycase', then assume both inputs are str, and
+%If you have an option for 'anycase', then assume both inputs are str, and
 %set to lower cases.
-if ~isempty(varargin)
-    if strcmpi(varargin{1},'anycase')
-        for a = 1:length(ListA)
-            if ischar(ListA{a})
-                ListA{a} = lower(ListA{a});
-            end
+if strcmpi(P.Results.MatchCase,'Any')
+    for a = 1:length(ListA)
+        if ischar(ListA{a})
+            ListA{a} = lower(ListA{a});
         end
-        for b = 1:length(ListB)
-            if ischar(ListB{b})
-                ListB{b} = lower(ListB{b});
-            end
+    end
+    for b = 1:length(ListB)
+        if ischar(ListB{b})
+            ListB{b} = lower(ListB{b});
         end
     end
 end
@@ -93,7 +116,21 @@ switch ClassType
                 ListA{j} = '';
             end
         end
-        Aidx = find(ismember(ListA,ListB))';
+        if strcmpi(P.Results.MatchWord,'All')
+            Aidx = find(ismember(ListA,ListB))';
+        else
+            Aidx = zeros(length(ListA),1,'logical');
+            Bphrase = ListB{1};
+            for b = 2:length(ListB)
+                Bphrase = [Bphrase '|' ListB{b}];
+            end
+            for k = 1:length(ListA)
+                if ~isempty(regexp(ListA{k},Bphrase,'once'))
+                    Aidx(k) = 1;
+                end
+            end
+            Aidx = find(Aidx);
+        end
     case 'numeric'
         for j = 1:length(ListA)
             if ~isnumeric(ListA{j})

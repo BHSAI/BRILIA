@@ -1,17 +1,30 @@
-%renumberGrpNum will take VDJdata, and renumber the groups to go from 1 to
-%N.
+%renumberGrpNum will renumber the group # to go from 1 to N.
+%
+%  VDJdata = renumberGrpNum()
+%
+%  VDJdata = renumberGrpNum(FullFileName)
+%
+%  VDJdata = renumberGrpNum(VDJdata,NewHeader);
+%
 
 function VDJdata = renumberGrpNum(varargin)
+%Prepare the inputs
 if isempty(varargin)
     [VDJdata,NewHeader,FileName,FilePath] = openSeqData;
 else
-    VDJdata = varargin{1};
-    NewHeader = varargin{2};
-    FileName = '';
-    FilePath = '';
+    if ischar(varargin{1})
+        FullFileName = varargin{1};
+        [VDJdata,NewHeader,FileName,FilePath] = openSeqData(FullFileName);
+    elseif iscell(varargin{1})
+        VDJdata = varargin{1};
+        NewHeader = varargin{2};
+        FileName = '';
+        FilePath = '';
+    end
 end
 getHeaderVar;
 
+%Begin renumbering the group numbers
 GrpCt = 1;
 CurGrp = VDJdata{1,GrpNumLoc};
 for j = 1:size(VDJdata,1)
@@ -22,20 +35,13 @@ for j = 1:size(VDJdata,1)
     VDJdata{j,GrpNumLoc} = GrpCt;
 end
 
+%Save the file
 if ~isempty(FileName)
-    %Save the files
     DotLoc = find(FileName == '.');
-    DotLoc = DotLoc(end);
-    SaveName = FileName(1:DotLoc-1);
-    %Before saving to xlsx, convert columns with matrix values into char
-    for q = 1:size(VDJdata,1)
-        for w = 1:3
-            VDJdata{q,FamNumLoc(w)} = mat2str(VDJdata{q,FamNumLoc(w)});
-        end
+    if isempty(DotLoc)
+        DotLoc = length(FileName);
     end
-    if ispc
-        xlswrite([FilePath SaveName 'D.xlsx'],[NewHeader; VDJdata]);
-    else
-        writeDlmFile([NewHeader;VDJdata],[FilePath SaveName 'D.csv'],'\t');
-    end
+    SaveDelimiter = ';';
+    SaveFullName = sprintf('%s%s.Renum.%s',FilePath,FileName(1:DotLoc(end)-1),'csv');
+    saveSeqData(SaveFullName,VDJdata,NewHeader,'Delimiter',SaveDelimiter);
 end

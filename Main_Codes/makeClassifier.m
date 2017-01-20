@@ -1,146 +1,79 @@
-%makeClassifier takes a Seq, VMDNJ lengths, V and D and J alignment results
-%to make the classifier. Classifier identifies which NT in the seq belongs
-%to which gene, and whether or not it matches with the reference gene.
+%makeClassifier will make a letter sequence that labels each nt by the
+%segment it belongs to. The "Classifier" sequence is stored in VDJdata in
+%the "Classifier" column.
 %
 %  VDJdata = makeClassifier(VDJdata,NewHeader)
-%    where Seq = NT sequence; VMDNJ is a 1x5 matrix of V, N2, D, N1, J
-%    lengths; V/D/J align are the alignment results between sample and V D
-%    or J genes. 
 %
-%    Example Classifier = 'VVVVVVVVVVVVVVVVppmmmppDDDDDDppnnppJJJJJJJJJ';
-%    V = matched with V reference
-%    v = within V matching region, mismatched though
-%    p = p-nucleotides between the VD region
-%    m = VD junction N2 nucleotides
-%    D = matched with D reference
-%    d = within D matching region, mismatched though
-%    b = p-nucleotides between the DJ region
-%    n = DJ junction N1 nucleotides
-%    J = matched with J reference
-%    j = within J matching region, mismatched though
+%  EXAMPLE
+%    Classifier = 'VVVVVVVVVVVVVVVVppmmmppDDDDDDppnnppJJJJJJJJJ';
+%      V = V   segment
+%      M = Nvd region
+%      D = D   segment
+%      N = Ndj region
+%      J = J   segment
+%      B = p-nucleotides in the Nvd region
+%      P = p-nucleotides in the Ndj region
+%      v,m,d,n,j,b,p = lowercase are mismatched with the reference sequence
 
 function VDJdata = makeClassifier(VDJdata,NewHeader)
 getHeaderVar;
 
 %Correct the classifiers according to the group, mainly p and b's only.
 GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
-GrpNumUnq = unique(GrpNum);
-for y = 1:length(GrpNumUnq)
-    IdxLoc =  find(GrpNumUnq(y) == GrpNum);
-    j = IdxLoc(1);
-    
-    %Extract information
-    Seq = VDJdata{j,SeqLoc};
-    RefSeq = VDJdata{j,RefSeqLoc};
-    VMDNJ = cell2mat(VDJdata(j,LengthLoc));
-    
-    if sum(VMDNJ) ~= length(Seq) || sum(VMDNJ) ~= length(RefSeq)
-        continue;
-    end
-        
-    %Find V classifier
-    if VMDNJ(1) > 0
-        ClassV = repmat('V',1,VMDNJ(1));
-    else
-        ClassV = '';
-    end
-    
-    %Find N2 classifier + p nucleotides
-    if VMDNJ(2) > 0
-        ClassM = repmat('M',1,VMDNJ(2));
-    else
-        ClassM = '';
-    end
-    
-    %Find D classifier
-    if VMDNJ(3) > 0
-        ClassD = repmat('D',1,VMDNJ(3));
-    else
-        ClassD = '';
-    end
-        
-    %Find N1 classifier
-    if VMDNJ(4) > 0
-        ClassN = repmat('N',1,VMDNJ(4));
-    else
-        ClassN = '';
-    end
+UnqGrpNum = unique(GrpNum);
+for y = 1:length(UnqGrpNum)
+    try
+        IdxLoc =  find(UnqGrpNum(y) == GrpNum);
+        j = IdxLoc(1);
 
-    %Find J classifier
-    if VMDNJ(5) > 0
-        ClassJ = repmat('J',1,VMDNJ(5));
-    else
-        ClassJ = '';
-    end
-    
-    %Find the VD and DJ p nucleotides, marked as "p" and "b" respectively.
-    Vref3del = VDJdata{j,DelLoc(1)};
-    Dref5del = VDJdata{j,DelLoc(2)};
-    Dref3del = VDJdata{j,DelLoc(3)};
-    Jref5del = VDJdata{j,DelLoc(4)};
-    
-    if Vref3del == 0 && VMDNJ(2) > 0
-        for k = 1:VMDNJ(2)
-            s1 = VMDNJ(1) - k + 1;
-            s2 = VMDNJ(1) + k;
-            if s1 < 1; continue; end
-            if Seq(s1) ~= seqcomplement(Seq(s2));
-                break
-            else
-                ClassM(k) = 'B';
-            end
+        %Extract information
+        Seq = VDJdata{j,SeqLoc};
+        RefSeq = VDJdata{j,RefSeqLoc};
+        VMDNJ = cell2mat(VDJdata(j,LengthLoc));
+
+        if sum(VMDNJ) ~= length(Seq) || sum(VMDNJ) ~= length(RefSeq)
+            continue;
         end
-    end
-    
-    if Dref5del == 0 && VMDNJ(2) > 0
-        for k = 1:VMDNJ(2)
-            s1 = sum(VMDNJ(1:2)) - k + 1;
-            s2 = sum(VMDNJ(1:2)) + k;
-            if Seq(s1) ~= seqcomplement(Seq(s2));
-                break
-            else
-                ClassM(end-k+1) = 'B';
-            end
-        end
-    end
-     
-    if Dref3del == 0 && VMDNJ(4) > 0
-        for k = 1:VMDNJ(4)
-            s1 = sum(VMDNJ(1:3)) - k + 1;
-            s2 = sum(VMDNJ(1:3)) + k;
-            if Seq(s1) ~= seqcomplement(Seq(s2));
-                break
-            else
-                ClassN(k) = 'P';
-            end
-        end
-    end   
-    
-    if Jref5del == 0 && VMDNJ(4) > 0
-        for k = 1:VMDNJ(4)
-            s1 = sum(VMDNJ(1:4)) - k + 1;
-            s2 = sum(VMDNJ(1:4)) + k;
-            if s2 > sum(VMDNJ); continue; end
-            if Seq(s1) ~= seqcomplement(Seq(s2));
-                break
-            else
-                ClassN(end-k+1) = 'P';
-            end
-        end
-    end   
-    
-    AllClass = sprintf('%s%s%s%s%s',ClassV,ClassM,ClassD,ClassN,ClassJ);
-    
-    %Fillin the Classifier and Formatted Seq 
-    for k = 1:length(IdxLoc)
-        CurSeq = VDJdata{IdxLoc(k),SeqLoc};
-        MissLoc = CurSeq ~= RefSeq;
-        CurClass = AllClass;
-        CurClass(MissLoc) = lower(CurClass(MissLoc));
+
+        %Assemble the starting point classifier
+        ClassV = repmat('V',1,VMDNJ(1)); %V segment
+        ClassM = repmat('M',1,VMDNJ(2)); %Nvd segment
+        ClassD = repmat('D',1,VMDNJ(3)); %D segment
+        ClassN = repmat('N',1,VMDNJ(4)); %Ndj segment
+        ClassJ = repmat('J',1,VMDNJ(5)); %J segment
+
+        %To find p-nucleotides, see if germline deletions are 0.
+        VrefDel3 = VDJdata{j,DelLoc(1)};
+        DrefDel5 = VDJdata{j,DelLoc(2)};
+        DrefDel3 = VDJdata{j,DelLoc(3)};
+        JrefDel5 = VDJdata{j,DelLoc(4)};
+
+        RefClass = sprintf('%s%s%s%s%s',ClassV,ClassM,ClassD,ClassN,ClassJ);
+
+        %Find the Nvd and Ndj p-nts.
+        P_V3 = findPnts(RefSeq,VMDNJ(1),'right',0,VrefDel3);
+        P_D5 = findPnts(RefSeq,sum(VMDNJ(1:2))+1,'left',DrefDel5,0); 
+        P_D3 = findPnts(RefSeq,sum(VMDNJ(1:3)),'right',0,DrefDel3);
+        P_J5 = findPnts(RefSeq,sum(VMDNJ(1:4))+1,'left',JrefDel5,0);
         
-        VDJdata{IdxLoc(k),FormClassLoc(1)} = formatSeq(VDJdata{IdxLoc(k),SeqLoc},CurClass);
-        VDJdata{IdxLoc(k),FormClassLoc(2)} = CurClass;
+        %Label Nvd p-nts as B, and Ndj p-nts as P
+        RefClass(P_V3 | P_D5) = 'B';
+        RefClass(P_D3 | P_J5) = 'P';
+
+        %Fillin the Classifier and Formatted Seq 
+        for k = 1:length(IdxLoc)
+            CurSeq = VDJdata{IdxLoc(k),SeqLoc};
+            MissLoc = CurSeq ~= RefSeq;
+            SeqClass = RefClass;
+            SeqClass(MissLoc) = lower(SeqClass(MissLoc));
+
+            VDJdata{IdxLoc(k),FormClassLoc(1)} = formatSeq(VDJdata{IdxLoc(k),SeqLoc},SeqClass);
+            VDJdata{IdxLoc(k),FormClassLoc(2)} = SeqClass;
+        end
+    catch
+        ErrorMsg = sprintf('Errored at %s, sequence # %d',mfilename,y);
+        disp(ErrorMsg);
+        VDJdata(IdxLoc,MiscLoc) = repmat({ErrorMsg},length(IdxLoc),1);
     end
     clear ClassV ClassM ClassD ClassN ClassJ
 end
-

@@ -1,49 +1,69 @@
 %flipNregion will analyze a sequence in the N region, and determine if it
-%was made from TDT 3' end of coding or noncoding. Returns the complement
-%strand IF there are more nucleotides that are assocaited with the
-%complement synthesis.
+%was made from TDT 3' end of the coding or noncoding DNA strand. Returns
+%the complement strand IF there are more nucleotides that are assocaited
+%with the complement synthesis. The assumption is that elongation of the 3'
+%of the coding strand will add G's and A's, whereas elongation of the
+%noncoding strand will add C's and T's.
 %
-%Note: The assumption is that 3' additions will add G's and A's. If it's on
-%the leading strand, you'll see G's and A's, where as if it's on the other
-%strand, you'll get C's and T's. 
+%  [Nseq, Flipped] = flipNregion(Nseq)
 %
-%  Examples:
-%  Vague scenarios (no flip can be decided. Need more information.)
-%    LeftNTs = 'AG'
-%    RightNTs = 'CT'
-%    Seq1 = 'AGGGGCT'
-%    Seq2 = 'AGCCCCT'
-%    [Seq1TDT, Flipped] = flipNregion(Seq1,LeftNTs,RightNTs)
-%      Seq1TDT = 'AGGGGCT'
-%      Flipped = 0;
-%    Seq2TDT = flipNregion(Seq2,LeftNTs,RightNTs)
-%      Seq2TDT = 'TCGGGGA'
-%      Flipped = 1;
-
+%  [Nseq, Flipped] = flipNregion(Nseq,CodeSideNT,RightNTs)
+%
+%  INPUT
+%    Nseq: nucleotide sequence
+%    CodeSideNT: two expected nts if TDT acts on coding 3' side (AG)
+%    NonCodeSideNT: two expected nts if TDT acts on noncoding 3' side (CT)
+%
+%  OUTPUT
+%    Nseq: flipped (or unflipped) nucleotide sequence
+%    Flipped: 1 for flipped, 0 for unflipped status
+%
+%  EXAMPLE
+%    CASE1) Cannot decide how to flip sequence
+%      CodeSideNT = 'AG'
+%      NonCodeSideNT = 'CT'
+%      Seq1 = 'AGGGGCT'
+%      [Seq1TDT, Flipped] = flipNregion(Seq1,CodeSideNT,NonCodeSideNT)
+%      Seq1TDT = 
+%             'AGGGGCT'
+%      Flipped = 
+%             0
+%
+%    CASE2) Can decide how to flip sequence
+%      CodeSideNT = 'AG'
+%      NonCodeSideNT = 'CT'
+%      Seq2 = 'AGCCCCT'
+%      [Seq2TDT, Flipped] = flipNregion(Seq2,CodeSideNT,NonCodeSideNT)
+%      Seq2TDT = 
+%             'TCGGGGA'
+%      Flipped = 
+%             1
+%
+%  See also calcTDTscore
 function [Nseq, Flipped] = flipNregion(Nseq,varargin)
 Flipped = 0;
 
 %Convert Purines AG into X, and Pyrimidine CT into X.
 if length(varargin) == 2
-    LeftNTs = varargin{1};
-    RightNTs = varargin{2};
+    CodeSideNT = varargin{1};
+    NonCodeSideNT = varargin{2};
     
     %Need to insert the "|"
-    LeftNT(1:length(LeftNTs)*2-1) = '|';
-    LeftNT(1:2:end) = LeftNTs;
-    RightNT(1:length(RightNTs)*2-1) = '|';
-    RightNT(1:2:end) = RightNTs;   
+    CodeNT(1:length(CodeSideNT)*2-1) = '|';
+    CodeNT(1:2:end) = CodeSideNT;
+    NonCodeNT(1:length(NonCodeSideNT)*2-1) = '|';
+    NonCodeNT(1:2:end) = NonCodeSideNT;   
 else
-    LeftNT = 'a|g';
-    RightNT = 'c|t';
+    CodeNT = 'a|g';
+    NonCodeNT = 'c|t';
 end
 
-LeftCount = length(regexpi(Nseq,LeftNT));
-RightCount = length(regexpi(Nseq,RightNT));
+CodeSideCount = length(regexpi(Nseq,CodeNT));
+NonCodeSideCount = length(regexpi(Nseq,NonCodeNT));
 
-if RightCount > LeftCount
+if NonCodeSideCount > CodeSideCount
     Nseq = seqcomplement(Nseq);
     Flipped = 1;
-elseif RightCount == LeftCount
+elseif NonCodeSideCount == CodeSideCount
     Flipped = -1;    
 end

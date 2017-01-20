@@ -3,12 +3,12 @@
 %
 %  FormattedSeq = formatSeq(Seq,Classifier)
 %
-%  EX: 
+%  EXAMPLE 
 %    Seq = 'ACGTTGTGCACGTGTTTATAT';
 %    Classifier = 'VVVvVVMMMDdDDNNJJjJJj';
 %    FormattedSeq = formatSeq(Seq,Classifier);
-%       
-%      FormattedSeq = ACGtTG tgc AcGT gt TTaTAt
+%    FormattedSeq = 
+%           ACGtTG tgc AcGT gt TTaTAt
 
 function FormattedSeq = formatSeq(Seq,Classifier)
 %Make sure no input is a cell
