@@ -23,7 +23,10 @@ end
 
 %Load the file
 if strcmpi(FileExt,'.csv');
-    SampleData = readDlmFile(FullName,'delimiter','\t');
+    SampleData = readDlmFile(FullName,'delimiter',';');
+    if size(SampleData,2) == 1 %Probably wrong delimiter
+        SampleData = readDlmFile(FullName,'delimiter','\t');
+    end
 elseif strcmpi(FileExt,'.xlsx')
     [~, ~, SampleData] = xlsread(FullName);
 else

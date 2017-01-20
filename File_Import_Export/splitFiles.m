@@ -2,7 +2,7 @@
 [~,~,FileData] = xlsread([FilePath, FileName]);
 [FileData, Header] = filterHeader(FileData,1);
 
-SeqFileLoc = findHeader(Header,'SeqFile');
+SeqFileLoc = findCell(Header,'SeqFile');
 
 [UnqFile, ~, UnqFileIdx] = unique(FileData(:,SeqFileLoc));
 for j = 1:length(UnqFile)
