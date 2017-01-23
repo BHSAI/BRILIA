@@ -4,11 +4,9 @@
 ## REFERENCE:
 [Lee, D.W., I. Khavrutskii, A. Wallqvist, S. Bavari, C. Cooper, and S. Chaudhury. BRILIA: Integrated Tool for High-Throughput Annotation and Lineage Tree Assembly of B-Cell Repertoires. Frontiers in Immunology, 2017. 7(681).](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full)
 
-## Contacts
+## CONTACT INFO
 *Corresponding author (Sid): schaudhury@bhsai.org  
 *First author (Donald): dlee@bhsai.org
-
-
 
 ## PURPOSE:
 
@@ -31,9 +29,9 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/D
 
 ## MATLAB SOURCE CODE USAGE (requires bioinformatics toolbox):
 
-1. Copy all codes into a folder called BRILIA.
-2. Open MATLAB, find the BRILIA folder, and run in the command line "addAllPaths". This will add all folders and subfolders to the MATLAB path. 
-3. Type "BRILIA" in the command line and follow instructions. You can also use "BRILIAbatch" instead to process multiple files.
+1. Copy all codes into a folder called BRILIA_X.Y.Z  where X.Y.Z is the version number
+2. Open MATLAB and set the working directory to the BRILIA folder.
+3. Type "BRILIA" in the command line and follow instructions. First time use will automatically add BRILIA paths. 
 4. Select the input file to process (try the example input files shown in the Example folder). 
 5. BRILIA should create a new folder called BRILIA and save the output results in that folder.
 
