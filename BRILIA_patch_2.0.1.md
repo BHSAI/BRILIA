@@ -15,13 +15,14 @@ A lot of changes have been made to make BRILIA more tolerable to a variety of in
 
 #Specific changes
 -BRILIA.m
--- Can process multiple files, and replaces BRILIAbatch.m
--- Can process variable-length sequences by padding sequences within same cluster with 'X'. Important for conforming groups and finding clusters.
--- New parameter-value pair (SettingsFile,SettingsFileName) allow users to use settings stored in a text file. See SettingExamples.txt for an example of what a setting file looks like.
--- New parameter-value pair (CheckSeqDir,'n') specifies whether or not to check input sequence and its rev-complement direction. 'n' is faster, but use 'y' if input sequence have complement sequences.
+..- Can process multiple files, and replaces BRILIAbatch.m
+..- Can process variable-length sequences by padding sequences within same cluster with 'X'. Important for conforming groups and finding clusters.
+..- New parameter-value pair (SettingsFile,SettingsFileName) allow users to use settings stored in a text file. See SettingExamples.txt for an example of what a setting file looks like.
+..- New parameter-value pair (CheckSeqDir,'n') specifies whether or not to check input sequence and its rev-complement direction. 'n' is faster, but use 'y' if input sequence have complement sequences.
+..- parallel process enabled only for sequence files with more t han 200 sequences, since starting parallel processing takes some time.
 
 -getCurrentDatabase
--- Better switching between host species databases
+..- Better switching between host species databases
 
 -filterRefSeq
--- Better filtering of database genes based on host strain, direction of D gene, and V gene functionality
+..- Better filtering of database genes based on host strain, direction of D gene, and V gene functionality
