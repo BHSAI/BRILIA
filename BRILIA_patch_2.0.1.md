@@ -12,6 +12,7 @@ A lot of changes have been made to make BRILIA more tolerable to a variety of in
 - Error handling is improved to prevent a single entry from stopping whole annotation process. Added try and catch statements.
 - BRILIA no longer asks users to choose strain when using human databases.
 - Unprocessed sequences are removed from the main file and set aside in an "Unprocessed" file.
+- Removed dependency on using Excel file format. Now relies on semicolon-delimited file formats mostly.
 
 ###Specific changes
 BRILIA.m
