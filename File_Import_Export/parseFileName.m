@@ -14,6 +14,16 @@ function [FilePath, FileName, FileExt] = parseFileName(FullName)
 SlashLoc = regexp(FullName,'\\|\/'); %Location of fwd or bwd slashes
 DotLoc =regexp(FullName,'\.'); %Location of dots
 
+if isempty(SlashLoc)
+    if ispc
+        FullName = [cd '\' FullName];
+    else
+        FullName = [cd '/' FullName];
+    end
+    SlashLoc = regexp(FullName,'\\|\/'); %Location of fwd or bwd slashes
+    DotLoc =regexp(FullName,'\.'); %Location of dots
+end
+
 if isempty(DotLoc)
     FilePath = FullName;
     FileName = [];

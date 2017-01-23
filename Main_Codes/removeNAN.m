@@ -1,4 +1,6 @@
-%removeNAN will get rid of NaN and replace with ''.
+%removeNAN will get rid of NaN in a cell variable and replace them with ''.
+%
+%  Data = removeNAN(Data)
 
 function Data = removeNAN(Data)
 for r = 1:size(Data,1)

@@ -5,6 +5,9 @@
 %
 %  [Data, Header] = filterHeader(CellData) will remove Header rows from the
 %  CellData, and return it as Data. Header will also be saved.
+%
+%  [Data, Header] = filterHeader(CellData,N) will remove N rows from the
+%  CellData, and return it as Data. Header will also be saved.
 function varargout = filterHeader(CellData,varargin)
 
 if isempty(varargin)

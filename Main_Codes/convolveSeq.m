@@ -1,469 +1,440 @@
-%convolveSeq will take only NT sequence 1 and 2, match them,
-%and return Score, Alignment, StartAt values. 
+%convolveSeq will align sequence SeqA and SeqB using the BRILIA alignment
+%protocol. Consecutive matches add C^2 score and consecutive mismatches
+%subtract M^2 score, where C and M is the length of each contiguous
+%segment. If AllowedMiss is specified, then C segments can be elongated
+%only if there is a 1-letter miss, and if the number of AllowedMiss has not
+%been reached, going left to right. More information is provided in the
+%reference for BRILIA.
 %
-%  [Score, Alignment, StartAt, MatchAt] = convolveSeq(Seq1, Seq2,
-%  [OverhangDir], [TrimEnds])  where Seq1 <= Seq2 in length. Seq2 is
-%  normally the longer reference sequence.
-%    - Score = [(# of matches); (length of matching nts); (FitScore)];
-%        FitScore = sum((cont matches)^2) - sum((cont mismatches)^2).
-%    - Alignment = 3xN character array of Seq1 and Seq2 match. 
-%    - StartAt = [Seq1StartLoc; Seq2StartLoc], where Seq1StartLoc = 1 by
-%        default. Seq2StartLoc can be negative, indicating how many NTs
-%        overhang Seq1 over Seq2.
-%    - OverhangDir is optional. Forces a preferred Seq1 overhang.
-%    - TrimThis is 1 by default. Trims poorly aligned ends.
+%  Score = convolveSeq(SeqA, SeqB)
 %
-%  convolveSeq(Seq1,Seq2,OverhangDir) will assume Seq1 has a
-%  left overhang (OverhangDir = -1), right overhang (OverhangDir = 1), or
-%  any overhang (OverhangDir = 0); *If OverhangDir = 'match', then it does
-%  NOT do any overhang match, and does a direct matching of Seq1 to Seq2,
-%  assuming they have the same lengths.
+%  [Score, Alignment] = convolveSeq(SeqA, SeqB,)
 %
-%  Example of Trim for poorly matched ends:
-%    Seq1 = 'TAATAATTAAT'
-%    Seq2 = 'TCCTAATTGGT'
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,0,1)
-%    Alignment =
-%         TAATAATTAAT
-%            |||||   
-%         TCCTAATTGGT
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,0,0)
-%    Alignment =
+%  [Score, Alignment, StartAt] = convolveSeq(SeqA, SeqB,)
+%
+%  [Score, Alignment, StartAt, MatchAt] = convolveSeq(SeqA, SeqB,)
+%
+%  [...] = convolveSeq(SeqA, SeqB, Param1, Value1, ...)
+%
+%  [...] = convolveSeq(SeqA, SeqB, P) where P is an input structure
+%  
+%  INPUTS
+%    SeqA: Character sequence. X = wildcard match. Z = do not match.
+%    SeqB: Character sequence. X = wildcard match. Z = do not match.
+%
+%  INPUTS (Param, [Value])
+%    AllowedMiss [Integer >= 0]: 
+%      How many letter, going left to right, can you miss to elongate a C
+%      segment.
+%    Alphabet ['nt','aa','any']
+%      Specify if it's a DNA/RNA or Amino Acid seq or any char. Used to
+%      relabel ambiguous characters to 'X' wildcard letter.
+%    TrimSide ['none','left','right','both']
+%      Will remove seq matches from the direction specified to increase the
+%      alignment quality near edges.
+%    PenaltySide ['none','left','right']
+%      Will reduce alignment score if the left or right portion of SeqA
+%      overhangs SeqB and is unused. Penalty is (unused nt)^2.
+%    PreferSide ['none','left','right']
+%      If a tie alignment is found, will favor the alignment closers to
+%      this side of SeqA.
+%    CheckSeq ['no','yes']
+%      If you think there is an ambiguous character in sequence, remove it,
+%      then set to 'no' as convolve seq will attempt replace with wildcard.
+%      HINT: better to remove ambiguous character and set to 'X' BEFORE
+%      running this.
+%    ExactMatch ['no','yes']
+%      If SeqA and SeqB are same lengths and you want to do a simple,
+%      direct alignment, then use 'yes'.
+%    
+%  INPUTS (Structure)
+%    For aligning a lot of sequences, use the structure-format input, as
+%    this saves time with input checking. Must be correctly made, since no
+%    error checking is done at this point.
+%         P.AllowedMiss = 0;
+%         P.Alphabet = 'nt';
+%         P.TrimSide = 'left';
+%         P.PreferSide = 'right';
+%         P.CheckSeq = 'yes';
+%         P.ExactMatch = 'no';
+%         P.DiagIdx = [];
+%         >> Score = convolveSeq(SeqA,SeqB,P)
+%
+%  OUTPUTS
+%    Score = 2x1 matrix, Score(1) is the # of hits, and Score(2) is the
+%      aligment score of BRILIA.
+%    Alignment = 3xM char matrix showing the alignment results of SeqA and
+%      SeqB. '|' in the 2nd char row marks locations of matches, while '-'
+%      in the 1st and 3rd row are unmatched letters.
+%    StartAt = 2x1 matrix, StartAt(1) is always 1 the SeqA start, and
+%      StartAt(2) is the SeqB start relative to the nth letter of SeqA. 
+%      EX: if StartAt(2) = 3, then SeqB aligns with A if its 1st letter
+%      start below the 3rd letter of SeqB. If StartAt(2) = -3, then the 1st
+%      letter of SeqB start left of SeqA's 1st letter by 3 letters (missing
+%      3 letters).
+%    MatchAt = 2x1 matrix showing the 1st and last location of the '|' in
+%      the Alignment char matrix.
+%
+%--------------------------------------------------------------------------
+%  EXAMPLES
+%    Case1) "TrimSide" edge cleaning
+%      SeqA = 'TAATAATTAAT'
+%      SeqB = 'TCCTAATTGGT'
+%      [Score, Alignment, StartAt, MatchAt] = convolveSeq(SeqA,SeqB)
+%      Score =
+%            7
+%           19
+%      Alignment =
 %         TAATAATTAAT
 %         |  |||||  |
 %         TCCTAATTGGT
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,1,1)
-%         TAATAATTAAT
-%         |  |||||   
-%         TCCTAATTGGT
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,-1,1)
+%      StartAt =
+%            1
+%            1
+%      MatchAt =
+%            1
+%           11
+%
+%      [Score, Alignment] = convolveSeq(SeqA,SeqB,'TrimSide','left')
+%       Alignment =
 %         TAATAATTAAT
 %            |||||  |
 %         TCCTAATTGGT
+%
+%      [Score, Alignment] = convolveSeq(SeqA,SeqB,'TrimSide','right')
+%       Alignment =
+%         TAATAATTAAT
+%         |  |||||   
+%         TCCTAATTGGT
+%
+%      [Score, Alignment] = convolveSeq(SeqA,SeqB,'TrimSide','both')
+%       Alignment =
+%         TAATAATTAAT
+%            |||||   
+%         TCCTAATTGGT
+%
+%    Case2) "PreferSide" tie-breaking
+%      SeqA = 'AAAA'
+%      SeqB = 'CAAAATTAAAATTAAAAC'
+%      [~, Alignment] = convolveSeq(SeqA,SeqB,'PreferSide','left')
+%       Alignment =
+%         -AAAA-------------
+%          ||||             
+%         CAAAATTAAAATTAAAAC
+%
+%      [~, Alignment] = convolveSeq(SeqB,SeqA,'PreferSide','left')
+%         CAAAATTAAAATTAAAAC
+%          ||||             
+%         -AAAA------------- 
+%
+%      [~, Alignment] = convolveSeq(SeqA,SeqB,'PreferSide','right')
+%       Alignment =
+%         -------------AAAA-
+%                      |||| 
+%         CAAAATTAAAATTAAAAC
+%
+%      [~, Alignment] = convolveSeq(SeqA,SeqB,'PreferSide','none')
+%       Alignment =
+%         -------AAAA-------
+%                ||||       
+%         CAAAATTAAAATTAAAAC
+%
+%    Case3) Wildcard matching and exact matching
+%      SeqA = 'CGAAXCAA'
+%      SeqB = 'ACGAACGA'
+%      [~, Alignment] = convolveSeq(SeqA,SeqB,'ExactMatch','no')
+%       Alignment =
+%         -CGAAXCAA
+%          ||||| |  
+%         ACGAACGA-
+%
+%      [~, Alignment] = convolveSeq(SeqA,SeqB,'ExactMatch','yes')
+%       Alignment =
+%         CGAAXCAA
+%            ||| |
+%         ACGAACGA
+%
+%    Case4) AllowedMiss scoring changes
+%      SeqA = 'ACGTGGTA'
+%      SeqB = 'ACATGATA'    
+%      [Score, Alignment] = convolveSeq(SeqA,SeqB,'ExactMatch','yes','AllowedMiss',0)
+%       Score =
+%           6
+%          10
+%       Alignment =
+%         ACGTGGTA
+%         || || ||
+%         ACATGATA
+%
+%      Score = convolveSeq(SeqA,SeqB,'ExactMatch','yes','AllowedMiss',1)
+%        Score =
+%            6
+%           19
+%
+%  See also makeDiagonalSeq, calcAlignScore, trimMatchResults
+function varargout = convolveSeq(SeqA,SeqB,varargin)
+%--------------------------------------------------------------------------
+%Input parsing
 
-%  Example of OverhandDir effect:
-%    Seq1 = 'CTTAGGAA'
-%    Seq2 = 'GGAACTTAGGAACTTA'
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,-1)
-%    Alignment =
-%         CTTAGGAA------------
-%             ||||            
-%         ----GGAACTTAGGAACTTA
-% 
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,0)
-%         Alignment =
-%         ----CTTAGGAA----
-%             ||||||||    
-%         GGAACTTAGGAACTTA
-%
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,+1)
-%         Alignment =
-%         ------------CTTAGGAA
-%                     ||||    
-%         GGAACTTAGGAACTTA----
-%
-%  Example of Match effect:
-%    Seq1 = 'ACGGT'
-%    Seq2 = 'CGGTT'
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,0)
-%        Alignment =
-%        ACGGT-
-%         |||| 
-%        -CGGTT
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,'match')
-%         ACGGT
-%           | |
-%         CGGTT
-%
-%  Tie breakers:
-%  1) If there are equal match/mismatch numbers, break ties based on
-%     longest consecutive match.
-%    Seq1 = 'CGGGC'
-%    Seq2 = 'CGTGCAAACGGTC'
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,0)
-%         Alignment =
-%         --------CGGGC
-%                 ||| |
-%         CGTGCAAACGGTC
+if isempty(varargin) %Use defaults
+    AllowedMiss = 0;
+    Alphabet = 'nt';
+    TrimSide = 'none';
+    PreferSide = 'none';
+    PenaltySide = 'none';
+    ExactMatch = 'no';
+    CheckSeq = 'no';
+    DiagIdx = [];
+else %User specified changes
+    if ~isstruct(varargin{1})
+        %Need to parse from scrap
+        P = inputParser;
+        addParameter(P,'AllowedMiss',0,@isnumeric);
+        addParameter(P,'Alphabet','nt',@(x) ischar(x) && ismember(lower(x),{'nt','aa','any'}));
+        addParameter(P,'TrimSide','none',@(x) ischar(x) && ismember(lower(x),{'none','left','right','both'}));
+        addParameter(P,'PenaltySide','none',@(x) ischar(x) && ismember(lower(x),{'none','left','right','both'}));
+        addParameter(P,'PreferSide','none',@(x) ischar(x) && ismember(lower(x),{'none','left','right'}));
+        addParameter(P,'ExactMatch','no',@(x) ischar(x) && ismember(lower(x),{'yes','no'}));
+        addParameter(P,'CheckSeq','no',@(x) ischar(x) && ismember(lower(x),{'yes','no'}));
+        addParameter(P,'DiagIdx',[],@isnumeric); %Used only to speed up convolve seq.
+        parse(P,varargin{:});
 
-%  2) If are still ties, win based on overhang direction.
-%    Seq1 = 'CCCC'
-%    Seq2 = 'CCCCTTTTCCCCTTTTCCCC'
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,-1)
-%         Alignment =
-%         CCCC----------------
-%         ||||                
-%         CCCCTTTTCCCCTTTTCCCC
-%
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,+1)
-%         Alignment =
-%         ----------------CCCC
-%                         ||||
-%         CCCCTTTTCCCCTTTTCCCC
-%
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,0)
-%         Alignment =
-%         --------CCCC--------
-%                 ||||        
-%         CCCCTTTTCCCCTTTTCCCC
-%
-%    X matching allowed here for nucleutides.
-%    Seq1 = 'AGXTXXT';
-%    Seq2 = 'CCCAGTAGTCCC';
-%    [Score, Alignment, StartAt] = convolveSeq(Seq1,Seq2,0)
-%         ---AGTXXT---
-%            ||||||   
-%         CCCAGTAGTCCC
-%  * If there are still ties, only select first occurence.
-%
-%    Seq1 = '******GACTGG';
-%    Seq2 = 'GACTATGACTGG';
-%    
-%
-%  Allow special scoring for mutations
-%    Seq1 = 'ACCGAT';
-%    Seq2 = 'ACTGGT';
-%    [Score, ~, ~] = convolveSeq(Seq1,Seq2,0,1,0);
-%        Score(3) = 4;
-%    [Score, ~, ~] = convolveSeq(Seq1,Seq2,0,1,1);
-%        Score(3) = 9;
-%
-function varargout = convolveSeq(Seq1,Seq2,varargin)
-%Establish default alignment settings
-OverhangDir = 0; %Default 0, best match without any overhang preference. 
-TrimEnds = 1; %Default 1, yes trim, but the side changes with OverhangDir. EX: If OverhangDir = 0 , Trim BOTH ends. OverhangDir = 1, trim right only. OverhangDir = -1, trim left only.
-AllowedMiss = 0; %This affects the calcAlignScore
-
-%All the options possible
-OverhangModes = {'LeftPad' 'Left' 'Any' 'Right' 'RightPad' 'Match' 'LeftPad'} ;
-OverhangModeNum = [-3 -1 0 1 -3 2];
-TrimEndsModes = {'none' 'trim' };
-TrimEndsModeNum = [0 1];
-
-%Modify defaults based on inputs. NOTE: Inputting number mode is faster
-%than text modes!
-if length(varargin) >= 1
-    if ischar(varargin{1})
-        for k = 1:length(OverhangModes)
-            if strcmpi(OverhangModes{k},varargin{1})
-                OverhangDir = OverhangModeNum(k);
-                break
-            end
-        end
+        AllowedMiss = P.Results.AllowedMiss;
+        Alphabet = lower(P.Results.Alphabet);
+        TrimSide = lower(P.Results.TrimSide);
+        PenaltySide = lower(P.Results.PenaltySide);
+        PreferSide = lower(P.Results.PreferSide);
+        CheckSeq = lower(P.Results.CheckSeq);
+        ExactMatch = P.Results.ExactMatch;
+        DiagIdx = P.Results.DiagIdx;
     else
-        OverhangDir = varargin{1};
+        %Advance user specified exact fields and values. 
+        %No error checking done! 
+        P = varargin{1};
+        AllowedMiss = P.AllowedMiss;
+        Alphabet = P.Alphabet;
+        TrimSide = P.TrimSide;
+        PenaltySide = P.PenaltySide;
+        PreferSide = P.PreferSide;
+        ExactMatch = P.ExactMatch;
+        CheckSeq = P.CheckSeq;
+        DiagIdx = P.DiagIdx;
+    end
+end
+
+%--------------------------------------------------------------------------
+%Input checking
+
+%Make sure SeqA and SeqB are 1xM char
+if iscell(SeqA)
+    SeqA = SeqA{1};
+    if size(SeqA,1) > 1
+        disp('Warning: SeqA should a 1x1 cell or 1xN char. Taking first one only');
+    end
+end
+if iscell(SeqB)
+    SeqB = SeqB{1};
+    if size(SeqB,1) > 1
+        disp('Warning: SeqB should a 1x1 cell or 1xN char. Taking first one only');
+    end
+end
+
+%Make sure SeqA and SeqB are all upper case
+SeqA = upper(SeqA);
+SeqB = upper(SeqB);
+
+%Check seq for ambiguous char, replacing them with X (HINT: Better to ensure no ambig char before convolveSeq)
+if strcmpi(CheckSeq(1),'n')
+    %Identify what are bad letters
+    switch Alphabet
+        case 'nt'
+            BadPattern = '[^ACGTUX]';
+        case 'aa'
+            BadPattern = ['[^' int2aa(1:20) 'X]'];
+        otherwise
+            BadPattern = '';
+    end
+
+    %Convert ambiguous characters to X.
+    BadLoc1 = regexp(SeqA,BadPattern);
+    SeqA(BadLoc1) = 'X';
+    BadLoc2 = regexp(SeqB,BadPattern);
+    SeqB(BadLoc2) = 'X';
+end
+
+%--------------------------------------------------------------------------
+%Alignment for Exact Match case
+
+if strcmpi(ExactMatch(1),'y')
+    %Check to make sure SeqA and SeqB are the same lengths.
+    if length(SeqA) ~= length(SeqB)
+        error('Error: SeqA and SeqB must be of same length for exact match.');
     end
     
-    if length(varargin) >= 2        
-        if ischar(varargin{2})
-            for k = 1:length(TrimEndsModes)
-                if strcmpi(TrimEndsModes{k},varargin{2})
-                    TrimEnds = TrimEndsModeNum(k);
-                    break
+    AnyMatchIdx = (SeqA == 'X') | (SeqB == 'X'); %Keep track of wildcard matches
+    MatchResults = (SeqA == SeqB);
+    MatchResults(AnyMatchIdx) = 1;
+
+    %Trim match results, which helps with poor end matches.
+    if ~strcmpi(TrimSide,'none');
+        GoodIdx = ones(1,length(SeqA),'logical'); %Forces score on all GoodIdx locations
+        [MatchResults,TrimIdx] = trimMatchResults(MatchResults,TrimSide);
+        GoodIdx(TrimIdx) = 0;
+    else
+        GoodIdx = []; %Forces score on only first to last match locations
+    end
+
+    %Consider implementing ins/del corrector here--------------------------
+
+    %Find the best alignments
+    AlignScores = calcAlignScore(MatchResults,AllowedMiss,GoodIdx);
+    
+    %Perform output calculations on a need basis
+    if nargout >= 1 %Return the match ct and score
+        varargout{1} = [sum(MatchResults); AlignScores];
+        if nargout >=2 %Return alignment
+            MatchPat = repmat(' ',1,length(SeqA));
+            MatchPat(MatchResults) = '|';
+            varargout{2} = [SeqA; MatchPat; SeqB];
+            if nargout >= 3 %Return start locs'
+                varargout{3} = [1; 1];
+                if nargout >= 4 %Return match locs
+                    MatchLoc = find(MatchPat == '|');
+                    if isempty(MatchLoc)
+                        MatchLoc = 0;
+                    end
+                    varargout{4} = [MatchLoc(1); MatchLoc(end)];
                 end
             end
-        else
-            TrimEnds = varargin{2};
         end
+    end
     
-        if length(varargin) >= 3
-            AllowedMiss = varargin{3}; %For the Leneient score mode.
-        end
+    return
+end
+
+%--------------------------------------------------------------------------
+%Alignment for General case
+
+%Perform pairwise comparison (Delay: 0.6s delay)
+[SeqTA,SeqTB,GoodIdx] = makeDiagonalSeq(SeqA,SeqB,DiagIdx);
+AnyMatchIdx = SeqTA == 'X' | SeqTB == 'X'; %Keep track of wildcard matches
+MatchResults = (SeqTA == SeqTB);
+MatchResults(AnyMatchIdx & GoodIdx) = 1;
+
+%Calculate the penalty of not matching left or right side of SeqA
+SidePenalty = zeros(size(MatchResults,1),1);
+if strcmpi(PenaltySide,'right') %Any unmatched sequence right of SeqA penalizes points!
+    SidePenalty(end-length(SeqA)+2:end) = [1:1:length(SeqA)-1].^2;
+elseif strcmpi(PenaltySide,'left') %Any unmatched sequence left of SeqA penalizes points!
+    SidePenalty(1:length(SeqA)-1) = [length(SeqA)-1:-1:1].^2;
+end
+
+%Pick the top 5 unique positives scores to pursue to speed up scoring.
+MatchSum = sum(MatchResults,2).^2 - sum((~MatchResults & GoodIdx),2).^2 - SidePenalty; %Should give you maximum score possible.
+[MatchSum,MatchIdx] = sort(MatchSum,'descend');
+q = 1;
+for k = 1:size(MatchSum,1)-1;
+    if MatchSum(k) ~= MatchSum(k+1)
+        q = q + 1;
+    end
+    if q > 5
+        break
     end
 end
+if isempty(k); k = 1; end
+MatchResults = MatchResults(MatchIdx(1:k),:);
+GoodIdx = GoodIdx(MatchIdx(1:k),:);
 
-%Error checking
-if OverhangDir == 2
-    if length(Seq1) ~= length(Seq2)
-        error('For option ''match'', length of Seq1 and Seq2 must be same.');
-    end
-end
-if iscell(Seq1) 
-    error('Seq1 should be a char array');
-end
+%----Consider implementing ins/del corrector here--------------------------
 
-%Format input to standardized format
-Seq1 = upper(Seq1);
-Seq2 = upper(Seq2);
-SeqMap = 1:(size(Seq1,2)+size(Seq2,2)); %Used to convert binary search to numeric indexes.
-
-%Check for existence of X in Seq2 anywhere;
-HaveX = 0;
-Xcheck2 = regexp(Seq2,'X','once');
-if ~isempty(Xcheck2)
-    HaveX = 1;
-end
-if HaveX == 0 %Do a final check on Seq1
-    for q = 1:size(Seq1,1)
-        Xcheck1 = regexp(Seq1(1,:),'X','once');
-        if ~isempty(Xcheck1)
-            HaveX = 1;
-            break
-        end
-    end
-end
-
-%Determine the shorter sequences & adjust OverhandDir too. Code works best
-%if Seq1 is shorter t han Seq2
-if size(Seq1,2) <= size(Seq2,2)
-    SeqB = Seq2;
-    FlipThis = 0;
+%Trim match results to ensure you get the best align score.
+if ~strcmpi(TrimSide,'none');
+    [MatchResults,TrimIdx] = trimMatchResults(MatchResults,TrimSide);
+    GoodIdx(TrimIdx) = 0;
 else
-    SeqA = Seq2;
-    OverhangDir = -OverhangDir;
-    FlipThis = 1; %Going to have to flip the results at the end.
-    %Also scale down the AllowedMiss for the short Seq
-    AllowedMiss = ceil(AllowedMiss / length(Seq1) * length(Seq2));
+    GoodIdx = [];
 end
 
-%==========================================================================
-%Enabling multiple alignment of trimmed, Seq1
-AllScores = cell(size(Seq1,1),1);
-AllAlignments = cell(size(Seq1,1),1);
-AllStartAts = cell(size(Seq1,1),1);
-AllMatchAts = cell(size(Seq1,1),1);
+%Find the best alignments (DELAY: 1.3s for all check, 0.1s for top 5 check);
+AlignScores = calcAlignScore(MatchResults,AllowedMiss,GoodIdx); %This makes it slower, due to nonlinear scoring function. Linear score function is 2x faster.
+BestScore = max(AlignScores);
+BestScoreLoc = find(AlignScores == BestScore);
 
-for q = 1:size(Seq1,1)
-    if FlipThis == 0
-        SeqA = Seq1(q,:);
-    else
-        SeqB = Seq1(q,:);
-    end
-
-    %Determine if there are any dummy * characters in any sequenc.
-    StarA = sum((SeqA == '*'));
-    StarB = sum((SeqB == '*'));
-    MaxOvlp = min([(length(SeqA) - StarA) (length(SeqB) - StarB)]);
-    
-    if q == 1 %You only do this once
-        if OverhangDir == 2 
-            SeqT = SeqB;
-            s1 = length(SeqA);
+%If more than 1 best scores, break tie by PreferSide.
+if length(BestScoreLoc) > 1 
+    if strcmpi(PreferSide,'left')
+        if length(SeqA) > length(SeqB)
+            GetIdx = length(BestScoreLoc);
         else
-
-            %Determine the search matrix (avoids the for loop checking)
-            if OverhangDir == -1
-                s1 = 1;
-                s2 = length(SeqA); %It's SeqA because otherwise, you don't force overhang matching.
-            elseif OverhangDir == 1
-                s1 = length(SeqB);
-                s2 = length(SeqA) + length(SeqB) - 1;
-            else
-                s1 = 1;
-                s2 = length(SeqA) + length(SeqB) - 1;
-            end
-            SeqT = makeDiagonalSeq(SeqA,SeqB,s1,s2);
+            GetIdx = 1;
         end
-
-        if HaveX == 1
-            SeqTn = (SeqT == 'X'); %This is used later to overrule "X" nt mismatch. X should match with any A G C T.
-        end
-        
-        %Get the number of NTs being matched per row of SeqT
-        SeqOvlp = sum((SeqT ~= '-'),2);
-        SeqOvlp(SeqOvlp > MaxOvlp) = MaxOvlp;
-    end
-    
-    SeqM = repmat(SeqA,size(SeqT,1),1);
-    
-    if HaveX == 1
-        SeqMn = (SeqM == 'X'); %This is used to overrule any "X" nt mismatch. X should match with ant A G C T.
-        SeqTM = (SeqT == SeqM) | SeqMn | SeqTn; %Matched Results, allowing for X matching too.
-        SeqDash = SeqT == '-'; %Gets rid of matching the X to '-'.
-        SeqTM(SeqDash) = 0;
-    else
-        SeqTM = (SeqT == SeqM);
-    end
-    
-    SumSeqTM = sum(SeqTM,2);
-    SeqIdentity = SumSeqTM.^2-(SeqOvlp-SumSeqTM).^2;  %Should give maximum possible score.
-    [SeqIdentity, SeqIdentityIdx] = sort(SeqIdentity,'descend');
-    
-    %Find the top 5 unique identities, avoiding using unique function
-    UnqIdentityScore = SeqIdentity(1);
-    UnqIdentityNum = 1;
-    TopMatchNum = 5;
-    for w = 2:length(SeqIdentity);
-        if UnqIdentityScore ~= SeqIdentity(w)
-            UnqIdentityNum = UnqIdentityNum + 1;
-            UnqIdentityScore = SeqIdentity(w);
-        end
-        if UnqIdentityNum > TopMatchNum
-            break
-        end
-        if SeqIdentity(w) < 0; break; end
-    end
-    EvalThese = SeqIdentityIdx(1:w);
-    if isempty(EvalThese); EvalThese = 1; end %caused of OverhangDir == 2.
-    
-    %Determine which 1st and last match occurrence
-    FitMatrix = zeros(size(SeqTM,1),3);
-    for b = 1:size(EvalThese,1)
-        j = EvalThese(b);
-        MatchIdx = SeqMap(SeqTM(j,:));
-        if isempty(MatchIdx); continue; end
-        
-        %Trim bad ends once EX: |__|__||||____| will become ||||
-        if TrimEnds == 1
-            if length(MatchIdx) >= 3;
-                if OverhangDir == -1 %Trim left ends
-                    MatchedNts = double(SeqTM(j,MatchIdx(1):end));
-                    MatchedNts(MatchedNts == 0) = -1;
-                    SumMatch = cumsum(MatchedNts);
-                    SumMatch(MatchedNts > 0) = 1; %Ensure the cut loc is at a mismatches
-                    CutLoc = find(SumMatch <= 0);
-                    if ~isempty(CutLoc)
-                        CutLoc = CutLoc(end);
-                        DelThese = MatchIdx(MatchIdx <= MatchIdx(1)+CutLoc-1);
-                        SeqTM(j,DelThese) = 0;
-                        MatchIdx(MatchIdx <= MatchIdx(1)+CutLoc-1) = [];
-                    end
-                                
-                elseif OverhangDir == 1 %Trim right ends
-                    MatchedNts = double(SeqTM(j,1:MatchIdx(end)));
-                    MatchedNts(MatchedNts == 0) = -1;
-                    MatchedNts = fliplr(MatchedNts);
-                    SumMatch = cumsum(MatchedNts);
-                    SumMatch(MatchedNts > 0) = 1;
-                    CutLoc = find(SumMatch <= 0);
-                    if ~isempty(CutLoc)
-                        CutLoc = CutLoc(end);
-                        DelThese = MatchIdx(MatchIdx >= MatchIdx(end)-CutLoc+1);
-                        SeqTM(j,DelThese) = 0;
-                        MatchIdx(MatchIdx >= MatchIdx(end)-CutLoc+1) = [];
-                    end
-                               
-                else
-                    if (MatchIdx(2) - MatchIdx(1)) >= 3 %Contains a double gap
-                        SeqTM(j,MatchIdx(1)) = 0; %1st, set to 0. This is used later for alignment.
-                        MatchIdx(1) = MatchIdx(2); %2nd, temp change for FitScore calc
-                    end
-                    if (MatchIdx(end) - MatchIdx(end-1)) >= 3 %Contains a double gap
-                        SeqTM(j,MatchIdx(end)) = 0; %1st, set to 0. This is used later for alignment.
-                        MatchIdx(end) = MatchIdx(end-1); %2nd, temp change for FitScore calc
-                    end
-                end
-            end
-        end
-        
-        if isempty(MatchIdx); continue; end
-        
-        FitMatrix(j,2) = MatchIdx(end) - MatchIdx(1) + 1;
-        
-        %Make the alignment 3xN char array early
-        if OverhangDir == -1
-            g1 = MatchIdx(1);
-            g2 = size(SeqTM,2);
-        elseif OverhangDir == 1
-            g1 = 1;
-            g2 = MatchIdx(end);
+    elseif strcmpi(PreferSide,'right')
+        if length(SeqA) > length(SeqB)
+            GetIdx = 1;
         else
-            g1 = MatchIdx(1);
-            g2 = MatchIdx(end);            
+            GetIdx = length(BestScoreLoc);
         end
-        MatchedResults = SeqTM(j,g1:g2);
-            
-%         TopSeq = SeqA(MatchIdx(1):MatchIdx(end));
-%         BotSeq = SeqT(j,MatchIdx(1):MatchIdx(end));
-%         MidSeq = repmat(' ',1,length(TopSeq));
-%         MidSeq(SeqTM(j,MatchIdx(1):MatchIdx(end))) = '|';
-%         if FlipThis == 0
-%             Alignment = [TopSeq; MidSeq; BotSeq];
-%         else
-%             Alignment = [BotSeq; MidSeq; TopSeq];
-%         end
-%         
-        FitMatrix(j,3) = calcAlignScore(MatchedResults,AllowedMiss);
-    end
-    
-    FitMatrix(:,1) = sum(SeqTM,2); %Calculate sum of matches
-    BestMatch = find(FitMatrix(:,3) == max(FitMatrix(:,3)));
-
-    %If there's a tie, win base on OverhangDir
-    if length(BestMatch) >  1
-        if OverhangDir == 1 %Take one with more left overhang
-            BestMatch = BestMatch(end);
-        elseif OverhangDir == -1 %Take one with more right overhang
-            BestMatch = BestMatch(1);
-        else %Look for "middle" BestMatch
-            BestMatch = BestMatch(round(length(BestMatch)/2));
-        end
-    end
-
-    %Determine the start loc of Seq2, and final alignment length
-    Seq2start = BestMatch - (length(SeqA) - 1) + (s1 - 1); %Negative values possible.
-    if Seq2start <= 0; Seq2start = Seq2start - 1; end %This is done since there is no "0" start loc.
-    if Seq2start < 0;
-        TotalLen = abs(Seq2start) + length(SeqB);
     else
-        TotalLen = Seq2start + length(SeqA)-1;
-        if TotalLen < length(SeqB)
-            TotalLen = length(SeqB);
-        end       
+        GetIdx = round(length(BestScoreLoc)/2);
     end
+    BestScoreLoc = BestScoreLoc(GetIdx);
+end
 
-    AllScores{q} = FitMatrix(BestMatch,1:3)';
-    
-    if nargout >= 2
+%Get the actual location of the full-length MatchResults, which is used to
+%calculate the alignment positions later
+BestMatchLoc = MatchIdx(BestScoreLoc);
+BestMatch = MatchResults(BestScoreLoc,:);
+
+%Perform output calculations on a need basis
+if nargout >= 1 %Return the match ct and score
+    varargout{1} = [sum(BestMatch); BestScore];
+
+    if nargout >= 2 %Return the alignment
+        %Now determine start and ends for alignments.
+        BleftPad = length(SeqA) - BestMatchLoc; %How many B left pad
+        BleftTrim = 0; %How many B left trim
+        if BleftPad < 0
+            BleftTrim = abs(BleftPad); 
+            BleftPad = 0;
+        end
+        
+        BrightTrim = length(SeqB) - BestMatchLoc; %How many B right trim
+        if BrightTrim < 0
+            BrightTrim = 0;
+        end
+
         %Make the alignment 3xN char array
-        Alignment = repmat(['-';' ';'-'],1,TotalLen); 
-        MatchPat(1:length(SeqA)) = ' ';
-        MatchPat(SeqTM(BestMatch,:)) = '|';
-        if Seq2start < 0
-            Alignment(1,1:length(SeqA)) = SeqA;
-            Alignment(2,1:length(SeqA)) = MatchPat;
-            Alignment(3,abs(Seq2start)+1:abs(Seq2start)+length(SeqB)) = SeqB;
+        TotalLen = BleftTrim + BrightTrim + length(SeqA);
+        Alignment = repmat(['-';' ';'-'],1,TotalLen);
+        MatchPat = repmat(' ',1,length(BestMatch));
+        MatchPat(BestMatch) = '|';
+        Alignment(2,BleftTrim+1:BleftTrim+length(BestMatch)) = MatchPat;
+
+        %Determine the SeqA and SeqB alignment locations
+        SeqAstart = 1; %Always 1, the anchor point
+        SeqBstart = BleftPad - BleftTrim; %Negative value is how many nts SeqB is not overlapping with SeqA, left side. Marks where SeqB begins relative to SeqA.
+        if SeqBstart >= 0
+            SeqBstart = SeqBstart + 1; %Ensure always 1, but no 0.
+        end
+
+        if SeqBstart < 0
+            Alignment(1,abs(SeqBstart)+1:abs(SeqBstart)+1+length(SeqA)-1) = SeqA;
+            Alignment(3,1:1+length(SeqB)-1) = SeqB;
         else
-            Alignment(1,Seq2start:Seq2start+length(SeqA)-1) = SeqA;
-            Alignment(2,Seq2start:Seq2start+length(SeqA)-1) = MatchPat;
-            Alignment(3,1:length(SeqB)) = SeqB;
+            Alignment(1,SeqAstart:SeqAstart+length(SeqA)-1) = SeqA;
+            Alignment(3,SeqBstart:SeqBstart+length(SeqB)-1) = SeqB;
         end
-
-        %Flip the stuff
-        if FlipThis == 1
-            Alignment = flipud(Alignment);
-            Seq2start = -Seq2start + 1;
-            if Seq2start == 0
-                Seq2start = 1;
-            end
-        end
-
-        %format output
-        AllAlignments{q} = Alignment;
-        AllStartAts{q} = [1; Seq2start];
-        if nargout == 4
-            MatchIdx = SeqMap(Alignment(2,:)=='|');
-            if isempty(MatchIdx)
-                MatchIdx = [0 0];
-            end
-            AllMatchAts{q} = [MatchIdx(1); MatchIdx(end)];
-        end
-    end
-end
-
-%Format outputs
-if size(Seq1,1) == 1
-    if nargout >= 1
-        varargout{1} = AllScores{1};
-        if nargout >= 2
-            varargout{2} = AllAlignments{1};
-            if nargout >= 3
-                varargout{3} = AllStartAts{1};
-                if nargout >= 4
-                    varargout{4} = AllMatchAts{1};
-                end
-            end
-        end
-    end
-else %Save outputs as cells
-    if nargout >= 1
-    varargout{1} = AllScores;
-        if nargout >= 2
-            varargout{2} = AllAlignments;
-            if nargout >= 3
-                varargout{3} = AllStartAts;
-                if nargout >= 4
-                    varargout{4} = AllMatchAts;
+        varargout{2} = Alignment;
+        
+        if nargout >= 3 %Return the StartAt info
+            varargout{3} = [SeqAstart; SeqBstart];
+            
+            if nargout >= 4 %Return the MatchAt info
+                MatchLoc = find(Alignment(2,:) == '|');
+                if isempty(MatchLoc)
+                    varargout{4} = [0;0];
+                else
+                    varargout{4} = [MatchLoc(1); MatchLoc(end)];
                 end
             end
         end

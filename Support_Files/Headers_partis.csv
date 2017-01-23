@@ -1,0 +1,28 @@
+partis;Description
+unique_ids;Unique seq name
+v_gene;V gene name
+d_gene;D gene name
+j_gene;J gene name
+cdr3_length;CDR3 nucleotide length
+seqs;Trimmed-Aligned Seq (also the formatted seq)
+naive_seq;Parent Seq, or Germline Seq if 1st seq in group.
+indelfos;Indel information and reverse seq
+aligned_v_seqs;V alignment results
+aligned_d_seqs;D alignment results
+aligned_j_seqs;J alignment results
+v_per_gene_support;List of V genes
+d_per_gene_support;List of D genes
+j_per_gene_support;List od J genes
+v_3p_del;# of nts deleted V3' end 
+d_5p_del;# of nts deleted D5' end 
+d_3p_del;# of nts deleted D3' end
+j_5p_del;# of nts deleted J5' end 
+v_5p_del;# of nts deleted V5' end 
+j_3p_del;# of nts deleted J3' end 
+vd_insertion;Nvd sequence
+dj_insertion;Ndj sequence
+fv_insertion;Unknown
+jf_insertion;Unknown
+mutated_invariants;Unknown
+in_frames;Is it in-frame? True of false   (If in_frames=true, stops = false, you have "productive CDR3")
+stops;Does it have stop codons? True or false

@@ -2,11 +2,15 @@
 %and then save it into a delimited file. Works better than dlmwrite and
 %csvwrite.
 %
-%  writeDlmFile(CellData,OutputFile,D)
-%    CellData = cell array (without an embeded cell in a cell);
-%    OutputFile = full name of the file to be saved to
+%  writeDlmFile(CellData,OutputFile,Delimiter)
 %
-%    
+%  INPUT
+%    CellData: cell array (but must not have an embeded cell in a cell);
+%    OutputFile: full name of the file to be saved to
+%    Delimiter [';' ',' '\t]: Separater marker between data. Default ';'.
+%
+%  See also readDlmFile
+
 function writeDlmFile(CellData,OutputFile,varargin)
 %Convert all cell inputs as strings only
 for j = 1:size(CellData,1)
@@ -25,12 +29,14 @@ for j = 1:size(CellData,1)
 end
 
 %Create the format
-D = '\t';
+Delimiter = ';';
 if length(varargin) == 1
-    D = varargin{1};
+    Delimiter = varargin{1};
 end
-DataFormat = ['%s' D];
+DataFormat = ['%s' Delimiter];
 TxtForm = [repmat(DataFormat,1,size(CellData,2)-1) '%s\n'];
+
+%Save the file
 FID = fopen(OutputFile,'w');
 for j = 1:size(CellData,1)
     fprintf(FID,TxtForm,CellData{j,:});

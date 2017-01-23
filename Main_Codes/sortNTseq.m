@@ -130,7 +130,7 @@ if exist('FileName','var')
     VDJdata = VDJdata(NTmaps(:,2),:);
 
     %Add the SeqNum and GroupNum into the file.
-    SeqNumLoc = findHeader(NewHeader,'SeqNum');
+    SeqNumLoc = findCell(NewHeader,'SeqNum');
     if SeqNumLoc == 0    
         NewHeader = cat(2,NewHeader,{'SeqNum'});
         VDJdata = cat(2,VDJdata,num2cell(NTmaps(:,2)));
@@ -146,7 +146,7 @@ if exist('FileName','var')
     end
 
     %Add the Group Num information
-    GroupNumLoc = findHeader(NewHeader,{'GroupNum'});
+    GroupNumLoc = findCell(NewHeader,{'GroupNum'});
     if GroupNumLoc == 0
         NewHeader = cat(2,NewHeader,{'GroupNum'});
         VDJdata = cat(2,VDJdata,num2cell(NTmaps(:,1)));

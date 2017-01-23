@@ -1,17 +1,28 @@
-%findConsecLoc will take a binary array and locate the furthest X number of
-%consecutive 1's away from the start location ('left' or 'right').
+%findConsecLoc will take a binary array and locate the "furthest" position
+%of a consecutively matched segment that is away from either the left or
+%right side of a logical array. Used mainly in trimGeneEdge.
 %
-%  TrimLen = findConsecLoc(Q,MinConsec,StartSide) where Q is a binary 1 0
-%  matrix, MinConsec is the number of consecutive matches to consider, and
-%  StartSide is either 'left' or 'right'.
+%  TrimLen = findConsecLoc(Q,MinConsec,StartSide) 
 %
-%  EX:
-%    Q = [0 1 1 1 0 0 1 1 1 1 0 0];
+%  INPUTS
+%    Q: A 1xN logical matrix
+%    MinConsec: Minimum number of consecutive matches to find
+%    StartSide ['left','right']: Start looking from this side
+%  
+%  OUTPUTS
+%    TrimLen: Number of nts to trim to cover the consective matched region.
+%
+%  EXAMPLE
+%    Q = [0 1 1 1 0  1 1 1 0 1 1 1 1 0 0];
 %    MinConsec = 3;
 %    TrimLen = findConsecLoc(Q,MinConsec,'left')
-%      TrimLen = 10
+%    TrimLen = 
+%           13
 %    TrimLen = findConsecLoc(Q,MinConsec,'right')
-%      TrimLen = 11
+%    TrimLen = 
+%           14
+%
+%  See also trimGeneEdge
 
 function TrimLen = findConsecLoc(Q,MinConsec,StartSide)
 if MinConsec <= 0

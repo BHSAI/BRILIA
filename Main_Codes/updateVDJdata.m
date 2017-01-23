@@ -1,17 +1,14 @@
-function VDJdata = updateVDJdata(VDJdata,NewHeader,varargin)
-%Extract the VDJ database
-if length(varargin) == 3
-    Vmap = varargin{1};
-    Dmap = varargin{2};
-    Jmap = varargin{3};
-else
-    [Vmap, Dmap, Jmap] = getCurrentDatabase;
-end
+%updateVDJdata will perform simple updates to VDJ data, EXCEPT for building
+%the reference sequences as this requires some user input.
+%
+%  VDJdata = updateVDJdata(VDJdata,NewHeader)
+%
+%  VDJdata = updateVDJdata(VDJdata,NewHeader,Vmap,Dmap,Jmap)
 
-%Fill in the details now
-VDJdata = buildRefSeq(VDJdata,NewHeader,'germline','first'); %must do singles, since group therapy not done.
-VDJdata = buildVDJalignment(VDJdata,NewHeader,Vmap,Dmap,Jmap); %Alignment Info
+function VDJdata = updateVDJdata(VDJdata,NewHeader,varargin)
+
+VDJdata = buildVDJalignment(VDJdata,NewHeader,varargin); %Alignment Info
 VDJdata = makeClassifier(VDJdata,NewHeader); %Classifier + FormattedSeq
-VDJdata = appendMutCt(VDJdata,NewHeader); %SHM infor on the VMDNJ segments
-VDJdata = findCDR3(VDJdata,NewHeader); %Get the CDR3 seq and info 
-VDJdata = labelNonprodVDJ(VDJdata,NewHeader);
+VDJdata = findCDR3(VDJdata,NewHeader,varargin); %Get the CDR3 seq and info 
+VDJdata = countSHM(VDJdata,NewHeader); %SHM info on the VMDNJ segments
+VDJdata = labelNonprodVDJ(VDJdata,NewHeader,varargin); %Double check what is functional or not.
