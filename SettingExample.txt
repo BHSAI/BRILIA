@@ -1,0 +1,9 @@
+Date = 01-Jan-2017    %Not important, but good for book keeping.  dd-mmm-yyyy   
+Species = 'mouse';
+Strain = 'C57BL';
+Ddirection = 'all';
+Vfunction = 'all';
+DevPerc = 3;
+FileType = 'delimited';
+Delimiter = ';';
+CheckSeqDir = 'n';
