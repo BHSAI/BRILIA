@@ -1,5 +1,0 @@
-# Ignore updates to github readme files
-*.md
-
-# Ignore updates to self
-*.gitignore

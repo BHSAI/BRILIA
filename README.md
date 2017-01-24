@@ -4,7 +4,7 @@
 ## REFERENCE:
 [Lee, D.W., I. Khavrutskii, A. Wallqvist, S. Bavari, C. Cooper, and S. Chaudhury. BRILIA: Integrated Tool for High-Throughput Annotation and Lineage Tree Assembly of B-Cell Repertoires. Frontiers in Immunology, 2017. 7(681).](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full)
 
-## CONTACT INFO
+## CONTACT INFO:
 *Corresponding author (Sid): schaudhury@bhsai.org  
 *First author (Donald): dlee@bhsai.org
 
@@ -36,3 +36,9 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/D
 5. BRILIA should create a new folder called BRILIA and save the output results in that folder.
 
 The program is distributed under the [GNU General Public License] (http://www.gnu.org/licenses/gpl.html).
+
+
+## UPCOMING UPDATES (Proposed on 2017-01-24)
+  *  Will update the data plotting functions
+  *  Will add CDR1 and CDR2 into the outputs
+  *  Will enforce quality control to ensure nonsensical CDR3 or VDJ annotations are removed and placed into Unprocessed
