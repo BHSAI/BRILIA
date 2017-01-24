@@ -49,7 +49,7 @@
 %  Last updated on Jan 2017
 
 function varargout = BRILIA(varargin)
-Version = '2.0.1'; %Version Number
+Version = '2.0.2'; %Version Number
 
 %Make sure BRILIA paths are added correctly
 CurPaths = regexp(path,';','split')';
