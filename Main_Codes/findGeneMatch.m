@@ -159,7 +159,7 @@ if strcmpi(P.ExactMatch(1),'n')
     FitScore = zeros(1,size(Xmap,1));
     for x = 1:size(Xmap,1)
         if isempty(Xmap{x,1}); continue; end
-        [ScoreT,~] = convolveSeq(Seq,Xmap{x,1},P);
+        ScoreT = convolveSeq(Seq,Xmap{x,1},P);
         FitScore(1,x) = ScoreT(2);
     end
     BestXmapNum = find(FitScore == max(FitScore)); %The index number in Xmap of best matches

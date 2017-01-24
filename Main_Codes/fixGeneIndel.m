@@ -17,8 +17,8 @@ else
 end
 getHeaderVar;
 
-BadIdx = zeros(size(VDJdata,1),'logical');
-UpdateIdx = zeros(size(VDJdata,1),'logical');
+BadIdx = zeros(size(VDJdata,1),1,'logical');
+UpdateIdx = zeros(size(VDJdata,1),1,'logical');
 for j = 1:size(VDJdata,1)
     try
         %Correct if deletion is too excessive

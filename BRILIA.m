@@ -13,16 +13,17 @@
 %  INPUT
 %    FullFileNames: char or cell name(s) of the sequence file(s) to process
 %    Param, Value pairs are for specific setting as follows
-%         SettingName     Valid Options           This sets:
-%         -----------     ----------------------  -------------------------
-%         SettingsFile    SettingsName.txt        All settings below
+%         Setting Name    Valid Options           This sets:
+%         ------------    ----------------------  -------------------------
+%         SettingsFile    [SettingsFile.txt]      All settings specified by
+%                                                   a txt file
 %
 %         Species         'human' 'mouse' etc     VDJ database by species
 %         Strain          'all' 'C57BL' etc       VDJ database by strain
 %         Ddirection      'all' 'fwd' 'inv'       Allowed D gene direction
 %         Vfunction       'all' 'f' 'p' 'orf'     Allowed V gene functions
 %         DevPerc         0 <= N <= 100           Clustering cutoff dist by
-%                                                    of seq length
+%                                                   of seq length
 %         FileType        'fasta', 'fastaq',      Input file type
 %                         'excel', 'delimited'    
 %         Delimiter       ';' ',' '\t' ''         Delimiter type (empty for
@@ -91,9 +92,9 @@ if HaveSettingFile == 0
     addParameter(P,'Ddirection','all',@(x) ischar(x) && ismember(lower(x),{'all','fwd','inv'}));
     addParameter(P,'Vfunction','all',@(x) ischar(x) && min(ismember(regexpi(lower(x),',','split'),{'all','f','p','orf'}))==1);
     addParameter(P,'DevPerc',3,@(x) isnumeric(x) && (x>=0) && (x<=100)); %For clustering purposes. Set empty to force user to input it later.
-    addParameter(P,'FileType','delimited',@ischar);
+    addParameter(P,'FileType','',@ischar); %Will make input reader determine file type
     addParameter(P,'Delimiter',';',@(x) ischar(x) && ismember(x,{';' ',' '\t' ''}));
-    addParameter(P,'CheckSeqDir','y',@ischar);
+    addParameter(P,'CheckSeqDir','n',@ischar);
     parse(P,varargin{:});
     P = P.Results;
 end
@@ -107,18 +108,6 @@ Strain = P.Strain;
 FileType = P.FileType;
 Delimiter = P.Delimiter;
 CheckSeqDir = P.CheckSeqDir;
-
-%Used to help with debugging. Modify as needed.
-% FullFileName = '';
-% SkipFirstMatch = 0;
-% DevPerc = 5;
-% Vfunction = 'all';
-% Ddirection = 'all';
-% Species = 'mouse';
-% Strain = 'C57BL';
-% FileType = '';
-% Delimiter = '\t';
-% CheckSeqDir = 'n';
 
 %Load databases and filter reference genese according to specifications
 [Vmap, Dmap, Jmap] = getCurrentDatabase('change',Species);
@@ -139,16 +128,19 @@ end
 
 RunTime = zeros(length(FileNames),1);
 SeqCount = zeros(length(FileNames),1);
-
-% save('temp.mat','FullFileNames','DevPerc','Vfunction','Ddirection','Species','Strain','FileType','Delimiter','CheckSeqDir','Vmap','Dmap','Jmap')
+ 
+%For debugging only. Save current variables so you can run each code,
+%line by line.
+%
+% save('temp.mat')
 % return
 
 for f = 1:length(FullFileNames)
     try
-        tic
-
+%         tic
+% 
         %Open file and extract nucleotide information, or directly use input NTseq
-        [VDJdata,NewHeader,FileName,~] = convertInput2VDJdata(FullFileNames{f},'FileType',FileType,'Delimiter',Delimiter);
+        [VDJdata,NewHeader,FileName,FilePath] = convertInput2VDJdata(FullFileNames{f},'FileType',FileType,'Delimiter',Delimiter);
         BadVDJdata = {}; %For storing unprocessed sequences
         getHeaderVar;
 
@@ -258,11 +250,11 @@ for f = 1:length(FullFileNames)
 
         %Clear big data cells before running next file
         clear VDJdata BadVDJdata
-    catch
-        %Clear big data cells before running next file
-        disp(['Fatal error processing: ' FileNames{f} ' . Check Delimiter and FileType inputs']);
-        clear VDJdata BadVDJdata
-    end
+%     catch
+%         %Clear big data cells before running next file
+%         disp(['Fatal error processing: ' FileNames{f} ' . Check Delimiter and FileType inputs']);
+%         clear VDJdata BadVDJdata
+%     end
 end
 
 %Return output if needed

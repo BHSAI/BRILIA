@@ -132,12 +132,14 @@ parfor j = 1:size(VDJdata,1)
         D3del = Dmatch{1,3}(3);
         Jdel = Jmatch{1,3}(1);
         Tdata(1,DelLoc) = num2cell([Vdel D5del D3del Jdel]);
-
+        
         %Extract the gene family map number and family resolution
         Tdata(1,FamNumLoc) = [Vmatch(1,1) Dmatch(1,1) Jmatch(1,1)];
         Tdata(1,FamLoc) = [Vmatch(1,2) Dmatch(1,2) Jmatch(1,2)];
-        VDJdata(j,:) = Tdata;
 
+        %Perform quality control check
+        
+        VDJdata(j,:) = Tdata;
     catch
         BadIdx(j) = 1;
     end

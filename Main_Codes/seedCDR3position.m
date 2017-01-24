@@ -27,13 +27,16 @@ P.CheckSeq = 'yes';
 P.ExactMatch = 'no';
 P.DiagIdx = [];
 P.PreferSide = 'none';
-P.PenaltySide = 'none';
 if strcmpi(X,'V')
     P.TrimSide = 'right';
     P.PreferSide = 'left';
+    P.PenaltySide = 'left';
+    SpecSeed = 'TGT'; %conserved C
 elseif strcmpi(X,'J')
     P.TrimSide = 'left';
     P.PreferSide = 'right';
+    P.PenaltySide = 'right';
+    SpecSeed = 'TGG'; %conserved W
 end
 CheckSeqDir = CheckSeqDir(1);
 
@@ -66,14 +69,22 @@ parfor j = 1:size(VDJdata,1)
             AlignScoresR(v,:) = [Score(1)/(diff(MatchAt)+1) Score(2) StartAt(2)];
         end
 
-        %Accept complement sequence if it's a higher score
+        %Accept complement sequence if it's a higher score AND less positions
         if max(AlignScoresR(:,2)) > max(AlignScores(:,2))
-            Tdata{1,SeqLoc} = SeqNTR;
-            AlignScores = AlignScoresR;
+            FwdPos = unique(AlignScores(:,3));
+            RevPos = unique(AlignScores(:,3));
+            if length(RevPos) <= length(FwdPos) %Means seeds are converging more on reverse direction          
+                Tdata{1,SeqLoc} = SeqNTR;
+                AlignScores = AlignScoresR;
+            end
         end
     end
-
-%     %Find the best score that also has 80% match, or sequences that that
+    
+    %Do the special seed for V and J, which is the 'TGT' and the 'TGG'
+    SpecPos = regexp(SeqNT,SpecSeed);
+    AllPos = unique([AlignScores(:,3); SpecPos(:)]);
+    
+    %Find the best score that also has 80% match, or sequences that that
 %     %have 95% match and alignment score > (75% of seed length)^2. Should be
 %     %stringent as you want good seeds. If it fails, all that happens is a
 %     %full search thats slightly slower.
@@ -88,11 +99,11 @@ parfor j = 1:size(VDJdata,1)
     %correct seed location later. If you try to select seed now, you will
     %lose key locations.
     if strcmpi(X,'V') %for V, fill in CDR3 start positions
-        CDR3pos = unique(AlignScores(:,3));
+        CDR3pos = AllPos;
         CDR3pos(CDR3pos > length(SeqNT)) = [];
         Tdata{1,CDR3startLoc} = CDR3pos';
     else %For J, fill in CDR3 end positions
-        CDR3pos = unique(AlignScores(:,3) + 2); %Need to include 2 nt of codon.
+        CDR3pos = AllPos + 2; %Need to include 2 nt of codon.
         CDR3pos(CDR3pos > length(SeqNT)) = [];
         Tdata{1,CDR3endLoc} = CDR3pos';
     end

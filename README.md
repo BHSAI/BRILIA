@@ -10,7 +10,7 @@
 
 ## PURPOSE:
 
-BRILIA is designed to annotate a repertoire of B-cell receptor sequences across the VDJ junction. It returns the CDR3 regions, VDJ germline gene predictions, and also phylogeny relationships among B cells. For more information on how BRILIA works, please read the methods article cited above.
+BRILIA is designed to annotate a repertoire of B-cell receptor, heavy-chain sequences across the VDJ junction. It returns the CDR3 regions, VDJ germline gene predictions, and also phylogeny relationships among B cells. For more information on how BRILIA works, please read the methods article cited above.
   
 ## INPUT FILES (see Example_Files folder): 
 
@@ -23,13 +23,12 @@ Takes fasta, fastq, csv, xlsx, or xlsx file containing, hopefully, the full VDJ 
 
 ## OUTPUT FILE (see Example_Files folder): 
 
-Returns a semicolon-delimited CSV file listing the annotation results and phylogeny relationships among sequences. Will create and save to a new folder called BRILIA, and append BRILIAvXX at the end of the file name, where "XX" is the version number (currently 13).
-
-See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/Dev14/Support_Files/Headers_BRILIA.xlsx).
+Returns a semicolon-delimited CSV file listing the annotation results and phylogeny relationships among sequences. Will create and save to a new folder called BRILIA, and append BRILIAvX.Y.Z at the end of the file name, where X.Y.Z is the version number.  
+See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/Dev14/Support_Files/Headers_BRILIA.csv).
 
 ## MATLAB SOURCE CODE USAGE (requires bioinformatics toolbox):
 
-1. Copy all codes into a folder called BRILIA_X.Y.Z  where X.Y.Z is the version number
+1. Copy all codes into a folder called BRILIA (Delete any older BRILIA folder, as this could cause code conflict).
 2. Open MATLAB and set the working directory to the BRILIA folder.
 3. Type "BRILIA" in the command line and follow instructions. First time use will automatically add BRILIA paths. 
 4. Select the input file to process (try the example input files shown in the Example folder). 
@@ -37,8 +36,8 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/D
 
 The program is distributed under the [GNU General Public License] (http://www.gnu.org/licenses/gpl.html).
 
-
 ## UPCOMING UPDATES (Proposed on 2017-01-24)
   *  Will update the data plotting functions
   *  Will add CDR1 and CDR2 into the outputs
-  *  Will enforce quality control to ensure nonsensical CDR3 or VDJ annotations are removed and placed into Unprocessed
+  *  Will enforce quality control to ensure nonsense CDR3 or VDJ annotations are removed and placed into [FileName]Err.csv
+  *  Will replace try/catch with validation codes, since former method is generally slower.
