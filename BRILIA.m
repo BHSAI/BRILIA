@@ -250,11 +250,11 @@ for f = 1:length(FullFileNames)
 
         %Clear big data cells before running next file
         clear VDJdata BadVDJdata
-%     catch
-%         %Clear big data cells before running next file
-%         disp(['Fatal error processing: ' FileNames{f} ' . Check Delimiter and FileType inputs']);
-%         clear VDJdata BadVDJdata
-%     end
+    catch
+        %Clear big data cells before running next file
+        disp(['Fatal error processing: ' FileNames{f} ' . Check Delimiter and FileType inputs']);
+        clear VDJdata BadVDJdata
+    end
 end
 
 %Return output if needed
