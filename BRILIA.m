@@ -137,8 +137,8 @@ SeqCount = zeros(length(FileNames),1);
 
 for f = 1:length(FullFileNames)
     try
-%         tic
-% 
+        tic
+
         %Open file and extract nucleotide information, or directly use input NTseq
         [VDJdata,NewHeader,FileName,FilePath] = convertInput2VDJdata(FullFileNames{f},'FileType',FileType,'Delimiter',Delimiter);
         BadVDJdata = {}; %For storing unprocessed sequences
