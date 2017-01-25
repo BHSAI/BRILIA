@@ -5,8 +5,8 @@
 [Lee, D.W., I. Khavrutskii, A. Wallqvist, S. Bavari, C. Cooper, and S. Chaudhury. BRILIA: Integrated Tool for High-Throughput Annotation and Lineage Tree Assembly of B-Cell Repertoires. Frontiers in Immunology, 2017. 7(681).](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full)
 
 ## CONTACT:
-*Donald for questions about BRILIA software, bugs, etc: dlee@bhsai.org
-*Sid for questions about the immunosequencing research we do: schaudhury@bhsai.org
+  *  Donald for questions about BRILIA software, bugs, etc: dlee@bhsai.org  
+  *  Sid for questions about the immunosequencing research we do: schaudhury@bhsai.org
 
 ## PURPOSE:
 
