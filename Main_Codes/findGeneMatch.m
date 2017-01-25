@@ -35,6 +35,8 @@ if iscell(Seq)
     Seq = Seq{1};
 end
 
+X = upper(X);
+
 %Determine if a valid, nonzero CDR3anchor was given.
 if ~isempty(varargin)
     CDR3anchor = sort(varargin{1});
@@ -50,15 +52,15 @@ P.AllowedMiss = AllowedMiss;
 P.Alphabet = 'nt';
 P.CheckSeq = 'yes'; %Assumes ambig char taken char of before this.
 P.DiagIdx = [];
-if strcmpi(X,'V')
+if X == 'V'
     P.TrimSide = 'right';
     P.PreferSide = 'left';
     P.PenaltySide = 'left';
-elseif strcmpi(X,'J')
+elseif X == 'J'
     P.TrimSide = 'left';
     P.PreferSide = 'right';
     P.PenaltySide = 'right';
-elseif strcmpi(X,'D')
+elseif X == 'D'
     P.TrimSide = 'both';
     P.PreferSide = 'none';
     P.PenaltySide = 'none';
@@ -73,7 +75,7 @@ end
 %Find the best ref gene map.
 
 %If CDR3 anchors are provided, try to use this first to find gene match.
-if strcmpi(P.ExactMatch(1),'y')
+if P.ExactMatch(1) == 'y'
     %Determine best fit ref gene number via NT matching
     FitScore1 = zeros(length(CDR3anchor),size(Xmap,1)); %Match/mismatch
     FitScore2 = zeros(length(CDR3anchor),size(Xmap,1)); %Align Score
@@ -82,9 +84,9 @@ if strcmpi(P.ExactMatch(1),'y')
         if isempty(Xmap{x,1}); continue; end %Deleted reference seq       
         if Xmap{x,10} == 0; continue; end %No valid anchor available
         
-        if strcmpi(X,'V')
+        if X == 'V'
             Xanchor = length(Xmap{x,1}) - Xmap{x,10} + 1; %CDR3start location (1st nt of codon)
-        else
+        else 
             Xanchor = Xmap{x,10} + 2; %CDR3end location (3rd nt of codon)
         end
         
@@ -101,11 +103,11 @@ if strcmpi(P.ExactMatch(1),'y')
                 SeqAstart = 1;
                 SeqAend = SeqAstart + length(SeqA) - 1;
             end
-            if strcmpi(X,'V')
+            if X == 'V'
                 if MatchAt(1) > SeqAstart %SeqA left side was not matched. Penalize.
                     MatchAt(1) = SeqAstart;
                 end
-            elseif strcmpi(X,'J')
+            elseif X == 'J'
                 if MatchAt(2) < SeqAend %SeqA right side was not matched. Penalize.
                     MatchAt(2) = SeqAend;
                 end
@@ -140,7 +142,7 @@ if strcmpi(P.ExactMatch(1),'y')
 end
     
 %If no anchor point, or previous one gave bad results, do full alighmnet.
-if strcmpi(P.ExactMatch(1),'n')
+if P.ExactMatch(1) == 'n'
     %Generate the DiagMatrixIdx here that is used by makeDiagonalSeq in
     %convolveSeq. This will speedup the gene matching process.
     
@@ -175,8 +177,8 @@ for k = 1:length(BestXmapNum)
     SeqB = Xmap{w,1};
     Aadj = [0 0]; %Will always be negative to indicate how many nts were removed from left or right side of Seq A.
     Badj = [0 0]; %Will always be negative to indicate how many nts were removed from left or right side of Seq A.
-    if strcmpi(P.ExactMatch(1),'y')
-        if strcmpi(X,'V')
+    if P.ExactMatch(1) == 'y'
+        if X == 'V'
             Xanchor = length(Xmap{w,1}) - Xmap{w,10} + 1;
         else
             Xanchor = Xmap{w,10} + 2;

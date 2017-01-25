@@ -18,9 +18,9 @@
 %      fwd direction.
 %
 %  NOTE
-%    Will fill in the CDR3 start and end field of VDJ data with single or
+%    Will fill in the CDR3 start and end fields of VDJ data with single or
 %    multiple integer values. The findVDJmatch and findGeneMatch combo will
-%    uses these seed locataions to speed up the alignment process, and
+%    uses these seed locations to speed up the alignment process, and
 %    updateVDJdata will finally select the final values.
 %
 %  See also findVDJmatch, findGeneMatch, updateVDJdata

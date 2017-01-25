@@ -20,7 +20,11 @@
 %    If CDR3start and CDR3end locations are provided in VDJdata,
 %    findVDJmatch will uses these location(s) to speed up V and J
 %    alignments. Use seedCDR3position.m prior to this to benefit from
-%    faster alignment
+%    faster alignment. 
+%
+%    Using seeded alignment is faster BUT could cause this to miss best
+%    alignment. If you have the time, consider setting CDR3start and
+%    CDR3end values to 0 or empty in VDJdata.
 % 
 %    After finding V, it will check to see if a 'TGG' of the 118W exists
 %    after the 'TGT' of the conserved 104C, that is in frame. If it does
@@ -32,11 +36,11 @@
 function [VDJdata,varargout] = findVDJmatch(VDJdata,NewHeader,varargin)
 %Look if update was specified first
 UpdateLoc = findCell(varargin,'update','MatchCase','any');
-if UpdateLoc(1) ~= 0
-    Update = 'update';
+if UpdateLoc(1) ~= 0 %There is an update input
+    Update = 'y';
     varargin(UpdateLoc) = [];
 else
-    Update = '';
+    Update = 'n';
 end
 
 %Parse the input
@@ -51,7 +55,7 @@ Vmap = P.Results.Vmap;
 Dmap = P.Results.Dmap;
 Jmap = P.Results.Jmap;
 DJreserve = P.Results.DJreserve; %Preserve last 9 for J.
-Dreserve = P.Results.Dreserve; %Preserve first 3 nts after V for D.
+Dreserve = P.Results.Dreserve;   %Preserve first 3 nts after V for D.
 
 %Extract the VDJ database, if none is specified.
 if isempty(Vmap) || isempty(Dmap) || isempty(Jmap)
@@ -69,47 +73,35 @@ MiscLoc = findCell(NewHeader,{'Misc'});
 CDR3startLoc = findCell(NewHeader,{'CDR3_Start'});
 CDR3endLoc = findCell(NewHeader,{'CDR3_End'});
 
-%If given just a single sequence, then create a VDJmatrix.
-if ~iscell(VDJdata)  %Process a single sequence, create a single-line VDJdata
-    Seq = VDJdata;
-    
-    %Create the VDJdata default matrix
-    [~, ~, HeaderData] = xlsread('Headers_BRILIA.xlsx'); %Obtain the VDJdata header info for output format
-    NewHeader = HeaderData(2:end,1)';
-    getHeaderVar;
-    VDJdata = cell(size(Seq,1),length(NewHeader)); 
-    VDJdata(:,TemplateLoc) = num2cell(ones(size(Seq,1),1)); %Always initialize TempCt column with 1.
-    VDJdata(:,SeqNumLoc) = num2cell(1:size(Seq,1)); %Always assign a unique numbering order for VDJdata
-    VDJdata{:,GrpNumLoc} = 1;
-    VDJdata{:,SeqNameLoc} = '1';
-    VDJdata{:,SeqLoc} = Seq;
-end
-    
+%Begin finding the VDJ genes   
 BadIdx = zeros(size(VDJdata,1),1,'logical');
 parfor j = 1:size(VDJdata,1)
     try
+        %Extract info from sliced VDJdata variable
         Tdata = VDJdata(j,:);
         Seq = Tdata{1,SeqLoc};
         CDR3start = Tdata{1,CDR3startLoc};
         CDR3end = Tdata{1,CDR3endLoc};
-
-        MissRate = 0.15; %Start with 15% miss rate for the V segment. Place inside parfor loop to reset.
+        
+        MissRate = 0.15; %Start with 15% miss rate for the V segment. Place inside parfor loop to reset!
 
         %Look for V gene for each seq
-        Vnt = Seq(1:end-DJreserve); %Preserve last NTs to prevent matching V without D and J.
-        AllowedMiss = ceil(MissRate * (length(Vnt)));
+        Vnt = Seq(1:end-DJreserve); %Preserve nt to prevent matching V without D and J.
+        AllowedMiss = ceil(MissRate * (length(Vnt))); %Number of pt mutations allowed
+        CDR3start((CDRstart > length(Vnt)) | (CDR3start < 1)) = []; %Remove nonsensical locations
         Vmatch = findGeneMatch(Vnt,Vmap,'V',AllowedMiss,CDR3start);
-        Vlen = sum(Vmatch{4}(1:2));
-        MissRate = (Vlen - Vmatch{5}(1,1))/Vlen; %Re-establish MissRate for D and J
+        Vlen = sum(Vmatch{4}(1:2)); %Length of V segment
+        
+        MissRate = (Vlen - Vmatch{1,5}(1))/Vlen; %Re-establish MissRate for D and J
         
         %Look for J gene for each seq
         Jnt = Seq(Vlen+Dreserve+1:end); %Preserve D NTs for later matching, and pad seq for OverhangMatch success.
-        AllowedMiss = ceil(MissRate * length(Jnt));  %Remember to shift CDR3end values
-        CDR3endTemp = CDR3end - Vlen - Dreserve;
-        CDR3endTemp(CDR3endTemp <= 0) = [];
-        CDR3endPos = regexp(Jnt,'TGG');
+        AllowedMiss = ceil(MissRate * length(Jnt)); %Number of pt mutations allowed
+        CDR3endTemp = CDR3end - Vlen - Dreserve; %Remember to shift CDR3end values
+        CDR3endTemp((CDR3endTemp < 1) | (CDR3endTemp > length(Jnt))) = []; %Remove nonsensical locations
+        CDR3endPos = regexp(Jnt,'TGG','end'); %Remember you want end of TGG
         if ~isempty(CDR3endPos)
-            CDR3endTemp = unique([CDR3endTemp(:); CDR3endPos(:)+2]);
+            CDR3endTemp = unique([CDR3endTemp(:); CDR3endPos(:)]);
         end
         Jmatch = findGeneMatch(Jnt,Jmap,'J',AllowedMiss,CDR3endTemp);
         Jlen = sum(Jmatch{4}(2:3));
@@ -120,10 +112,10 @@ parfor j = 1:size(VDJdata,1)
         Dmatch = findGeneMatch(Dnt,Dmap,'D',AllowedMiss);
 
         %Extract VMDNJ lengths
-        Vlmr = cell2mat(Vmatch(1,4));
-        Jlmr = cell2mat(Jmatch(1,4));
-        Dlmr = cell2mat(Dmatch(1,4));
-        VMDNJ = [sum(Vlmr(1,1:2),2) Dlmr sum(Jlmr(1,2:3),2)];
+        Vlmr = cell2mat(Vmatch(1,4)); %V left mid right segment
+        Jlmr = cell2mat(Jmatch(1,4)); %D left mid right segment
+        Dlmr = cell2mat(Dmatch(1,4)); %J left mid right segment
+        VMDNJ = [sum(Vlmr(1:2)) Dlmr sum(Jlmr(2:3))]; %V, Nvd, D, Ndj, J lengths
         Tdata(1,LengthLoc) = num2cell(VMDNJ);
 
         %Extract germline deletion info
@@ -136,8 +128,6 @@ parfor j = 1:size(VDJdata,1)
         %Extract the gene family map number and family resolution
         Tdata(1,FamNumLoc) = [Vmatch(1,1) Dmatch(1,1) Jmatch(1,1)];
         Tdata(1,FamLoc) = [Vmatch(1,2) Dmatch(1,2) Jmatch(1,2)];
-
-        %Perform quality control check
         
         VDJdata(j,:) = Tdata;
     catch
@@ -154,7 +144,7 @@ for b = 1:length(BadLoc)
 end
 
 %Update VDJdata 
-if strcmpi(Update,'update')
+if Update == 'y'
     UpdateIdx = ~BadIdx;
     VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),NewHeader,'germline','single');
     VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),NewHeader,Vmap,Dmap,Jmap);    
