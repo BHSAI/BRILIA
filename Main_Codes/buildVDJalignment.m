@@ -109,6 +109,5 @@ for j = 1:size(VDJdata,1)
         ErrorMsg = sprintf('Errored at %s, sequence # %d',mfilename,j);
         disp(ErrorMsg);
         VDJdata{j,MiscLoc} = ErrorMsg;
-        pause
     end
 end

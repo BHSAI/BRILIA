@@ -149,7 +149,6 @@ for y = 1:length(UnqGrpNum)
         ErrorMsg = sprintf('Errored at %s, sequence # %d',mfilename,y);
         disp(ErrorMsg);
         VDJdata(IdxLoc,MiscLoc) = repmat({ErrorMsg},length(IdxLoc),1);
-        pause
     end
 end
 

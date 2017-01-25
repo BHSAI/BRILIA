@@ -26,3 +26,6 @@ $RECYCLE.BIN/
 
 % Ignore matlab .asv files
 *.asv
+/Database_Manager/Active/
+/Database_Manager/Dormant/
+
