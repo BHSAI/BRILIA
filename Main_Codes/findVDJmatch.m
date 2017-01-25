@@ -76,7 +76,7 @@ CDR3endLoc = findCell(NewHeader,{'CDR3_End'});
 %Begin finding the VDJ genes   
 BadIdx = zeros(size(VDJdata,1),1,'logical');
 parfor j = 1:size(VDJdata,1)
-    try
+    %try
         %Extract info from sliced VDJdata variable
         Tdata = VDJdata(j,:);
         Seq = Tdata{1,SeqLoc};
@@ -88,7 +88,7 @@ parfor j = 1:size(VDJdata,1)
         %Look for V gene for each seq
         Vnt = Seq(1:end-DJreserve); %Preserve nt to prevent matching V without D and J.
         AllowedMiss = ceil(MissRate * (length(Vnt))); %Number of pt mutations allowed
-        CDR3start((CDRstart > length(Vnt)) | (CDR3start < 1)) = []; %Remove nonsensical locations
+        CDR3start((CDR3start > length(Vnt)) | (CDR3start < 1)) = []; %Remove nonsensical locations
         Vmatch = findGeneMatch(Vnt,Vmap,'V',AllowedMiss,CDR3start);
         Vlen = sum(Vmatch{4}(1:2)); %Length of V segment
         
@@ -130,9 +130,9 @@ parfor j = 1:size(VDJdata,1)
         Tdata(1,FamLoc) = [Vmatch(1,2) Dmatch(1,2) Jmatch(1,2)];
         
         VDJdata(j,:) = Tdata;
-    catch
-        BadIdx(j) = 1;
-    end
+   % catch
+   %     BadIdx(j) = 1;
+   % end
 end
 
 %If there are errors, show them now.

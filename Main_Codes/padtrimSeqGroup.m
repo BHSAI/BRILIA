@@ -46,15 +46,10 @@ end
 %Identify start and end locations of CDR3 region
 CDR3starts = cell2mat(VDJdata(:,CDR3Loc(3)));
 CDR3ends = cell2mat(VDJdata(:,CDR3Loc(4)));
-
-%Reset CDR3ends that go beyond seq length
-% ExtendCDR3loc = CDR3ends > SeqLengths;
-% CDR3endsT = CDR3ends; %Only for the purpose of getting CDR3length. CDR3ends can be longer than seq length, depending on if it was cut off.
-% CDR3endsT(ExtendCDR3loc) = SeqLengths(ExtendCDR3loc);
 CDR3Lengths = CDR3ends - CDR3starts + 1;
 
 %Remove those without CDR3s
-InvalidLoc = CDR3starts == 0 | CDR3ends == 0 | CDR3Lengths <= 0;
+InvalidLoc = (CDR3starts <= 0) | (CDR3ends <= 0) | (CDR3Lengths <= 3) | (CDR3ends > SeqLengths) | (CDR3starts > SeqLengths); %Ex, length of 3, being TGT, cannot be both CDR3start to CDR3end.
 BadVDJdata = VDJdata(InvalidLoc,:);
 VDJdata(InvalidLoc,:) = [];
 CDR3starts(InvalidLoc) = [];
@@ -73,42 +68,62 @@ switch lower(GroupBy)
         [~,~,UnqIdx] = unique(CDR3Lengths);
 end
 
-%Trip/pad sequences by group
+%Trim/pad sequences of a group
 UpdateIdx = zeros(size(VDJdata,1),1,'logical');
 for y = 1:max(UnqIdx)
     GrpIdx = find(UnqIdx == y);
     
-    %Determine how many nts left of C and right of W to keep
+    if length(GrpIdx) == 1; continue; end %Nothing to update for single-members
+    
+    CDR3s = CDR3starts(GrpIdx);
+    SeqLen = SeqLengths(GrpIdx);
+
+    %Determine how many nts left and right of 104C's 1st nt to keep.
+    MinDelLeft = 0;
+    MinDelRight = 0;
     switch KeepMode
         case 'mean'
-            KeepLeft = round(mean(CDR3starts(GrpIdx)-1));
-            KeepRight = round(mean(SeqLengths(GrpIdx) - CDR3ends(GrpIdx)));
+            KeepLeft = round(mean(CDR3s - 1));
+            KeepRight = round(mean(SeqLen - CDR3s));
         case 'min'
-            KeepLeft = min(CDR3starts(GrpIdx)-1);
-            KeepRight = min(SeqLengths(GrpIdx) - CDR3ends(GrpIdx));
+            KeepLeft = min(CDR3s - 1);
+            KeepRight = min(SeqLen - CDR3s);
         case 'max'
-            KeepLeft = max(CDR3starts(GrpIdx)-1);
-            KeepRight = max(SeqLengths(GrpIdx) - CDR3ends(GrpIdx));
+            KeepLeft = max(CDR3s - 1);
+            KeepRight = max(SeqLen - CDR3s);
         case 'trim'
-            %Look for longest distance from CDR3point to non-x int
-            DelLeft = inf;
-            DelRight = inf;
+            KeepLeft = max(CDR3s - 1);
+            KeepRight = max(SeqLen - CDR3s);
+
+            %Fill up the left and right X deletions
+            MinDelLeft = max(SeqLen);
+            MinDelRight = max(SeqLen);
             for j = 1:length(GrpIdx)
                 Seq = VDJdata{GrpIdx(j),SeqLoc};
                 NonXloc = regexpi(Seq,'[^X*]');
                 CurDelLeft = NonXloc(1)-1;
                 CurDelRight = length(Seq)-NonXloc(end);
-                if CurDelLeft < DelLeft
-                    DelLeft = CurDelLeft;
+                if CurDelLeft < MinDelLeft
+                    MinDelLeft = CurDelLeft;
                 end
-                if CurDelRight < DelRight
-                    DelRight = CurDelRight;
+                if CurDelRight < MinDelRight
+                    MinDelRight = CurDelRight;
                 end
             end
     end
     
+    %Calculate how much left / right to pad(+ value) or trim(- value)
+    LeftAdd = KeepLeft - (CDR3s - 1) - MinDelLeft;
+    RightAdd = KeepRight + CDR3s - SeqLen - MinDelRight;
+    
     %Perform trim/pad
     for j = 1:length(GrpIdx)
+        %Don't update if there's nothing to update
+        if (LeftAdd(j) == 0) && (RightAdd(j) == 0)
+            continue
+        end
+
+        %Extract variables to update
         Seq = VDJdata{GrpIdx(j),SeqLoc};
         RefSeq = VDJdata{GrpIdx(j),RefSeqLoc};
         Vlen = VDJdata{GrpIdx(j),LengthLoc(1)};
@@ -116,46 +131,33 @@ for y = 1:max(UnqIdx)
         CDR3start = CDR3starts(GrpIdx(j));
         CDR3end = CDR3ends(GrpIdx(j));
         
-        if strcmpi(KeepMode,'trim') %Trim only, special function here.
-            %Update seq and variables of importance
-            NewSeqNT = Seq(DelLeft+1:end-DelRight);
-            NewRefSeqNT = RefSeq(DelLeft+1:end-DelRight);
-            NewVlen = Vlen - DelLeft;
-            NewJlen = Jlen - DelRight;
-            NewCDR3start = CDR3start - DelLeft;
-            NewCDR3end = CDR3end - DelLeft;
+        %Determine left side edits
+        if LeftAdd(j) > 0
+            LeftPad = repmat('X',1,LeftAdd(j));
+            S1 = 1;
         else
-        
-            %Determine the new start loc of seq
-            StartLoc = CDR3starts(GrpIdx(j)) - KeepLeft;
-            if StartLoc <= 0 %Need padding X
-                LeftPad = repmat('X',1,1 - StartLoc);
-                StartLoc = 1;
-                CDR3shift = length(LeftPad);
-            else
-                LeftPad = '';
-                CDR3shift = -StartLoc + 1;
-            end
-
-            %Determine the new end loc of seq
-            EndLoc = CDR3ends(GrpIdx(j)) + KeepRight;
-            if EndLoc > length(Seq) %need padding X
-                RightPad = repmat('X',1,EndLoc - length(Seq));
-                EndLoc = length(Seq);
-            else
-                RightPad = '';
-            end
-
-            %Update seq and variables of importance
-            NewSeqNT = [LeftPad, Seq(StartLoc:EndLoc), RightPad];
-            NewRefSeqNT = [LeftPad, RefSeq(StartLoc:EndLoc), RightPad];
-            NewVlen = Vlen + length(LeftPad) - StartLoc + 1;
-            NewJlen = Jlen + length(RightPad) - (length(Seq) - EndLoc);
-            NewCDR3start = CDR3start + CDR3shift;
-            NewCDR3end = CDR3end + CDR3shift;
+            LeftPad = '';
+            S1 = abs(LeftAdd(j)) + 1;
         end
         
-        VDJdata(GrpIdx(j),[SeqLoc RefSeqLoc LengthLoc(1) LengthLoc(5) CDR3Loc(3) CDR3Loc(4)]) = {NewSeqNT NewRefSeqNT NewVlen NewJlen NewCDR3start NewCDR3end};
+        %Determine right side edits
+        if RightAdd(j) > 0
+            RightPad = repmat('X',1,RightAdd(j));
+            S2 = length(Seq);
+        else
+            RightPad = '';
+            S2 = length(Seq) + RightAdd(j); %Remember RightAdd is neg for trim
+        end
+        
+        %Update seq and variables of importance
+        NewSeq = [LeftPad, Seq(S1:S2), RightPad];
+        NewRefSeq = [LeftPad, RefSeq(S1:S2), RightPad];
+        NewVlen = Vlen + LeftAdd(j);
+        NewJlen = Jlen + RightAdd(j);
+        NewCDR3start = CDR3start + LeftAdd(j);
+        NewCDR3end = CDR3end + LeftAdd(j);
+        
+        VDJdata(GrpIdx(j),[SeqLoc RefSeqLoc LengthLoc(1) LengthLoc(5) CDR3Loc(3) CDR3Loc(4)]) = {NewSeq NewRefSeq NewVlen NewJlen NewCDR3start NewCDR3end};
         UpdateIdx(GrpIdx(j)) = 1;
     end
 end

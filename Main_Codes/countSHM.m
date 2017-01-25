@@ -21,6 +21,10 @@ for y = 1:length(UnqGrpNum)
     for j = 1:length(IdxLoc)
         Seq = VDJdata{IdxLoc(j),SeqLoc};
         SeqXLoc = Seq == 'X';
+        if length(Seq) ~= length(RefSeq); 
+            warning('countSHM: Seq and RefSeq lengths do not match for entry # %d',IdxLoc(j));
+            continue; 
+        end
         MissLoc = Seq ~= RefSeq;
         MissLoc(SeqXLoc | RefSeqXLoc) = 0;
         

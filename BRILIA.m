@@ -132,7 +132,7 @@ SeqCount = zeros(length(FileNames),1);
  
 %For debugging only. Save current variables so you can run each code,
 %line by line.
-%
+% 
 % save('temp.mat')
 % return
 
@@ -170,11 +170,13 @@ for f = 1:length(FullFileNames)
         VDJdata = seedCDR3position(VDJdata,NewHeader,Vmap,'V',15,2,CheckSeqDir);
         VDJdata = seedCDR3position(VDJdata,NewHeader,Jmap,'J',3,14,'n');
 
-        %Search for initial VDJ alignment matches
+        %Search for initial VDJ alignment matches (no try = 4x faster)
         disp('Finding initial-guess VDJ annotations.')
+        tic
         [VDJdata,BadIdx] = findVDJmatch(VDJdata,NewHeader,Vmap,Dmap,Jmap,'update'); %Need to implement J's are not overrride from above
             BadVDJdata = [BadVDJdata; VDJdata(BadIdx,:)];
             VDJdata(BadIdx,:) = [];
+        toc
 
         %Fix insertion/deletion in V framework
         disp('Fixing indels within V segment.')
@@ -185,7 +187,7 @@ for f = 1:length(FullFileNames)
         VDJdata = fixDegenVDJ(VDJdata,NewHeader,Vmap,Dmap,Jmap);
 
         %Insure that V and J segments cover the CDR3 region.
-        disp('Checking V and J segments covers 104C and 118W.')
+        disp('Checking if V and J segments includes 104C and 118W.')
         VDJdata = constrainGeneVJ(VDJdata,NewHeader,Vmap,Dmap,Jmap);
 
         %Pad sequences CDR3 length also have same Seq Length (required for cluster)

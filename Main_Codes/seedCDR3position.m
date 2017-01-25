@@ -75,7 +75,7 @@ parfor j = 1:size(VDJdata,1)
     end
 
     %Do seed alignments on reverse complement sequence
-    if CheckSeqDir =='Y'
+    if CheckSeqDir == 'Y'
         AlignScoresR = zeros(size(Xseed,1),3);
         SeqNTR = seqrcomplement(Seq);
         for x = 1:size(Xseed,1)
@@ -98,7 +98,7 @@ parfor j = 1:size(VDJdata,1)
     SpecPos = regexp(Seq,SpecSeed); %Special seed for V and J, which is the 'TGT' and the 'TGG'
     CDR3pos = unique([AlignScores(:,3); SpecPos(:)]);
     if X == 'J' 
-        CDR3pos = AllPos + 2; %Need to include 2 nt of codon.
+        CDR3pos = CDR3pos + 2; %Need to include 2 nt of codon.
     end
     InvalidPos = (CDR3pos > length(Seq))  |  (CDR3pos < 1);
     CDR3pos(InvalidPos) = [];
