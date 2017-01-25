@@ -1,72 +1,86 @@
 %seedCDR3position will find potential locations where 104C's 1st or 118W's
 %last nt codon could reside in a sequence. This could also check both
-%forward and reverse direction, returning the direction with the highest
-%seed alignment score.
+%forward and reverse direction, flipping the sequence direction with the
+%highest seed alignment score and lowest variability in seed location
+%(since incorrect direction will lead to many bad alignments and
+%positions).
 %
 %  VDJdata = seedCDR3position(VDJdata,NewHeader,Xmap,X,Nleft,Nright,CheckSeqDir)
 %
 %  INPUT
 %    Xmap [Vmap or Dmap]: Database for V or J germline gene
 %    X ['V' or 'J']: Specificy what database gene is used
-%    Nleft: number of nts left of 104C to use as alignment seed.
+%    Nleft: number of nts left of CDR3start's or CDR3end's, 1st nt of the
+%      codon to use as alignment seed.
 %    Nright: number of nts right of 104C to use as alignment seed.
 %    CheckSeqDir ['y' or 'n']: yes or no for checking fwd or rev sequence
 %      direction. If yes, then it will swap the sequence direction to the
 %      fwd direction.
+%
+%  NOTE
+%    Will fill in the CDR3 start and end field of VDJ data with single or
+%    multiple integer values. The findVDJmatch and findGeneMatch combo will
+%    uses these seed locataions to speed up the alignment process, and
+%    updateVDJdata will finally select the final values.
+%
+%  See also findVDJmatch, findGeneMatch, updateVDJdata
 
 function VDJdata = seedCDR3position(VDJdata,NewHeader,Xmap,X,Nleft,Nright,CheckSeqDir)
-%Bring some getHeaderVar variables out, since parfor can't handle it.
+%Extract getHeaderVar variables since parfor can't handle it.
 SeqLoc = findCell(NewHeader,{'nucleotide','Seq'});
 CDR3startLoc = findCell(NewHeader,{'CDR3_Start'});
 CDR3endLoc = findCell(NewHeader,{'CDR3_End'});
 
-%Setup the rapid convolveSeq input structure
+%Setup seed and inputs
+Xseed = getGeneSeed(Xmap,X,Nleft,Nright,'nt');
+CheckSeqDir = upper(CheckSeqDir(1));
+X = upper(X);
+
+%Setup the convolveSeq input structure for faster alignment
 P.AllowedMiss = 0;
 P.Alphabet = 'nt';
 P.CheckSeq = 'yes';
-P.ExactMatch = 'no';
 P.DiagIdx = [];
+P.ExactMatch = 'no';
 P.PreferSide = 'none';
-if strcmpi(X,'V')
-    P.TrimSide = 'right';
-    P.PreferSide = 'left';
-    P.PenaltySide = 'left';
-    SpecSeed = 'TGT'; %conserved C
-elseif strcmpi(X,'J')
-    P.TrimSide = 'left';
-    P.PreferSide = 'right';
-    P.PenaltySide = 'right';
-    SpecSeed = 'TGG'; %conserved W
+if strcmp(X,'V')
+    P.TrimSide = 'right';   %will trim poorly matched regions in this side
+    P.PreferSide = 'left';  %if tied alignments, will favor one towards left of seed and seq
+    P.PenaltySide = 'left'; %unused nts of seed in this side will be unvaroable
+    SpecSeed = 'TGT';       %conserved C
+    CDR3colLoc = CDR3startLoc;  %Where in VDJdata to store the location
+elseif strcmp(X,'J')
+    P.TrimSide = 'left';    %will trim poorly matched regions in this side
+    P.PreferSide = 'right'; %if tied alignments, will favor one towards left of seed and seq
+    P.PenaltySide = 'right';%unused nts of seed in this side will be unvaroable
+    SpecSeed = 'TGG';       %conserved W
+    CDR3colLoc = CDR3endLoc;    %Where in VDJdata to store the location
 end
-CheckSeqDir = CheckSeqDir(1);
 
-%Get the seed sequence
-Xseed = getGeneSeed(Xmap,X,Nleft,Nright,'nt');
-
+%Find the CDR3start or CDR3end locations. Flip seq too if needed.
 parfor j = 1:size(VDJdata,1)
-    Tdata = VDJdata(j,:);
-    SeqNT = Tdata{SeqLoc};
+    Tdata = VDJdata(j,:);  %Extract this to "slice" VDJdata
+    Seq = Tdata{SeqLoc};
     
     %Do seed alignments, forward sense
     AlignScores = zeros(size(Xseed,1),3);
-    for v = 1:size(Xseed,1)
-       [Score,~,StartAt,MatchAt] = convolveSeq(Xseed{v},SeqNT,P);
+    for x = 1:size(Xseed,1)
+       [Score,~,StartAt,MatchAt] = convolveSeq(Xseed{x},Seq,P);
        if StartAt(2) > 0
-            AnchorLoc = Nleft - StartAt(2);
+            AnchorLoc = Nleft - StartAt(2) + 2;
         else
             AnchorLoc = Nleft + abs(StartAt(2)) + 1;
-        end
-        
-        AlignScores(v,:) = [Score(1)/(diff(MatchAt)+1) Score(2) AnchorLoc];
+       end       
+       AlignScores(x,:) = [Score(1)/(diff(MatchAt)+1) Score(2) AnchorLoc];
     end
 
     %Do seed alignments on reverse complement sequence
-    if strcmpi(CheckSeqDir,'y')
+    if CheckSeqDir =='Y'
         AlignScoresR = zeros(size(Xseed,1),3);
-        SeqNTR = seqrcomplement(SeqNT);
-        for v = 1:size(Xseed,1)
-            [Score,~,StartAt,MatchAt] = convolveSeq(SeqNTR,Xseed{v},P);
-            AlignScoresR(v,:) = [Score(1)/(diff(MatchAt)+1) Score(2) StartAt(2)];
+        SeqNTR = seqrcomplement(Seq);
+        for x = 1:size(Xseed,1)
+            [Score,~,StartAt,MatchAt] = convolveSeq(SeqNTR,Xseed{x},P);
+            AlignScoresR(x,:) = [Score(1)/(diff(MatchAt)+1) Score(2) StartAt(2)];
         end
 
         %Accept complement sequence if it's a higher score AND less positions
@@ -80,32 +94,18 @@ parfor j = 1:size(VDJdata,1)
         end
     end
     
-    %Do the special seed for V and J, which is the 'TGT' and the 'TGG'
-    SpecPos = regexp(SeqNT,SpecSeed);
-    AllPos = unique([AlignScores(:,3); SpecPos(:)]);
-    
-    %Find the best score that also has 80% match, or sequences that that
-%     %have 95% match and alignment score > (75% of seed length)^2. Should be
-%     %stringent as you want good seeds. If it fails, all that happens is a
-%     %full search thats slightly slower.
-%     BestScore = max(AlignScores(:,2));
-%     BestLocs = ((AlignScores(:,2) == BestScore) & (AlignScores(:,1) > 0.80)) | (AlignScores(:,1) >= 0.95 & AlignScores(:,2) > (0.75*length(Xseed))^2);
-%     ModeLocs = (AlignScores(:,3) == mode(AlignScores(:,3))) & AlignScores(:,2) > 0;
-%     AllLocs = ModeLocs | BestLocs;
-% 
-%     if max(BestLocs) == 0; continue; end %Don't do anything.
-
-    %Save ANY positions that matches to seed. findGeneMatch will pick
-    %correct seed location later. If you try to select seed now, you will
-    %lose key locations.
-    if strcmpi(X,'V') %for V, fill in CDR3 start positions
-        CDR3pos = AllPos;
-        CDR3pos(CDR3pos > length(SeqNT)) = [];
-        Tdata{1,CDR3startLoc} = CDR3pos';
-    else %For J, fill in CDR3 end positions
+    %Finalize all potential CDR3start or CDR3end locations
+    SpecPos = regexp(Seq,SpecSeed); %Special seed for V and J, which is the 'TGT' and the 'TGG'
+    CDR3pos = unique([AlignScores(:,3); SpecPos(:)]);
+    if X == 'J' 
         CDR3pos = AllPos + 2; %Need to include 2 nt of codon.
-        CDR3pos(CDR3pos > length(SeqNT)) = [];
-        Tdata{1,CDR3endLoc} = CDR3pos';
     end
-    VDJdata(j,:) = Tdata;
+    InvalidPos = (CDR3pos > length(Seq))  |  (CDR3pos < 1);
+    CDR3pos(InvalidPos) = [];
+
+    %Update to VDJdata ONLY if there is a seed
+    if ~isempty(CDR3pos)
+        Tdata{1,CDR3colLoc} = CDR3pos'; %Update Tdata instead of VDJdata b/c of parfor sliced-variable rule.
+        VDJdata(j,:) = Tdata; %Add Tdata to sliced variable VDJdata
+    end
 end

@@ -39,7 +39,7 @@
 %    The output annotation file will be saved automatically in the folder
 %    where the sequence input files are, in a new folder called BRILIA.
 %
-%  VERSION 2.0.1
+%  VERSION 2.0.2
 %    Version numbering is X.Y.Z, where
 %      X increments for substantial changes that alter output results
 %      Y increments for added/removed features
@@ -56,8 +56,8 @@ CurPaths = regexp(path,';','split')';
 MainPath = mfilename('fullpath');
 SlashLoc = regexp(MainPath,'\\|\/');
 MainPath = MainPath(1:SlashLoc(end)-1);
-HavePath = 0;
 
+HavePath = 0;
 for p = 1:length(CurPaths)
     if strcmp(CurPaths{p},MainPath(1:end)) %Note that matlab does not save the final slash.
         HavePath = 1;
@@ -96,7 +96,7 @@ if HaveSettingFile == 0
     addParameter(P,'Delimiter',';',@(x) ischar(x) && ismember(x,{';' ',' '\t' ''}));
     addParameter(P,'CheckSeqDir','n',@ischar);
     parse(P,varargin{:});
-    P = P.Results;
+    P = P.Results; %For readability, remove the middle Results field.
 end
 
 FullFileNames = P.FullFileNames;
@@ -113,6 +113,7 @@ CheckSeqDir = P.CheckSeqDir;
 [Vmap, Dmap, Jmap] = getCurrentDatabase('change',Species);
 [Vmap, Dmap, Jmap] = filterRefGene(Vmap,Dmap,Jmap,'Strain',Strain,'Ddirection',Ddirection,'Vfunction',Vfunction,'KeepThis','yes');
 
+%Get the file names
 if isempty(FullFileNames)
     [FileNames,FilePath] = uigetfile('*.fa*;*.xls*','Select the input sequence files','multiselect','on');
     if ischar(FileNames)
@@ -166,8 +167,8 @@ for f = 1:length(FullFileNames)
         %alignment. Do this here, and not when doing VDJ alignment, because users
         %might have complement sequences which must be flipped.
         disp('Determining sequence direction and CDR3 areas.')
-        VDJdata = seedCDR3position(VDJdata,NewHeader,Vmap,'V',9,2,CheckSeqDir);
-        VDJdata = seedCDR3position(VDJdata,NewHeader,Jmap,'J',3,2,'n'); %Only use V to check direction, since J is too short.
+        VDJdata = seedCDR3position(VDJdata,NewHeader,Vmap,'V',15,2,CheckSeqDir);
+        VDJdata = seedCDR3position(VDJdata,NewHeader,Jmap,'J',3,14,'n');
 
         %Search for initial VDJ alignment matches
         disp('Finding initial-guess VDJ annotations.')
