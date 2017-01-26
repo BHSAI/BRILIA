@@ -166,11 +166,9 @@ for f = 1:length(FullFileNames)
 
         %Search for initial VDJ alignment matches (no try = 4x faster)
         disp('Finding initial-guess VDJ annotations.')
-        tic
         [VDJdata,BadIdx] = findVDJmatch(VDJdata,NewHeader,Vmap,Dmap,Jmap,'update'); %Need to implement J's are not overrride from above
             BadVDJdata = [BadVDJdata; VDJdata(BadIdx,:)];
             VDJdata(BadIdx,:) = [];
-        toc
 
         %For debugging only. Save current variables so you can run each code,
         %line by line.

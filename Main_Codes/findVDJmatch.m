@@ -81,7 +81,9 @@ parfor j = 1:size(VDJdata,1)
         Tdata = VDJdata(j,:);
         Seq = Tdata{1,SeqLoc};
         CDR3start = Tdata{1,CDR3startLoc};
+        if isempty(CDR3start); CDR3start = 0; end
         CDR3end = Tdata{1,CDR3endLoc};
+        if isempty(CDR3end); CDR3end = 0; end
         
         MissRate = 0.15; %Start with 15% miss rate for the V segment. Place inside parfor loop to reset!
 
@@ -92,6 +94,35 @@ parfor j = 1:size(VDJdata,1)
         Vmatch = findGeneMatch(Vnt,Vmap,'V',AllowedMiss,CDR3start);
         Vlen = sum(Vmatch{4}(1:2)); %Length of V segment
         
+        %------------------------------------------------------------------
+        %For short seq cutoff at 118W, if there's a possible C to W CDR3
+        %region, then use the W position as a strong anchor for J alignment
+
+        %Recalculate the CDR3start, 104C codon 1st nt
+        Vdel = Vmatch{3}(3); %V3' deletion
+        VmapNum = Vmatch{1};
+        VrefCDR3 = Vmap{VmapNum,10}; %Location of C from right end of V
+        CDR3start = Vlen + Vdel - VrefCDR3 + 1;
+        if CDR3start <= 0 %Have an issue
+            BadIdx(j) = 1;
+            continue;
+        end
+        
+        %See if there's an in-frame 118W codon seed (if yes, use 'forceanchor')
+        if max(CDR3end) == 0 %Find some CDR3end options
+            CDR3end = regexp(Seq(Vlen+1:end),'TGG','end') + Vlen;
+            if isempty(CDR3end); CDR3end = 0; end
+        end
+        ForceAnchor = '';
+        if max(CDR3end) > 0
+            %Determine in-frame TGGs
+            InframeLoc = (mod(CDR3end-CDR3start-2,3) == 0) & CDR3end > CDR3start;
+            if max(InframeLoc) > 0
+                CDR3end = CDR3end(InframeLoc);
+                ForceAnchor = 'forceanchor'; %Ensure once of the anchor matches.
+            end
+        end
+        
         MissRate = (Vlen - Vmatch{1,5}(1))/Vlen; %Re-establish MissRate for D and J
         
         %Look for J gene for each seq
@@ -99,11 +130,7 @@ parfor j = 1:size(VDJdata,1)
         AllowedMiss = ceil(MissRate * length(Jnt)); %Number of pt mutations allowed
         CDR3endTemp = CDR3end - Vlen - Dreserve; %Remember to shift CDR3end values
         CDR3endTemp((CDR3endTemp < 1) | (CDR3endTemp > length(Jnt))) = []; %Remove nonsensical locations
-        CDR3endPos = regexp(Jnt,'TGG','end'); %Remember you want end of TGG
-        if ~isempty(CDR3endPos)
-            CDR3endTemp = unique([CDR3endTemp(:); CDR3endPos(:)]);
-        end
-        Jmatch = findGeneMatch(Jnt,Jmap,'J',AllowedMiss,CDR3endTemp);
+        Jmatch = findGeneMatch(Jnt,Jmap,'J',AllowedMiss,CDR3endTemp,ForceAnchor);
         Jlen = sum(Jmatch{4}(2:3));
 
         %Look for D gene for each seq

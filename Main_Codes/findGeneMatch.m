@@ -1,9 +1,11 @@
 %findGeneMatch will look for the best sequence match to a gene database
 %sequence set. This is the core alignment-based gene search.
 %
-%  GeneMatch = findGeneMatchNT(Seq,Xmap,X,AllowedMiss)
+%  GeneMatch = findGeneMatch(Seq,Xmap,X,AllowedMiss)
 %
-%  GeneMatch = findGeneMatchNT(Seq,Xmap,X,AllowedMiss,CDR3anchor)
+%  GeneMatch = findGeneMatch(Seq,Xmap,X,AllowedMiss,CDR3anchor)
+%
+%  GeneMatch = findGeneMatch(Seq,Xmap,X,AllowedMiss,CDR3anchor,'ForceAnchor')
 % 
 %  INPUTS
 %    Seq: Character sequence
@@ -13,7 +15,11 @@
 %    CDR3anchor: Positions of potential 104C 1st nt of codon or 118W 3rd nt
 %      of codon. CDR3 anchor can be a matrix of values, and providing it
 %      speeds up alignment and reduces chance of incorrect J alignments,
-%      especially when dealing with shorter sequences cut at the 118W. 
+%      especially when dealing with shorter sequences cut at the 118W.
+%   'ForceAnchor': will force findGeneMatch to find a solution that matches
+%      to at least one of the anchor points. Will not attempt a unseeded
+%      alignment if the seeded alignment gives a low alignment % (below 70%
+%      match).
 %
 %  OUTPUT
 %    GeneMatch: 1x6 cell array of cells containing gene match data as follows
@@ -37,6 +43,15 @@ end
 
 X = upper(X);
 
+%Determine if 'ForceAnchor' option was given
+ForceAnchorLoc = findCell(varargin,'ForceAnchor','MatchCase','any');
+if ForceAnchorLoc > 0
+    ForceAnchor = 1;
+    varargin(ForceAnchorLoc) = [];
+else
+    ForceAnchor = 0;
+end
+
 %Determine if a valid, nonzero CDR3anchor was given.
 if ~isempty(varargin)
     CDR3anchor = sort(varargin{1});
@@ -45,6 +60,13 @@ else
 end
 if isempty(CDR3anchor) %Can't have an empty CDR3start
     CDR3anchor = 0;
+end
+
+%Override forceanchor. Can't enforce an anchor that does not exist.
+if length(CDR3anchor) == 1
+    if CDR3anchor == 0 && ForceAnchor == 1
+        ForceAnchor = 0;
+    end
 end
 
 %Setup the input structure for convolveSeq, which is faster.
@@ -136,7 +158,7 @@ if P.ExactMatch(1) == 'y'
 
     %In case you have to abandon a bad seed, just do full match
     BestIdentity = max(FitScore1(BestRow,BestXmapNum));
-    if BestIdentity < 0.70
+    if BestIdentity < 0.70 && ForceAnchor == 0
         P.ExactMatch = 'no';
     end
 end
