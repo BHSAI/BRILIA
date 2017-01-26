@@ -7,20 +7,27 @@
 function VDJdata = removeDupSeq(VDJdata,NewHeader)
 getHeaderVar;
 
-DelLoc = zeros(size(VDJdata,1),1,'logical');
+%Look for duplicate entries
+DelLoc = zeros(size(VDJdata,1),1,'logical'); %Keeps track of duplicate entries that will be removed
 for j = 1:size(VDJdata,1) - 1
-    DupLoc = zeros(size(VDJdata,1),1,'logical');
-    Xcount = zeros(size(VDJdata,1),1);
+    if DelLoc(j); continue; end %Already deleted, skip
+    DupLoc = zeros(size(VDJdata,1),1,'logical'); %Tracks location of duplicate sequence
+    Xcount = zeros(size(VDJdata,1),1); %Tracks how many X's there are
 
+    %Get Seq1 info and location of X
     Seq1 = VDJdata{j,SeqLoc};
     Xloc1 = Seq1 == 'X';
+
+    %Look for other sequence that are same as Seq1
     for k = j+1:size(VDJdata,1)
+        if DelLoc(k); continue; end %Already deleted, skip
+
+        %Get Seq2 info and location of X
         Seq2 = VDJdata{k,SeqLoc};
-        if DelLoc(k); continue; end
-        if length(Seq1) ~= length(Seq2); continue; end
-        
+        if length(Seq1) ~= length(Seq2); continue; end %Can't be same
         Xloc2 = Seq2 == 'X';
         
+        %See if they are the same
         MatchLoc = (Seq1 == Seq2) | Xloc1 | Xloc2;
         if sum(MatchLoc) == length(Seq1)
             DupLoc(k) = 1;
@@ -32,13 +39,14 @@ for j = 1:size(VDJdata,1) - 1
         %Find the sequence with the least number of X's
         DupLoc(j) = 1;
         Xcount(j) = sum(Xloc1);
-        BestSeqLoc = find(Xcount == min(Xcount(DupLoc)));
+        BestSeqLoc = find((Xcount == min(Xcount(DupLoc))) & DupLoc);
+        BestSeqLoc = BestSeqLoc(1); 
         
         %Add up all template counts
         NewTempCt = sum(cell2mat(VDJdata(DupLoc,TemplateLoc)));
         
         %Condense duplicate seq to j, delete all others
-        VDJdata{j,SeqLoc} = VDJdata{BestSeqLoc(1),SeqLoc};
+        VDJdata(j,:) = VDJdata(BestSeqLoc,:);
         VDJdata{j,TemplateLoc} = NewTempCt;
         
         %Set all duplicate seq past jth seq to empty
@@ -47,30 +55,4 @@ for j = 1:size(VDJdata,1) - 1
     end
 end
 VDJdata(DelLoc,:) = [];
-
-
-%Check for duplicate nts
-% SamSeq = VDJdata(:,SeqLoc);
-% [UnqNT,~,UnqNTidx] = unique(SamSeq);% 
-% DelIdx = zeros(size(VDJdata,1),1) > 1;
-% if max(UnqNTidx) ~= length(SamSeq) %Duplicates found
-%     for q = 1:length(UnqNT)
-%         SubIdx = find(UnqNTidx == q);
-%         if length(SubIdx) > 1
-%             TempCt = cell2mat(VDJdata(SubIdx,TemplateLoc));
-%             MaxLoc = find(TempCt == max(TempCt));
-%             if isempty(MaxLoc)
-%                 continue
-%             end
-%             MaxLoc = MaxLoc(1);
-%             MaxIdx = SubIdx(MaxLoc);
-%             TotTemp = sum(TempCt);
-%             VDJdata{MaxIdx,TemplateLoc} = TotTemp;
-%             SubIdx(MaxLoc) = [];
-%             DelIdx(SubIdx) = 1;           
-%         end
-%     end
-% end
-% 
-% VDJdata(DelIdx,:) = [];
-        
+disp(['Removed ' num2str(sum(DelLoc)) ' duplicate sequences.']);

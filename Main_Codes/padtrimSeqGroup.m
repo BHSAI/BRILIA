@@ -1,5 +1,5 @@
-%padtrimSeqGroup will trim and pad sequences within a group such that they are
-%all the same length. This is required to ensure phylogeny trees are
+%padtrimSeqGroup will trim and pad sequences within a group such that they
+%are all the same length. This is required to ensure phylogeny trees are
 %constructed correctly and conformGeneGroup works.
 %
 %  VDJdata = padtrimSeqGroup(VDJdata,NewHeader,GroupBy,KeepMode)
@@ -71,10 +71,7 @@ end
 %Trim/pad sequences of a group
 UpdateIdx = zeros(size(VDJdata,1),1,'logical');
 for y = 1:max(UnqIdx)
-    GrpIdx = find(UnqIdx == y);
-    
-    if length(GrpIdx) == 1; continue; end %Nothing to update for single-members
-    
+    GrpIdx = find(UnqIdx == y);    
     CDR3s = CDR3starts(GrpIdx);
     SeqLen = SeqLengths(GrpIdx);
 

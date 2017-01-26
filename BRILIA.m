@@ -115,7 +115,7 @@ CheckSeqDir = P.CheckSeqDir;
 
 %Get the file names
 if isempty(FullFileNames)
-    [FileNames,FilePath] = uigetfile('*.fa*;*.xls*','Select the input sequence files','multiselect','on');
+    [FileNames,FilePath] = uigetfile('*.fa*;*.xls*;*.csv;*.tsv','Select the input sequence files','multiselect','on');
     if ischar(FileNames)
         FileNames = {FileNames};
     end
@@ -130,12 +130,6 @@ end
 RunTime = zeros(length(FileNames),1);
 SeqCount = zeros(length(FileNames),1);
  
-%For debugging only. Save current variables so you can run each code,
-%line by line.
-% 
-% save('temp.mat')
-% return
-
 for f = 1:length(FullFileNames)
     try
         tic
@@ -178,45 +172,60 @@ for f = 1:length(FullFileNames)
             VDJdata(BadIdx,:) = [];
         toc
 
+        %For debugging only. Save current variables so you can run each code,
+        %line by line.
+        save('temp.mat')
+        checkVDJdata(VDJdata,NewHeader,'findVDJmatch');
+
         %Fix insertion/deletion in V framework
         disp('Fixing indels within V segment.')
         VDJdata = fixGeneIndel(VDJdata,NewHeader,Vmap,Dmap,Jmap);
+        checkVDJdata(VDJdata,NewHeader,'fixGeneIndel');
 
         %Remove pseudogenes from degenerate annotations containing functional ones.
         disp('Removing pseudo and ORF genes if functional genes are available.')
         VDJdata = fixDegenVDJ(VDJdata,NewHeader,Vmap,Dmap,Jmap);
+        checkVDJdata(VDJdata,NewHeader,'fixDegenVDJ');
 
         %Insure that V and J segments cover the CDR3 region.
         disp('Checking if V and J segments includes 104C and 118W.')
         VDJdata = constrainGeneVJ(VDJdata,NewHeader,Vmap,Dmap,Jmap);
+        checkVDJdata(VDJdata,NewHeader,'constrainGeneVJ');
 
         %Pad sequences CDR3 length also have same Seq Length (required for cluster)
         [VDJdata, BadVDJdataT] = padtrimSeqGroup(VDJdata,NewHeader,'cdr3length','max');
             BadVDJdata = [BadVDJdata; BadVDJdataT];
             clear BadVDJdataT;
+        checkVDJdata(VDJdata,NewHeader,'padtrimSeqGroup');
 
         %Remove duplicate VDJdata entries that can cause error in tree clustering
         VDJdata = removeDupSeq(VDJdata,NewHeader);
+        checkVDJdata(VDJdata,NewHeader,'removeDupSeq');
 
         %Cluster the data based variable region and hamming dist of DevPerc%.
         disp('Performing lineage tree clustering.')
         VDJdata = clusterGene(VDJdata,NewHeader,DevPerc);
+        checkVDJdata(VDJdata,NewHeader,'clusterGene');
 
         %Set all groups to have same annotation and VMDNJ lengths.
         disp('Conforming VDJ annotations within clusters.')
         VDJdata = conformGeneGroup(VDJdata,NewHeader,Vmap,Dmap,Jmap);
+        checkVDJdata(VDJdata,NewHeader,'conformGeneGroup');
 
         %Get better D match based on location of consensus V J mismatches.
         disp('Refining D annotations within clusters')
         VDJdata = findBetterD(VDJdata,NewHeader,Vmap,Dmap,Jmap);
+        checkVDJdata(VDJdata,NewHeader,'findBetterD');
 
         %Trim V, D, J edges and extract better N regions
         disp('Refining N regions within clusters by trimming VDJ')
         VDJdata = trimGeneEdge(VDJdata,NewHeader);
+        checkVDJdata(VDJdata,NewHeader,'trimGeneEdge');
 
         %Fix obviously incorrect trees.
         disp('Fixing obvious errors in lineage trees.')
         VDJdata = fixTree(VDJdata,NewHeader);
+        checkVDJdata(VDJdata,NewHeader,'fixTree');
 
         %Finalize VDJdata details
         VDJdata = padtrimSeqGroup(VDJdata,NewHeader,'grpnum','trim'); %will only remove "x" before and after sequences if they all have it. 
