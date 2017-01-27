@@ -75,7 +75,7 @@ CDR3endLoc = findCell(NewHeader,{'CDR3_End'});
 
 %Begin finding the VDJ genes   
 BadIdx = zeros(size(VDJdata,1),1,'logical');
-parfor j = 1:size(VDJdata,1)
+for j = 1:size(VDJdata,1)
     %try
         %Extract info from sliced VDJdata variable
         Tdata = VDJdata(j,:);
@@ -132,6 +132,15 @@ parfor j = 1:size(VDJdata,1)
         CDR3endTemp((CDR3endTemp < 1) | (CDR3endTemp > length(Jnt))) = []; %Remove nonsensical locations
         Jmatch = findGeneMatch(Jnt,Jmap,'J',AllowedMiss,CDR3endTemp,ForceAnchor);
         Jlen = sum(Jmatch{4}(2:3));
+        
+        %Sometimes, force anchor fails when there is an in-line CDR3end, but excluding a TGG end. So do a full align instead
+        if (Jmatch{5}(1) / Jlen) < 0.70 %Sequence identity too low
+            JmatchT = findGeneMatch(Jnt,Jmap,'J',AllowedMiss,0,'');
+            if JmatchT{5}(2) > Jmatch{5}(2) %If the align score is greater without anchor, then accept unanchored match.
+                Jmatch = JmatchT;
+                Jlen = sum(Jmatch{4}(2:3));
+            end
+        end
 
         %Look for D gene for each seq
         Dnt = Seq(Vlen+1:end-Jlen);

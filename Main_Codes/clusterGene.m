@@ -69,7 +69,6 @@ for j = 1:max(CrudeClustIdx)
     
         VDJdata(ClustIdx,:) = Tdata;
     catch
-        pause
         WarningMsg = sprintf('Warning at %s, cluster group # %d',mfilename,j);
         disp(WarningMsg); pause
     end

@@ -68,7 +68,7 @@ for y = 1:length(UnqGrpNum)
         %segment, which is the most accurate segment
         VconsSeg = VMDNJ(1)+VdelCur-VallowedDel;
         MaxMiss = max(ConsMissCt(1:VconsSeg));
-        if size(Tdata,1) == 1 || isempty(MaxMiss)
+        if size(Tdata,1) == 1 || isempty(MaxMiss) || MaxMiss == 0
             ConsMiss = ConsMissCt >= 1; %Must be atleast 1
         else
             ConsMiss = ConsMissCt >= MaxMiss;
