@@ -26,12 +26,23 @@ Takes fasta, fastq, csv, xlsx, or xlsx file containing, hopefully, the full VDJ 
 Returns a semicolon-delimited CSV file listing the annotation results and phylogeny relationships among sequences. Will create and save to a new folder called BRILIA, and append BRILIAvX.Y.Z at the end of the file name, where X.Y.Z is the version number.  
 See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/Dev14/Support_Files/Headers_BRILIA.csv).
 
-## MATLAB SOURCE CODE USAGE (requires bioinformatics toolbox):
+## MATLAB BASIC USAGE (requires bioinformatics toolbox):
 
 1. Copy all codes into a folder called BRILIA (Delete any older BRILIA folder, as this could cause code conflict).
 2. Open MATLAB and set the working directory to the BRILIA folder.
-3. Type "BRILIA" in the command line and follow instructions. First time use will automatically add BRILIA paths. 
-4. Select the input file to process (try the example input files shown in the Example folder). 
+3. In the command line, type "help BRILIA" to look at how it handles input and outputs.
+4. To run BRILIA, use either of the following example commands:
+
+   EX1) Will ask user to select file, select host species, select host strain.
+   >> BRILIA
+   
+   EX2) Will ask user to select file, where all parameters for BRILIA are defined in a txt file (see SettingExample.txt)
+   >> BRILIA([],'SettingFile','SettingExample.txt')
+
+   EX3) Will process sequence file named Seqfile.fasta, use the IMGT Human VDJ germline gene database, plus other settings specfified by the user as ParamName-Value pairs.
+   >> BRILIA('Seqfile.fasta','Species','human',ParamName,Value,...)
+
+   HINT) Try process the example input files in the Example_Files folder.
 5. BRILIA should create a new folder called BRILIA and save the output results in that folder.
 
 The program is distributed under the [GNU General Public License] (http://www.gnu.org/licenses/gpl.html).
