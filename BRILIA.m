@@ -254,6 +254,9 @@ for f = 1:length(FullFileNames)
             BadSaveFullName = sprintf('%s%s.BRILIAv%s.Err.%s',SavePath,FileName(1:DotLoc(end)-1),Version,'csv');
             saveSeqData(BadSaveFullName,BadVDJdata,NewHeader,'Delimiter',SaveDelimiter);
         end
+        
+        %Save the settings file
+        
 
         RunTime(f) = toc;
         SeqCount(f) = size(VDJdata,1) + size(BadVDJdata,1);
