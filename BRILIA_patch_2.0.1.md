@@ -2,17 +2,17 @@
 
 A lot of changes have been made to make BRILIA more tolerable to a variety of input sequences. Below is a list of major changes, divided by categories.
 
-###Major changes to algorithm
-- N region score is modified to penalize long sequence. Equation changed from (P_TDT * L)^2 to (2*P_TDT - 1)*L^2. 
-- Sequence alignment now relies partially on seed-based alignment that looks for the conserved C and W, prior to finding the V D J gene.
-- Alignment score calculations have been adjusted to allow for lower alignment score for flanking non-match regions IF desired.
-
 ###General changes
 - The Help comments are updated on all codes in Main_Codes.
 - Error handling is improved to prevent a single entry from stopping whole annotation process. Added try and catch statements.
 - BRILIA no longer asks users to choose strain when using human databases.
 - Unprocessed sequences are removed from the main file and set aside in an "Unprocessed" file.
 - Removed dependency on using Excel file format. Now relies on semicolon-delimited file formats mostly.
+
+###Updates to algorithm
+- N region score is modified to penalize long sequence. Equation changed from (P_TDT * L)^2 to (2*P_TDT - 1)*L^2. 
+- Sequence alignment now relies partially on seed-based alignment that looks for the conserved C and W, prior to finding the V D J gene.
+- Alignment score calculations have been adjusted to allow for lower alignment score for flanking non-match regions IF desired.
 
 ###Specific changes
 BRILIA.m
