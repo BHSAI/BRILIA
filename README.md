@@ -39,7 +39,7 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/D
    EX2) Will ask user to select file, where all parameters for BRILIA are defined in a txt file (see SettingExample.txt)
    > BRILIA( [], 'SettingFile', 'SettingExample.txt' )
 
-   EX3) Will process sequence file named Seqfile.fasta, use the IMGT Human VDJ germline gene database, plus other settings specfified by the user as ParamName-Value pairs.
+   EX3) Will process sequence file named Seqfile.fasta, use the Human VDJ gene database, plus other settings specfied by ParamName-Value pairs.
    > BRILIA( 'Seqfile.fasta' , 'Species' , 'human' , ParamName , Value, ... )
 
    NOTE) Try process the example input files in the Example_Files folder.
