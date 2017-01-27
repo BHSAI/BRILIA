@@ -34,15 +34,15 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/D
 4. To run BRILIA, use either of the following example commands:
 
    EX1) Will ask user to select file, select host species, select host strain.
-   >> BRILIA
+   > BRILIA
    
    EX2) Will ask user to select file, where all parameters for BRILIA are defined in a txt file (see SettingExample.txt)
-   >> BRILIA([],'SettingFile','SettingExample.txt')
+   > BRILIA( [], 'SettingFile', 'SettingExample.txt' )
 
    EX3) Will process sequence file named Seqfile.fasta, use the IMGT Human VDJ germline gene database, plus other settings specfified by the user as ParamName-Value pairs.
-   >> BRILIA('Seqfile.fasta','Species','human',ParamName,Value,...)
+   > BRILIA( 'Seqfile.fasta' , 'Species' , 'human' , ParamName , Value, ... )
 
-   HINT) Try process the example input files in the Example_Files folder.
+   NOTE) Try process the example input files in the Example_Files folder.
 5. BRILIA should create a new folder called BRILIA and save the output results in that folder.
 
 The program is distributed under the [GNU General Public License] (http://www.gnu.org/licenses/gpl.html).
