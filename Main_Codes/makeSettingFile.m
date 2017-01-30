@@ -41,6 +41,7 @@ end
 
 %Setting up default structure
 if isempty(P)
+    P.FullFileNames = '';
     P.Species = '';
     P.Strain = '';
     P.Ddirection = 'all';

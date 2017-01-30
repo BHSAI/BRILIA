@@ -250,7 +250,9 @@ for f = 1:length(FullFileNames)
 
     %Save the settings file
     SaveFullName = sprintf('%s%s.SettingFile.%s',SavePath,FileName(1:DotLoc(end)-1),'txt');
-    makeSettingFile(SaveFullName,P);
+    Psave = P; %Create new structure to prevent overriding P.FullFileNames
+    Psave.FullFileNames = FullFileNames{f}; %Select only fth name since makeSettingFile is made per file
+    makeSettingFile(SaveFullName,Psave);
 
     RunTime(f) = toc;
     SeqCount(f) = size(VDJdata,1) + size(BadVDJdata,1);
