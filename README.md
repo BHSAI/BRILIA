@@ -20,7 +20,8 @@ Takes fasta, fastq, csv, xlsx, or xlsx file containing nucleotide sequences of V
 
 ## OUTPUT FILE (see Example_Files folder): 
 
-Returns a semicolon-delimited CSV file listing the annotation results and phylogeny relationships among sequences. Will create and save to a new folder called BRILIA, and append BRILIAvX.Y.Z at the end of the file name, where X.Y.Z is the version number.  
+Returns a semicolon-delimited CSV file listing the annotation results and phylogeny relationships among sequences. This file is saved in a new folder called BRILIA and the version number is added to the file name (Ex: FileName.BRILIAv1.2.3.csv). Sequences that could not be processed are saved in a separate file ending with Err.csv.   
+
 See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/master/Support_Files/DataHeaderInfo.csv).
 
 ## MATLAB BASIC USAGE (requires bioinformatics toolbox):
