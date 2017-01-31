@@ -101,10 +101,17 @@ if P.ExactMatch(1) == 'y'
     %Determine best fit ref gene number via NT matching
     FitScore1 = zeros(length(CDR3anchor),size(Xmap,1)); %Match/mismatch
     FitScore2 = zeros(length(CDR3anchor),size(Xmap,1)); %Align Score
+    InvalidMap = zeros(1,size(Xmap,1),'logical');
     for x = 1:size(Xmap,1)
         %Determine if Xmap entry and anchor are viable
-        if isempty(Xmap{x,1}); continue; end %Deleted reference seq       
-        if Xmap{x,10} == 0; continue; end %No valid anchor available
+        if isempty(Xmap{x,1}); 
+            InvalidMap(x) = 1;
+            continue; 
+        end %Deleted reference seq       
+        if Xmap{x,10} == 0; 
+            InvalidMap(x) = 1;
+            continue; 
+        end %No valid anchor available
         
         if X == 'V'
             Xanchor = length(Xmap{x,1}) - Xmap{x,10} + 1; %CDR3start location (1st nt of codon)
@@ -115,8 +122,7 @@ if P.ExactMatch(1) == 'y'
         %Determine alignment score for Xmap and anchor points
         for q = 1:length(CDR3anchor)
             [SeqA, SeqB] = padtrimSeq(Seq,Xmap{x,1},CDR3anchor(q),Xanchor,'min','min');
-            [ScoreT,~,StartAt,MatchAt] = convolveSeq(SeqA,SeqB,P);
-            
+            [ScoreT,A,StartAt,MatchAt] = convolveSeq(SeqA,SeqB,P);
             %Adjust Score1 based on where SeqA start/ends for V/J gene
             if StartAt(2) < 0
                 SeqAstart = abs(StartAt(2)) + 1;
@@ -142,7 +148,7 @@ if P.ExactMatch(1) == 'y'
     end
     
     %Find the best anchor point and Xmap number
-    [BestRow, BestXmapNum] = find(FitScore2 == max(FitScore2(:))); %The index number in Xmap of best matches
+    [BestRow, BestXmapNum] = find(FitScore2 == max(max(FitScore2(:,~InvalidMap)))); %The index number in Xmap of best matches
     BestAnchor = CDR3anchor(BestRow);
     if length(BestRow) > 1 %If multiple anchors work, then...
         if X == 'V' %Select the furthest right start loc

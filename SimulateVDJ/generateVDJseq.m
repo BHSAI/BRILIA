@@ -131,9 +131,9 @@ SeqCount = (BranchCount * BranchLength + 1) * CloneCount; %Total number of seque
 
 %Setup SHMrate
 while isempty(SHMrate) || (SHMrate < 0 || SHMrate > 100)
-    SHMrate = lower(input('What SHM mutation % to simulate? Default 5   '));
+    SHMrate = lower(input('What SHM mutation % to simulate? Default 2   '));
     if isempty(SHMrate)
-        SHMrate = 5;
+        SHMrate = 2;
     end
 end
 if SHMrate > 20

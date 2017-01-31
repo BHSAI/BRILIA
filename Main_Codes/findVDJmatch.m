@@ -122,7 +122,7 @@ parfor j = 1:size(VDJdata,1)
                 ForceAnchor = 'forceanchor'; %Ensure once of the anchor matches.
             end
         end
-        %End of ForceAnchor set--------------------------------------------
+        %End of ForceAnchor setting----------------------------------------
         
         MissRate = (Vlen - Vmatch{1,5}(1))/Vlen; %Re-establish MissRate for D and J
         
