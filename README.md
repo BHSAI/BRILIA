@@ -28,9 +28,9 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/m
 
 ## MATLAB BASIC USAGE (requires bioinformatics toolbox):
 
-1. Copy all codes into a folder called BRILIA (Delete any older BRILIA folder, as this could cause code conflict).
+1. Copy all codes into a folder called BRILIA (Delete older BRILIA files as this could cause code conflicts).
 2. Open MATLAB and set the working directory to the BRILIA folder.
-3. In the command line, type "help BRILIA" to look at how it handles input and outputs.
+3. In the command line, type "help BRILIA" to look at how it handles inputs and outputs.
 4. To run BRILIA, use either of the following example commands:
 
    EX1) Will ask user to select the input sequence file, host species, and host strain.
