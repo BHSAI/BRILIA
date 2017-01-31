@@ -1,5 +1,6 @@
 %findCell will look in ListA for any match ListB, returning the index
-%of any matches in ListA.
+%of any matches in ListA. ListA should be the main cell matrix your are
+%looking for the index value.
 %
 %  Aidx = findCell(ListA,ListB)
 %

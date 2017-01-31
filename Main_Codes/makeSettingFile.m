@@ -65,15 +65,14 @@ for j = 1:length(SettingNames)
     Name = SettingNames{j};
     Value = P.(Name);
     if isnumeric(Value);
-        Value = num2str(Value);
+        if length(Value) > 1
+            Value = mat2str(Value);
+        else
+           Value = num2str(Value);
+        end
     end
 
     fprintf(FID,'%s = ''%s'';\r\n',Name,Value);
 end
 
 fclose(FID);
-
-%Convert field to numerical value
-if ischar(P.DevPerc)
-    P.DevPerc = eval(P.DevPerc);
-end

@@ -5,7 +5,7 @@
 %  select what sequences to keep. Discarded entries have the sequence set
 %  to '' empty.
 %
-%  [Vmap,Dmap,Jmap] =
+%  [Vmap,Dmap,Jmap,FiltOption] =
 %  filterRefGene(Vmap,Dmap,Jmap,Parameter,Value,Parmaeter2,Value2,...)
 %  will set the VDJ maps sequence column to empty '' based on what is
 %  being filtered.
@@ -20,8 +20,12 @@
 %       - Function F,P,ORF only works for V genes. 
 %       - Direction only works for D genes. 
 %       - Strain only works for mouse database.
+%
+%  OUTPUT
+%    FiltOption: a structure with fields 'Strain','Ddirection','Vfunction'
+%      that was used for filtering out the VDJ database.
 
-function [Vmap,Dmap,Jmap] = filterRefGene(Vmap,Dmap,Jmap,varargin)
+function [Vmap,Dmap,Jmap,varargout] = filterRefGene(Vmap,Dmap,Jmap,varargin)
 %Determine the inputs
 P = inputParser;
 addParameter(P,'Strain','',@ischar); %For mouse, select strain(s)
@@ -116,6 +120,9 @@ if IsMouseDB == 1
             end    
         end
     end
+    Strain = UnqStrain{StrainNum};
+else
+    Strain = 'All';
 end
 
 %==========================================================================
@@ -152,6 +159,7 @@ switch SearchDopt
         end
     otherwise %Don't do anything
 end
+Ddirection = DsearchOptions{SearchDopt};
 
 %==========================================================================
 %Determine if you want to include pseudo or orf sequences
@@ -164,6 +172,7 @@ if isempty(Vfunction) %Ask user to determine which direction D to search
     FunctOpt = -1;
     while min(FunctOpt) < 1 || max(FunctOpt) > length(FunctOptions)
         FunctOpt = input('Select option: ','s');
+        if isempty(FunctOpt); FunctOpt = '1'; end
         if min(isstrprop(strrep(FunctOpt,',',''),'digit')) == 1
             FunctOpt = eval(['[' FunctOpt ']']);
         else
@@ -172,7 +181,11 @@ if isempty(Vfunction) %Ask user to determine which direction D to search
     end
 else
     Vfunction = regexp(Vfunction,',','split');
-    FunctOpt = findCell(FunctOptions,Vfunction);
+    FunctOpt = findCell(FunctOptions,Vfunction,'MatchCase','any');
+    if max(FunctOpt) == 0
+        warning('Invalid Vfunction input. Using ''All'' option by default');
+        FunctOpt = 1;
+    end
 end
 
 if min(FunctOpt(1)) > 1 && length(FunctOpt) > 1 %You have to filter
@@ -193,6 +206,10 @@ if min(FunctOpt(1)) > 1 && length(FunctOpt) > 1 %You have to filter
         end
     end
 end
+
+StrPat = repmat('%s,',1,length(FunctOpt));
+StrPat(end) = [];
+Vfunction = sprintf(StrPat,FunctOptions{FunctOpt});
 
 %==========================================================================
 %Now set all nuceotide columns to empty
@@ -216,4 +233,11 @@ if sum(Ddel) == size(Dmap,1)
 end
 if sum(Jdel) == size(Jmap,1)
     disp('Nothing left in Jmap');
+end
+
+if nargout >= 4
+    FiltOption.Vfunction = Vfunction;
+    FiltOption.Ddirection = Ddirection;
+    FiltOption.Strain = Strain;
+    varargout{1} = FiltOption;
 end

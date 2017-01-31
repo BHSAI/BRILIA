@@ -74,10 +74,10 @@ end
 
 P = inputParser;
 addOptional(P,'FullFileNames',[],@(x) ischar(x) || iscell(x) || isempty(x));
-addParameter(P,'Species','',@(x) ischar(x) && ismember(lower(x),{'human','mouse'})); %Note, anything empty for DB filter will prompt user input.
+addParameter(P,'Species','',@(x) ischar(x) && ismember(lower(x),{'human','mouse',''})); %Note, anything empty for DB filter will prompt user input.
 addParameter(P,'Strain','',@ischar);
-addParameter(P,'Ddirection','all',@(x) ischar(x) && ismember(lower(x),{'all','fwd','inv'}));
-addParameter(P,'Vfunction','all',@(x) ischar(x) && min(ismember(regexpi(lower(x),',','split'),{'all','f','p','orf'}))==1);
+addParameter(P,'Ddirection','all',@(x) ischar(x) && ismember(lower(x),{'all','fwd','inv',''}));
+addParameter(P,'Vfunction','all',@(x) ischar(x) && min(ismember(regexpi(lower(x),',','split'),{'all','f','p','orf',''}))==1);
 addParameter(P,'DevPerc',5,@(x) isnumeric(x) && (x>=0) && (x<=100)); %For clustering purposes. Set empty to force user to input it later.
 addParameter(P,'FileType','',@ischar); %Will make input reader determine file type
 addParameter(P,'Delimiter',';',@(x) ischar(x) && ismember(x,{';' ',' '\t' ''}));
