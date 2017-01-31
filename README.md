@@ -43,8 +43,8 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/D
    > BRILIA( 'Seqfile.fasta' , 'Species' , 'human' , ParamName , Value, ... )
 
    NOTE) Try process the example input files in the Example_Files folder.
-   > BRILIA( 'Ex4_SimMouseBCR_FullLength.fa' , 'SettingFile' , 'Ex4_SettingFile.txt' );
-   > BRILIA( 'Ex5_SimHumanBCR_FullLength.fa' , 'SettingFile' , 'Ex5_SettingFile.txt' );
+   > BRILIA( 'Ex4_SimMouseBCR_FullLength.fa' , 'SettingFile' , 'Ex4_SettingFile.txt' );  
+   > BRILIA( 'Ex5_SimHumanBCR_FullLength.fa' , 'SettingFile' , 'Ex5_SettingFile.txt' );  
 
 5. BRILIA should create a new folder called BRILIA and save the output results in that folder.
 
