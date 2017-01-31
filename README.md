@@ -33,16 +33,16 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/D
 3. In the command line, type "help BRILIA" to look at how it handles input and outputs.
 4. To run BRILIA, use either of the following example commands:
 
-   EX1) Will ask user to select file, select host species, select host strain.
+   EX1) Will ask user to select the input sequence file, host species, and host strain.
    > BRILIA
    
-   EX2) Will ask user to select file, where all parameters for BRILIA are defined in a txt file (see SettingExample.txt)
+   EX2) Will ask user to select file while using all BRILIA parameters defined in a txt file (see SettingExample.txt)
    > BRILIA( [], 'SettingFile', 'SettingExample.txt' )
 
-   EX3) Will process sequence file named Seqfile.fasta, use the Human VDJ gene database, plus other settings specfied by ParamName-Value pairs.
+   EX3) Will process sequence file named Seqfile.fasta using the Human VDJ gene database and other settings specfied by ParamName-Value pairs.
    > BRILIA( 'Seqfile.fasta' , 'Species' , 'human' , ParamName , Value, ... )
 
-   NOTE) Try process the example input files in the Example_Files folder.
+   HINT) Try process the example input files in the Example_Files folder.
    > BRILIA( 'Ex4_SimMouseBCR_FullLength.fa' , 'SettingFile' , 'Ex4_SettingFile.txt' );  
    > BRILIA( 'Ex5_SimHumanBCR_FullLength.fa' , 'SettingFile' , 'Ex5_SettingFile.txt' );  
 
