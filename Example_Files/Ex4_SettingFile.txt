@@ -1,0 +1,9 @@
+Date = 01-Jan-2017;
+Species = 'mouse';
+Strain = 'C57BL';
+Ddirection = 'all';
+Vfunction = 'all';
+DevPerc = 3;
+FileType = '';
+Delimiter = ';';
+CheckSeqDir = 'n';
