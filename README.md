@@ -14,12 +14,9 @@ BRILIA is designed to annotate a repertoire of B-cell receptor, heavy-chain sequ
   
 ## INPUT FILES (see Example_Files folder): 
 
-Takes fasta, fastq, csv, xlsx, or xlsx file containing, hopefully, the full VDJ junction. Users must ensure some basic sequence rules to ensure BRILIA works properly:
-  *  Sequence has ambiguous characters outside of "acgtunx" where n and x are both wildcard nucleotides
-  *  Sequence contains V and J at least
-  *  Tabulated data has a column header names, labeled as "SeqName", "Seq", and/or "TemplateCount". Template count is optional.
-  *  NOT raw paired end sequence data. BRILIA assumes all pair end joining has been completed.
-  *  PREFER +sense strand direction read to cut down alignment time. If there's a mixtures, BRILIA will perform extra steps to check directionality of sequence.
+Takes fasta, fastq, csv, xlsx, or xlsx file containing nucleotide sequences of VDJ junctions. Users should ensure that:
+  *  the 1st row of tabulated data have data labels "SeqName" and "Seq". "TemplateCount" is optional.
+  *  ambiguous non-nucleotide letters are minimal, otherwise BRILIA will treat them as wildcard nucleotides.
 
 ## OUTPUT FILE (see Example_Files folder): 
 
