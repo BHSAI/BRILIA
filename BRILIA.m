@@ -117,8 +117,8 @@ elseif ischar(FullFileNames)
     FullFileNames = {FullFileNames};    
 end
 
-RunTime = zeros(length(FileNames),1);
-SeqCount = zeros(length(FileNames),1);
+RunTime = zeros(length(FullFileNames),1);
+SeqCount = zeros(length(FullFileNames),1);
 
 %For debugging only. Save current variables so you can run each code,
 %line by line.

@@ -1,0 +1,11 @@
+Date = '31-Jan-2017';
+CheckSeqDir = 'n';
+Ddirection = 'all';
+Delimiter = ';';
+DevPerc = '3';
+FileType = '';
+FullFileNames = 'Ex4_SimMouseBCR_FullLength.fa';
+SettingFile = 'Ex4_SettingFile.txt';
+Species = 'mouse';
+Strain = 'C57BL';
+Vfunction = 'all';

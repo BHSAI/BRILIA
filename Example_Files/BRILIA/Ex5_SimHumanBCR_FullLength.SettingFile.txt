@@ -1,0 +1,11 @@
+Date = '31-Jan-2017';
+CheckSeqDir = 'n';
+Ddirection = 'all';
+Delimiter = ';';
+DevPerc = '3';
+FileType = '';
+FullFileNames = 'Ex5_SimHumanBCR_FullLength.fa';
+SettingFile = 'Ex5_SettingFile.txt';
+Species = 'human';
+Strain = 'all';
+Vfunction = 'all';
