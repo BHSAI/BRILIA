@@ -76,108 +76,87 @@ CDR3endLoc = findCell(NewHeader,{'CDR3_End'});
 %Begin finding the VDJ genes   
 BadIdx = zeros(size(VDJdata,1),1,'logical');
 parfor j = 1:size(VDJdata,1)
-    %try
-        %Extract info from sliced VDJdata variable
-        Tdata = VDJdata(j,:);
-        Seq = Tdata{1,SeqLoc};
-        CDR3start = Tdata{1,CDR3startLoc};
-        if isempty(CDR3start); CDR3start = 0; end
-        CDR3end = Tdata{1,CDR3endLoc};
+    %Extract info from sliced VDJdata variable
+    Tdata = VDJdata(j,:);
+    Seq = Tdata{1,SeqLoc};
+    CDR3start = Tdata{1,CDR3startLoc};
+    if isempty(CDR3start); CDR3start = 0; end
+    CDR3end = Tdata{1,CDR3endLoc};
+    if isempty(CDR3end); CDR3end = 0; end
+
+    MissRate = 0.15; %Start with 15% miss rate for the V segment. Place inside parfor loop to reset!
+
+    %Look for V gene for each seq
+    Vnt = Seq(1:end-DJreserve); %Preserve nt to prevent matching V without D and J.
+    AllowedMiss = ceil(MissRate * (length(Vnt))); %Number of pt mutations allowed
+    CDR3start((CDR3start > length(Vnt)) | (CDR3start < 1)) = []; %Remove nonsensical locations
+    Vmatch = findGeneMatch(Vnt,Vmap,'V',AllowedMiss,CDR3start);
+    Vlen = sum(Vmatch{4}(1:2)); %Length of V segment
+
+    %------------------------------------------------------------------
+    %For short seq cutoff at 118W, if there's a possible C to W CDR3
+    %region, then use the W position as a strong anchor for J alignment
+
+    %Recalculate the CDR3start, 104C codon 1st nt
+    Vdel = Vmatch{3}(3); %V3' deletion
+    VmapNum = Vmatch{1}(1);
+    VrefCDR3 = Vmap{VmapNum,10}; %Location of C from right end of V
+    CDR3start = Vlen + Vdel - VrefCDR3 + 1;
+    if CDR3start <= 0 %Have an issue
+        BadIdx(j) = 1;
+        continue;
+    end
+
+    %See if there's an in-frame 118W codon seed (if yes, use 'forceanchor')
+    if max(CDR3end) == 0 %Find some CDR3end options
+        CDR3end = regexp(Seq(Vlen+1:end),'TGG','end') + Vlen;
         if isempty(CDR3end); CDR3end = 0; end
-        
-        MissRate = 0.15; %Start with 15% miss rate for the V segment. Place inside parfor loop to reset!
-
-        %Look for V gene for each seq
-        Vnt = Seq(1:end-DJreserve); %Preserve nt to prevent matching V without D and J.
-        AllowedMiss = ceil(MissRate * (length(Vnt))); %Number of pt mutations allowed
-        CDR3start((CDR3start > length(Vnt)) | (CDR3start < 1)) = []; %Remove nonsensical locations
-        Vmatch = findGeneMatch(Vnt,Vmap,'V',AllowedMiss,CDR3start);
-        Vlen = sum(Vmatch{4}(1:2)); %Length of V segment
-        
-        %------------------------------------------------------------------
-        %For short seq cutoff at 118W, if there's a possible C to W CDR3
-        %region, then use the W position as a strong anchor for J alignment
-
-        %Recalculate the CDR3start, 104C codon 1st nt
-        Vdel = Vmatch{3}(3); %V3' deletion
-        VmapNum = Vmatch{1}(1);
-        VrefCDR3 = Vmap{VmapNum,10}; %Location of C from right end of V
-        CDR3start = Vlen + Vdel - VrefCDR3 + 1;
-        if CDR3start <= 0 %Have an issue
-            BadIdx(j) = 1;
-            continue;
+    end
+    ForceAnchor = '';
+    if max(CDR3end) > 0
+        %Determine in-frame TGGs
+        InframeLoc = (mod(CDR3end-CDR3start-2,3) == 0) & CDR3end > CDR3start;
+        if max(InframeLoc) > 0
+            CDR3end = CDR3end(InframeLoc);
+            ForceAnchor = 'forceanchor'; %Ensure once of the anchor matches.
         end
-        
-        %See if there's an in-frame 118W codon seed (if yes, use 'forceanchor')
-        if max(CDR3end) == 0 %Find some CDR3end options
-            CDR3end = regexp(Seq(Vlen+1:end),'TGG','end') + Vlen;
-            if isempty(CDR3end); CDR3end = 0; end
-        end
-        ForceAnchor = '';
-        if max(CDR3end) > 0
-            %Determine in-frame TGGs
-            InframeLoc = (mod(CDR3end-CDR3start-2,3) == 0) & CDR3end > CDR3start;
-            if max(InframeLoc) > 0
-                CDR3end = CDR3end(InframeLoc);
-                ForceAnchor = 'forceanchor'; %Ensure once of the anchor matches.
-            end
-        end
-        %End of ForceAnchor setting----------------------------------------
-        
-        MissRate = (Vlen - Vmatch{1,5}(1))/Vlen; %Re-establish MissRate for D and J
-        
-        %Look for J gene for each seq
-        Jnt = Seq(Vlen+Dreserve+1:end); %Preserve D NTs for later matching, and pad seq for OverhangMatch success.
-        AllowedMiss = ceil(MissRate * length(Jnt)); %Number of pt mutations allowed
-        CDR3endTemp = CDR3end - Vlen - Dreserve; %Remember to shift CDR3end values
-        CDR3endTemp((CDR3endTemp < 1) | (CDR3endTemp > length(Jnt))) = []; %Remove nonsensical locations
-        Jmatch = findGeneMatch(Jnt,Jmap,'J',AllowedMiss,CDR3endTemp,ForceAnchor);
-        Jlen = sum(Jmatch{4}(2:3));
+    end
+    %End of ForceAnchor setting----------------------------------------
 
-%         %Sometimes, force anchor fails when there is an in-line CDR3end, but excluding a TGG end. So do a full align instead
-%         if (Jmatch{5}(1) / Jlen) < 0.70 %Sequence identity too low
-%             JmatchT = findGeneMatch(Jnt,Jmap,'J',AllowedMiss,0,'');
-%             JlenT = sum(JmatchT{4}(2:3));
-%             if JmatchT{5}(2) > Jmatch{5}(2) %If the align score is greater without anchor, then check if you get an in-line CDR3
-%                 JmapNum = JmatchT{1}(1);
-%                 JdelT = JmatchT{3}(1);
-%                 CDR3endT = (Jmap{JmapNum,10} + 2 - JdelT) + Vlen + Dreserve + (length(Jnt) - JlenT); 
-%                 %Determine in-frame TGGs
-%                 InframeLoc = (mod(CDR3endT-CDR3start-2,3) == 0) && (CDR3endT > CDR3start) && (CDR3endT <= length(Seq));
-%                 if InframeLoc
-%                     Jmatch = JmatchT;
-%                     Jlen = sum(Jmatch{4}(2:3));
-%                 end
-%             end
-%         end
+    MissRate = (Vlen - Vmatch{1,5}(1))/Vlen; %Re-establish MissRate for D and J
 
-        %Look for D gene for each seq
-        Dnt = Seq(Vlen+1:end-Jlen);
-        AllowedMiss = ceil(MissRate * length(Dnt));
-        Dmatch = findGeneMatch(Dnt,Dmap,'D',AllowedMiss);
+    %Look for J gene for each seq
+    Jnt = Seq(Vlen+Dreserve+1:end); %Preserve D NTs for later matching, and pad seq for OverhangMatch success.
+    AllowedMiss = ceil(MissRate * length(Jnt)); %Number of pt mutations allowed
+    CDR3endTemp = CDR3end - Vlen - Dreserve; %Remember to shift CDR3end values
+    CDR3endTemp((CDR3endTemp < 1) | (CDR3endTemp > length(Jnt))) = []; %Remove nonsensical locations
+    Jmatch = findGeneMatch(Jnt,Jmap,'J',AllowedMiss,CDR3endTemp,ForceAnchor);
+    Jlen = sum(Jmatch{4}(2:3));
 
-        %Extract VMDNJ lengths
-        Vlmr = cell2mat(Vmatch(1,4)); %V left mid right segment
-        Jlmr = cell2mat(Jmatch(1,4)); %D left mid right segment
-        Dlmr = cell2mat(Dmatch(1,4)); %J left mid right segment
-        VMDNJ = [sum(Vlmr(1:2)) Dlmr sum(Jlmr(2:3))]; %V, Nvd, D, Ndj, J lengths
-        Tdata(1,LengthLoc) = num2cell(VMDNJ);
+    %Look for D gene for each seq
+    Dnt = Seq(Vlen+1:end-Jlen);
+    AllowedMiss = ceil(MissRate * length(Dnt));
+    Dmatch = findGeneMatch(Dnt,Dmap,'D',AllowedMiss);
 
-        %Extract germline deletion info
-        Vdel = Vmatch{1,3}(3);
-        D5del = Dmatch{1,3}(1);
-        D3del = Dmatch{1,3}(3);
-        Jdel = Jmatch{1,3}(1);
-        Tdata(1,DelLoc) = num2cell([Vdel D5del D3del Jdel]);
-        
-        %Extract the gene family map number and family resolution
-        Tdata(1,FamNumLoc) = [Vmatch(1,1) Dmatch(1,1) Jmatch(1,1)];
-        Tdata(1,FamLoc) = [Vmatch(1,2) Dmatch(1,2) Jmatch(1,2)];
-        
-        VDJdata(j,:) = Tdata;
-   % catch
-   %     BadIdx(j) = 1;
-   % end
+    %Extract VMDNJ lengths
+    Vlmr = cell2mat(Vmatch(1,4)); %V left mid right segment
+    Jlmr = cell2mat(Jmatch(1,4)); %D left mid right segment
+    Dlmr = cell2mat(Dmatch(1,4)); %J left mid right segment
+    VMDNJ = [sum(Vlmr(1:2)) Dlmr sum(Jlmr(2:3))]; %V, Nvd, D, Ndj, J lengths
+    Tdata(1,LengthLoc) = num2cell(VMDNJ);
+
+    %Extract germline deletion info
+    Vdel = Vmatch{1,3}(3);
+    D5del = Dmatch{1,3}(1);
+    D3del = Dmatch{1,3}(3);
+    Jdel = Jmatch{1,3}(1);
+    Tdata(1,DelLoc) = num2cell([Vdel D5del D3del Jdel]);
+
+    %Extract the gene family map number and family resolution
+    Tdata(1,FamNumLoc) = [Vmatch(1,1) Dmatch(1,1) Jmatch(1,1)];
+    Tdata(1,FamLoc) = [Vmatch(1,2) Dmatch(1,2) Jmatch(1,2)];
+
+    VDJdata(j,:) = Tdata;
 end
 
 %If there are errors, show them now.

@@ -40,7 +40,7 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/m
    EX3) Will process sequence file named Seqfile.fasta using the Human VDJ gene database and other settings specfied by ParamName-Value pairs.
    > BRILIA( 'Seqfile.fasta' , 'Species' , 'human' , ParamName , Value, ... )
 
-   HINT) Try process the example input files in the Example_Files folder.
+   HINT) Try processing the example input files in the Example_Files folder.
    > BRILIA( 'Ex4_SimMouseBCR_FullLength.fa' , 'SettingFile' , 'Ex4_SettingFile.txt' );  
    > BRILIA( 'Ex5_SimHumanBCR_FullLength.fa' , 'SettingFile' , 'Ex5_SettingFile.txt' );  
 
