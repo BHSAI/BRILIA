@@ -183,7 +183,7 @@ for f = 1:length(FullFileNames)
     checkVDJdata(VDJdata,NewHeader,'constrainGeneVJ',DebugModeOn);
 
     %Pad sequences CDR3 length also have same Seq Length (required for cluster)
-    [VDJdata, BadVDJdataT] = padtrimSeqGroup(VDJdata,NewHeader,'cdr3length','max');
+    [VDJdata, BadVDJdataT] = padtrimSeqGroup(VDJdata,NewHeader,'cdr3length','max','Seq');
         BadVDJdata = [BadVDJdata; BadVDJdataT];
         clear BadVDJdataT;
         if isempty(VDJdata); continue; end %didn't open file right
@@ -219,7 +219,7 @@ for f = 1:length(FullFileNames)
     checkVDJdata(VDJdata,NewHeader,'fixTree',DebugModeOn);
 
     %Finalize VDJdata details
-    VDJdata = padtrimSeqGroup(VDJdata,NewHeader,'grpnum','trim'); %will only remove "x" before and after sequences if they all have it. 
+    VDJdata = padtrimSeqGroup(VDJdata,NewHeader,'grpnum','trim','RefSeq'); %will only remove "x" before and after sequences if they all have it. 
     VDJdata = buildRefSeq(VDJdata,NewHeader,'germline','first'); %must do first seq of all cluster only
     VDJdata = updateVDJdata(VDJdata,NewHeader,Vmap,Dmap,Jmap);
 
