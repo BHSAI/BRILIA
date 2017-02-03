@@ -30,7 +30,7 @@ if isempty(DotLoc)
     FileExt = [];
 else
     %Determine file extension
-    if isempty(DotLoc)
+    if isempty(DotLoc) || (~isempty(DotLoc) && DotLoc(end) < SlashLoc(end))
         FileExt = [];
     else
         FileExt = FullName(DotLoc(end):end);

@@ -58,6 +58,7 @@
 %                                    jet colormap.
 %      Legend          'y','n'     Will draw a color-coded CDR3 legend.
 %                                    Default is y.
+%      LendFontSize    10          Font size of the Legend
 %      Sort            'y','n'     Will sort the tree to cluster related
 %                                    branches together.
 %      TreeStyle       'triangle'  Draw trees with triangle edges. Default.
@@ -72,9 +73,22 @@
 %      --------------- ---------   ----------------------------------------
 %      FontSize        10          Font size of X and Y axes
 %      FontName        Arial       Font name of X and Y axes
-%      LendFontSize    10          Font size of the Legend
 %      FigWidth        inches      Width of the whole figure
-%      FigHeight       inches      Height of the whole figure
+%      FigMaxHeight    inches      Maximum height of the whole figure
+%
+%    *If you want to save, use these param-value paris:
+%      Parmaeter Name  Value       Description
+%      --------------- ---------   ----------------------------------------
+%      Save            'n','y'     To save or not to save. Default 'n'.
+%      SaveName        String      The file name to save everything. The
+%                                    file name will append the GrpNum to
+%                                    it. EX: if SaveName is 'A', then the
+%                                    files will be saved as A.Grp1.tif. If
+%                                    empty and Save = 'y', will ask user to
+%                                    select folder and file name.
+%      Format          'tif','png' Image format type to save the figure as.
+%                      'jpg','fig'   Default is 'tif'.
+%      DPI             N           Dots per square inch. Default is 300.
 %
 %  OUTPUT
 %    Gxs: figure handle(s) in a cell matrix
@@ -86,21 +100,21 @@
 %    GrpNum = 10 OR SeqNum = 12 will plot 1 OR 2 trees, depending on if
 %    Seq 12 is or isn't within Grp 10.
 %
-%    To convert all the fig files to print outs, use the exportFigure
-%    function, which has many capabilities to modify the figure size,
-%    quality, etc.
+%  EXAMPLE 
+%    Go to the folder BRILIA/Examples_Files/BRILIA/ and try the following:
+%      FileName = 'Ex4_SimMouseBCR_FullLength.BRILIAv2.0.4.csv';
+%      P = plotTreeData('getinput');   %Get the default input struct only
+%      P.GetGrpNum = 1;                %Plot tree for Group #1
+%      P.TreeStyle = 'square';         %Draw tree with 90 degree lines
+%      P.DotColorMap = jet/2;          %Use dark, jet colormap scheme
+%      [Gxs,Axs] = plotTreeData(FileName,P); %Plots the tree using input P
 %
-%    The first dot is always the predicted germline sequence, and it is
-%    a black-outlined white dot. If the germline and sample sequences are
-%    the same, will draw a black border around the sample sequence's dot.
-%
-%  EXAMPLE (Go to Examples_Files/BRILIA/)
-%    FileName = 'Ex4_SimMouseBCR_FullLength.BRILIAv2.0.4.csv';
-%    P = plotTreeData('getinput');   %Get the default input struct only
-%    P.GetGrpNum = 1;                %Plot tree for Group #1
-%    P.TreeStyle = 'square';         %Draw tree with 90 degree lines
-%    P.DotColorMap = jet/2;          %Use dark, jet colormap scheme
-%    [Gxs,Axs] = plotTreeData(FileName,P); %Plots the tree using input P
+%    To save the plots as they are made, modify P as such:
+%      P.Save = 'y';                   %Yes, save the file.
+%      P.Format = 'tif';               %Select file format
+%      P.DPI = 400;                    %Select resolution
+%      P.SaveName = 'Sample';          %A file name prefix
+%      [Gxs,Axs] = plotTreeData(FileName,P);
 %
 %  See also getTreeData, exportFigure
 function varargout = plotTreeData(varargin)
@@ -121,9 +135,11 @@ if JustGettingInput == 0
         if isempty(varargin{1}) %Empty file name, or TreeData and/or TreeHeader was given.
             [TreeData,TreeHeader] = getTreeData;
             varargin(1) = [];
-            if mod(length(varargin),2) ~= 0 %Maybe user gave empy TreeHeader too
+            if mod(length(varargin),2) ~= 0 && ~isstruct(varargin{1}) %Maybe user gave empy TreeHeader too
                 varargin(1) = []; %Delete to make varargin even again
             end
+        elseif isstruct(varargin{1}) %A structre input without file name
+            [TreeData,TreeHeader] = getTreeData;            
         elseif ischar(varargin{1}) && ~isempty(regexp(varargin{1},'\.','once')) %Filename was given with a period extension
             [TreeData,TreeHeader] = getTreeData(varargin{1});
             varargin(1) = [];
@@ -140,7 +156,7 @@ if JustGettingInput == 0
     getTreeHeaderVar; %Warning! Do not use getTreeHeaderVar AND getHeaderVar
 
     %If structure param-value pairs are givert, convert to cell
-    if isstruct(varargin{1})
+    if ~isempty(varargin) && isstruct(varargin{1})
         S = varargin{1};
         Svalue = struct2cell(S)';
         Sparam = fieldnames(S)';
@@ -148,7 +164,6 @@ if JustGettingInput == 0
         varargin = Scell(:)';
     end
 end
-save('temp.mat')
 
 %Parse the input
 P = inputParser;
@@ -158,21 +173,27 @@ addParameter(P,'GetSeqNum',[],@(x) isempty(x) || isnumeric(x));
 addParameter(P,'GetSizeRange',[],@(x) isempty(x) || isnumeric(x));
 addParameter(P,'GetCDR3seq',[],@(x) isempty(x) || ischar(x) || iscell(x));
 %Display parameters (that directly affects tree)
-addParameter(P,'DistanceUnit','shm',@(x) any(validatestring(x,{'shm','ham'})));
+addParameter(P,'DistanceUnit','shm',@(x) any(validatestring(lower(x),{'shm','ham'})));
 addParameter(P,'DotMaxSize',800,@(x) isnumeric(x) && x >= 1);
 addParameter(P,'DotScalor',30,@(x) isnumeric(x) && x >= 1);
 addParameter(P,'DotColorMap',[],@(x) isempty(x) || (isnumeric(x) && size(x,2) == 3));
-addParameter(P,'Legend','y',@(x) any(validatestring(x,{'y','n'})));
-addParameter(P,'Sort','y',@(x) any(validatestring(x,{'y','n'})));
-addParameter(P,'TreeStyle','triangle',@(x) any(validatestring(x,{'triangle','square'})));
+addParameter(P,'Legend','y',@(x) any(validatestring(lower(x),{'y','n'})));
+addParameter(P,'LegendFontSize',10,@isnumeric)
+addParameter(P,'Sort','y',@(x) any(validatestring(lower(x),{'y','n'})));
+addParameter(P,'TreeStyle','triangle',@(x) any(validatestring(lower(x),{'triangle','square'})));
 addParameter(P,'Xmax',0,@isnumeric);
 addParameter(P,'Yincr',0.125,@isnumeric);
-%General plotting parameters (that doesn't affect tree)
+%General plotting parameters (that doesn't need tree)
 addParameter(P,'FontSize',10,@isnumeric);
 addParameter(P,'FontName','Arial',@ischar);
 addParameter(P,'FigWidth',3.3,@isnumeric);
-addParameter(P,'FigMaxHeight',5.0,@isnumeric);
-addParameter(P,'LegendFontSize',10,@isnumeric);
+addParameter(P,'FigMaxHeight',5,@isnumeric);
+%Saving parameters
+addParameter(P,'Save','n',@(x) any(validatestring(lower(x),{'y','n'})));
+addParameter(P,'SaveName','',@ischar);
+addParameter(P,'Format','tif',@(x) any(validatestring(lower(x),{'tif','jpg','png','fig'})));
+addParameter(P,'DPI',300,@isnumeric);
+
 parse(P,varargin{:});
 P = P.Results; %Remove Results field
 
@@ -255,10 +276,16 @@ end
 KeepThese = ValidSeqNum | ValidGrpNum | ValidGrpSize | ValidCDR3seq;
 EvalGrpNum = unique(GrpNum(KeepThese));
 
+if isempty(EvalGrpNum); 
+    disp('No trees fit the filter criteria.');
+    return
+end
+
 %End of filtering
 
 %==========================================================================
 %Process each tree, group by group
+SaveNamePre = ''; %Prefix for the file name to save. Initialized with ''.
 Axs = cell(length(EvalGrpNum),1);
 Gxs = cell(length(EvalGrpNum),1);
 for y = 1:length(EvalGrpNum)
@@ -452,6 +479,41 @@ for y = 1:length(EvalGrpNum)
             text(XYcoor(j,1),XYcoor(j,2),TextName,'FontWeight','bold','HorizontalAlignment','Right','VerticalAlignment','middle','FontName','Courier','FontSize',P.LegendFontSize,'Color',UnqDotColor(j,:),'Units','inch');
         end
     end
+    
+    %Save the figure, if the user wants
+    if strcmpi(P.Save,'y')
+        if isempty(SaveNamePre) %Need to establish the prefix, save path, file ext here.
+            if isempty(P.SaveName) %Need to ask users to select file name
+                [SaveFile, SavePath] = uiputfile('*.tif;*.png;*.jpg;*.fig');
+                [SavePath, SaveFile, SaveExt] = parseFileName([SavePath SaveFile]);
+            else
+                [SavePath, SaveFile, SaveExt] = parseFileName(P.SaveName);
+                if isempty(SaveExt)
+                    SaveExt = ['.' P.Format]; %Use the format option specified in the input. P.Format cannot be empty.
+                    if SaveExt(2) == '.'; SaveExt(2) = []; end %Prevents ..jpg file format nuissances
+                end
+            end
+            DotLoc = find(SaveFile == '.');
+            if isempty(DotLoc)
+                SaveNamePre = SaveFile;
+            else
+                SaveNamePre = SaveFile(1:DotLoc(end)-1);
+            end
+        end
+                
+        %Assemble the full save name, and save depending on file ext
+        FullSaveName = sprintf('%s%s.Grp%d%s',SavePath,SaveNamePre,EvalGrpNum(y),SaveExt);
+        switch SaveExt
+            case '.tif'
+                print(Gx,FullSaveName,'-dtiff',['-r' num2str(P.DPI)]);
+            case '.jpg'
+                print(Gx,FullSaveName,'-djpeg',['-r' num2str(P.DPI)]);
+            case '.png'
+                print(Gx,FullSaveName,'-dpng',['-r' num2str(P.DPI)]);                
+            case '.fig'
+                saveas(Gx,FullSaveName);
+        end
+    end    
 end
 
 if nargout >= 1
