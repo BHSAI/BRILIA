@@ -21,6 +21,9 @@ else
 end
 getHeaderVar;
 
+disp('Paused by buildTreeLinkT.m');
+pause
+
 %==========================================================================
 %Identify starting point clusters. Will do cluster-cluster linking later.
 [PairDist,~] = calcPairDist(Tdata(:,SeqLoc),'shmham'); %Parent is each rows, Child is each column. Note that SHMHAM distance is doubled by default, to ensure integer values.
