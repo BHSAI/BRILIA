@@ -23,7 +23,3 @@ $RECYCLE.BIN/
 
 # Ignore matlab .asv files
 *.asv
-
-# Ignore the changes to the Database_Managaer/Active and Dormant folders
-./Database_Manager/Active/*.mat
-./Database_Manager/Dormant/*.mat
