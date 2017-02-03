@@ -1,4 +1,4 @@
-# BRILIA  v2.0.4
+# BRILIA  v2.0.5
 ## (B-cell repertoire inductive lineage and immunosequence annotator)
 
 ## REFERENCE:
@@ -32,24 +32,26 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/m
 4. To run BRILIA, use either of the following example commands:
 
    EX1) Will ask user to select the input sequence file, host species, and host strain.
-   > BRILIA
+   > 'BRILIA'
    
    EX2) Will ask user to select file while using all BRILIA parameters defined in a txt file (see SettingExample.txt)
-   > BRILIA( [], 'SettingFile', 'SettingExample.txt' )
+   > 'BRILIA( [], 'SettingFile', 'SettingExample.txt' )'
 
    EX3) Will process sequence file named Seqfile.fasta using the Human VDJ gene database and other settings specfied by ParamName-Value pairs.
-   > BRILIA( 'Seqfile.fasta' , 'Species' , 'human' , ParamName , Value, ... )
+   > 'BRILIA( 'Seqfile.fasta' , 'Species' , 'human' , ParamName , Value, ... )'
 
    HINT) Try processing the example input files in the Example_Files folder.
-   > BRILIA( 'Ex4_SimMouseBCR_FullLength.fa' , 'SettingFile' , 'Ex4_SettingFile.txt' );  
-   > BRILIA( 'Ex5_SimHumanBCR_FullLength.fa' , 'SettingFile' , 'Ex5_SettingFile.txt' );  
+   > 'BRILIA( 'Ex4_SimMouseBCR_FullLength.fa' , 'SettingFile' , 'Ex4_SettingFile.txt' );'
+   > 'BRILIA( 'Ex5_SimHumanBCR_FullLength.fa' , 'SettingFile' , 'Ex5_SettingFile.txt' );'  
 
 5. BRILIA should create a new folder called BRILIA and save the output results in that folder.
 
-The program is distributed under the [GNU General Public License] (http://www.gnu.org/licenses/gpl.html).
+The program is distributed under the [GNU General Public License] (http://www.gnu.org/licenses/gpl.html).  
+
+See BRILIA patch info at [here] (https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md).  
 
 ## UPCOMING UPDATES (Proposed on 2017-01-24)
-  *  Will update the data plotting functions
+  *  Will update the data plotting functions. The Data_Plotting folder is being all reworked, as there's unused / temporary scripts there. New codes will be placed in Plot_Codes folder.
   *  Will add CDR1 and CDR2 into the outputs
   *  Will enforce quality control to ensure nonsense CDR3 or VDJ annotations are removed and placed into [FileName]Err.csv
   *  Will replace try/catch with validation codes, since former method is generally slower.
