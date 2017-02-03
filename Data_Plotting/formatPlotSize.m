@@ -1,8 +1,45 @@
-%formatPlotSize will set the plots sizes will create a template figure with
-%specific sizes.
-
-%  formatPlotSize(Ax,FigW,FigH) Ax = plot axes handle, FigW is the desired
-%  width in inches, and FigH is the desired height in inches.
+%formatPlotSize is used to either create a new figure with a specified
+%figure size, or resize figures to remove excess border spacing, or
+%standardize the plot area size.
+%
+%  [Gx,Ax] = formatPlotSize(Ax,FigW,FigH)
+%
+%  [Gx,Ax] = formatPlotSize([],FigW,FigH)
+%
+%  [Gx,Ax] = formatPlotSize([],FigW,FigH,Option)
+%
+%  [Gx,Ax] = formatPlotSize([],FigW,FigH,Option,Param,Value,...)
+%
+%  INPUT
+%    Ax: axes handle you want to resize. If empty, will generate an empty
+%      figure.
+%    FigW: width of the desired figure, in inches by default.
+%    FigH: height of the desired figure, in inches by default.
+%    Option ['outer','inner']: determines if you want to set the plot area
+%      (inner) or the whole figure (outer) size to FigW and FigH. Use the
+%      'inner' option if you want the plot area to be same sizes across
+%      multiple figures.
+%    
+%    Can use these param-value pairs after specifinn Option:
+%      Parmaeter Name  Value          Description
+%      --------------- ------------   -------------------------------------
+%      Units           'inch','cent'  Unit of measurement for figure
+%      AddBorder       N              Size of outer border in the unit of
+%                                       the figure.
+%
+%  OUTPUT
+%    Gx: Figure handle
+%    Ax: Axes handle
+%
+%  NOTE
+%    The returning figure will have its units changed out of normalize.
+%    This is because it's hard to adjust figure sizes using relative units
+%    of measurement. 
+%
+%    Use this mainly to remove excess borders surrounding the plot areal
+%
+%    Does not work if there are legends that go beyond the plotting area,
+%    since the legend locations are not included in the TightInset info.
 
 function [Gx,Ax] = formatPlotSize(varargin)
 %Set the inputs
@@ -10,19 +47,19 @@ P = inputParser;
 addOptional(P,'Ax',[]);
 addOptional(P,'FigW',0,@isnumeric);
 addOptional(P,'FigH',0,@isnumeric);
-addOptional(P,'Option','outer',@ischar);
-addParameter(P,'Unit','inch',@ischar);
+addOptional(P,'Option','outer',@(x) any(validatestring(x,{'outer','inner'})));
+addParameter(P,'Units','inch',@ischar);
 addParameter(P,'AddBorder',0,@isnumeric);
-
 parse(P,varargin{:})
-Ax = P.Results.Ax;
-FigW = P.Results.FigW;
-FigH = P.Results.FigH;
-Option = P.Results.Option;
-Unit = P.Results.Unit;
-AddBorder = P.Results.AddBorder; 
+P = P.Results;
+Ax = P.Ax;
+FigW = P.FigW;
+FigH = P.FigH;
+Option = P.Option;
+Units = P.Units;
+AddBorder = P.AddBorder; 
 
-%1) Set or get the figure and axis handles
+%Set or get the figure and axis handles
 if isempty(Ax)
     Gx = figure();
     Ax = gca;
@@ -31,9 +68,8 @@ elseif ishandle(Ax)
 end
 
 %Set everything to the specified units, no normalize.
-set(Ax,'Units',Unit);
-set(Gx,'Units',Unit);
-set(Gx,'PaperUnits',Unit);
+set(Ax,'Units',Units);
+set(Gx,'Units',Units,'PaperUnits',Units);
 
 if strcmpi(Option,'inner')
     %If you have zerso for FigW or FigH, set it to current inner size;
@@ -88,8 +124,6 @@ if strcmpi(Option,'inner')
 
     %Add the border if there is any
     TightPos = TightPos + ones(1,4)*AddBorder; %Thickness of left, bot, right, top border
-    
-    
     NewAxPos = [TightPos(1) TightPos(2) FigWi FigHi];
     FigW = FigWi + sum(TightPos([1 3]));
     FigH = FigHi + sum(TightPos([2 4]));
