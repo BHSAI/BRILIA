@@ -21,6 +21,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-% Ignore matlab .asv files
+# Ignore matlab .asv files
 *.asv
 
+# Ignore the changes to the Database_Managaer/Active and Dormant folders
+/Database_Manager/Active/
+/Database_Manager/Dormant/
