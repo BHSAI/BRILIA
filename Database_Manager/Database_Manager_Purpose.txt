@@ -1,4 +1,0 @@
-Database Manager's purpose is to select dormant and active database by shifting the *.mat file to the active or dormant folder.
-
-Database Manager will return the file name of the database when summoned by matlab.
-

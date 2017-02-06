@@ -1,0 +1,27 @@
+The headers for the Fasta Files are:
+
+1. IMGT/LIGM-DB accession number(s)
+2. gene and allele name
+3. species
+4. functionality
+5. exon(s), region name(s), or extracted label(s)
+6. start and end positions in the IMGT/LIGM-DB accession number(s)
+7. number of nucleotides in the IMGT/LIGM-DB accession number(s)
+8. codon start, or 'NR' (not relevant) for non coding labels and out-of-frame pseudogenes
+9. +n: number of nucleotides (nt) added in 5' compared to the corresponding label extracted from IMGT/LIGM-DB
+10. +n or -n: number of nucleotides (nt) added or removed in 3' compared to the corresponding label extracted from IMGT/LIGM-DB
+11. +n, -n, and/or nS: number of added, deleted, and/or substituted nucleotides to correct sequencing errors, or 'not corrected' if non corrected sequencing errors
+12. number of amino acids (AA): this field indicates that the sequence is in amino acids
+13. number of characters in the sequence: nt (or AA)+IMGT gaps=total
+14. partial (if it is)
+15. reverse complementary (if it is)
+
+2016-02-19: Error found in IMGT site- http://www.imgt.org/vquest/refseqh.html . The FASTA for IGHV is not complete if downloading from Overview section.
+Use the "Reference Directly Set".
+
+2016-02-22: Restricting the database file to C57 BL6 Charles River mice only. 
+
+2016-02-22: You can get C57BL6 D and J genes from http://www.imgt.org/ligmdb/result.action?accessionNumber=AC073553
+2016-02-22: You can check all genes http://www.imgt.org/genedb/tableC.action.
+
+http://www.imgt.org/vquest/refseqh.html
