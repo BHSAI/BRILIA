@@ -1,4 +1,33 @@
-%findMutationFreq will look for the nt mutations found between the sequence
+%getMutationData will extract the total pairwise mutation data between
+%child-parent or child-germline sequences in the VDJdata repertoire data of
+%only productive sequences. Use this function to extract the data required
+%to use plotting function in this folder.
+%
+%  MutData = getMutationData
+%
+%  Output = getMutationData(VDJdata,NewHeader)
+%
+%  INPUT
+%    VDJdata: MxN cell of all VDJ annotaiton data
+%    NewHeader: 1xN cell of all header name for VDJdata
+%
+%  OUTPUT
+%    MutData: structure containing relevant SHM data such. Field are:
+%      VmutPar:  
+%      DmutPar:  
+%      JmutPar:  
+%      VmutGerm: 
+%      DmutGerm: 
+%      JmutGerm: 
+%      VtotNT:   
+%      DtotNT:   
+%      JtotNT:   
+
+%      CpwMut
+%      GpwMut
+%      TpwMut
+%      
+findMutationFreq will look for the nt mutations found between the sequence
 %and the germline or predicted sequence. The output is a 4x4 matrix with
 %original nt along each column, and mutated nt along each row.
 %
@@ -12,6 +41,29 @@
 %  Option = 'single' will compare mut per sequence
 %  Option = 'group' will compare mut per sequence with respect to 1st seq's ref 
 function varargout = findMutationFreq(VDJdata,NewHeader,Option)
+%See if user gave VDJdata
+if isempty(varargin) || (~isempty(varargin) && isempty(varargin{1})) %Need to find file
+    [VDJdata,NewHeader] = openSeqData;
+elseif ~isempty(varargin)
+    if ischar(varargin{1}) %Filename was given
+        [VDJdata,NewHeader] = openSeqData(varargin{1});
+    elseif length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2}) %VDJdata and NewHeader was given
+        VDJdata = varargin{1};
+        NewHeader = varargin{2};
+    end
+else
+    error('getTreeData: Check the inputs');
+end
+getHeaderVar;
+
+%Extract sequence grouping information
+GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+UnqGrpNum = unique(GrpNum);
+
+
+
+
+
 getHeaderVar;
 
 VDJmat = zeros(4,4,3);
