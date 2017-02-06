@@ -14,13 +14,15 @@
 %  OUTPUT
 %    MutData: structure containing relevant SHM data such. Field are:
 %      VmutPar:  V gene 4x4 matrix of X0(child,col) to X1(parent,row)
+%      MmutPar:  Nvd gene 4x4 matrix of X0(child,col) to X1(parent,row)
 %      DmutPar:  D gene 4x4 matrix of X0(child,col) to X1(parent,row)
+%      NmutPar:  Ndj gene 4x4 matrix of X0(child,col) to X1(parent,row)
 %      JmutPar:  J gene 4x4 matrix of X0(child,col) to X1(parent,row)
-%      CDR3mutPar:  CDR3 4x4 matrix of X0(child,col) to X1(parent,row)
 %      VmutGerm: V gene 4x4 matrix of X0(child,col) to X1(germline,row)
+%      MmutGerm: Nvd gene 4x4 matrix of X0(child,col) to X1(germline,row)
 %      DmutGerm: D gene 4x4 matrix of X0(child,col) to X1(germline,row)
+%      NmutGerm: Ndj gene 4x4 matrix of X0(child,col) to X1(germline,row)
 %      JmutGerm: J gene 4x4 matrix of X0(child,col) to X1(germline,row)
-%      CDR3mutGerm:  CDR3 4x4 matrix of X0(child,col) to X1(germline,row)
 %
 %  NOTE
 %    This will calculated SHM for ALL sequences in the VDJdata file, except
@@ -38,7 +40,7 @@
 %    G1  N   N   0   N
 %    T1  N   N   N   0
 
-function MutData = findMutationFreq(varargin)
+function MutData = getMutationData(varargin)
 %See if user gave VDJdata
 if isempty(varargin) || (~isempty(varargin) && isempty(varargin{1})) %Need to find file
     [VDJdata,VDJheader] = openSeqData;
@@ -111,8 +113,8 @@ for y = 1:length(UnqGrpNum)
                 EvalMissIdx = MissIdx(MissIdx>=S1 & MissIdx <= S2);
                 
                 if ~isempty(EvalMissIdx)
-                    X0 = nt2int(Seq(:,EvalMissIdx)); %Tells column locations
-                    X1 = nt2int(RefSeq(:,EvalMissIdx)); %Tells row location
+                    X0 = nt2int(RefSeq(:,EvalMissIdx)); %Tells col location
+                    X1 = nt2int(Seq(:,EvalMissIdx)); %Tells row locations
                     for q = 1:length(X0)
                         VDJmat(X1(q),X0(q),t) = VDJmat(X1(q),X0(q),t) + 1;
                     end
@@ -129,13 +131,13 @@ for y = 1:length(UnqGrpNum)
 end
 
 %Initialize the output structure
-MutData.VmutPar = ParMutMat(:,1);
-MutData.MmutPar = ParMutMat(:,2);
-MutData.DmutPar = ParMutMat(:,3);
-MutData.NmutPar = ParMutMat(:,4);
-MutData.JmutPar = ParMutMat(:,5);
-MutData.VmutGerm = GermMutMat(:,1);
-MutData.MmutGerm = GermMutMat(:,2);
-MutData.DmutGerm = GermMutMat(:,3);
-MutData.NmutGerm = GermMutMat(:,4);
-MutData.JmutGerm = GermMutMat(:,5);
+MutData.VmutPar = ParMutMat(:,:,1);
+MutData.MmutPar = ParMutMat(:,:,2);
+MutData.DmutPar = ParMutMat(:,:,3);
+MutData.NmutPar = ParMutMat(:,:,4);
+MutData.JmutPar = ParMutMat(:,:,5);
+MutData.VmutGerm = GermMutMat(:,:,1);
+MutData.MmutGerm = GermMutMat(:,:,2);
+MutData.DmutGerm = GermMutMat(:,:,3);
+MutData.NmutGerm = GermMutMat(:,:,4);
+MutData.JmutGerm = GermMutMat(:,:,5);

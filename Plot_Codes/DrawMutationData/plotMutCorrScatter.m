@@ -1,22 +1,22 @@
-%plotMutationData will plot the X0 -> X1 mutation frequencies as determined per
-%segment of the full VDJ gene. For instance, it will compare A -> G
-%mutation in the V gene segment versus the D and J gene segments. This is
-%used mainly to discern how well the annotation results yielded consisted
-%SHMs accross the VDJ segments. Returns the slope and Pearson correlation
-%value for a 12-point scatter plot, where each point is a unique X0 -> X1
-%mutation.
+%plotMutCorrScatter will plot the X0 -> X1 mutation frequencies as
+%determined per segment of the full VDJ gene. For instance, it will compare
+%A -> G mutation in the V gene segment versus the D and J gene segments.
+%This is used mainly to discern how well the annotation results yielded
+%consisted SHMs accross the VDJ segments. Returns the slope and Pearson
+%correlation value for a 12-point scatter plot, where each point is a
+%unique X0 -> X1 mutation.
 %
-%  [Gx, Ax] = plotMutRateCorr
+%  [Gx, Ax] = plotMutCorrScatter
 %
-%  [Gx, Ax] = plotMutRateCorr(MutData)
+%  [Gx, Ax] = plotMutCorrScatter(MutData)
 %
-%  [Gx, Ax] = plotMutRateCorr(VDJdata,VDJheader)
+%  [Gx, Ax] = plotMutCorrScatter(VDJdata,VDJheader)
 %
-%  [Gx, Ax] = plotMutRateCorr(...,Param,Value,...)
+%  [Gx, Ax] = plotMutCorrScatter(...,Param,Value,...)
 % 
-%  [Gx, Ax] = plotMutRateCorr(...,P)
+%  [Gx, Ax] = plotMutCorrScatter(...,P)
 %
-%  P = plotTreeData('getinput)
+%  P = plotMutCorrScatter('getinput')
 %
 %  INPUT
 %    MutData: structured data of pairwise mutations, returned by getMutData
@@ -25,7 +25,7 @@
 %    P: a structure containing P.(Param) = Value information. This input
 %       option might be easier for adjusting plot parameters. You can also
 %       use the direct param, cell pair input listed below. To make a
-%       default P structure, use P = plotMutRateCorr('GetInput');
+%       default P structure, use P = plotMutCorrScatter('GetInput');
 %
 %    Some plot features can be set using the following Param-Value pairs:
 %      Param           Value       Description
@@ -64,7 +64,7 @@
 %
 %  See also getMutData
     
-function varargout = plotMutationData(varargin)
+function varargout = plotMutCorrScatter(varargin)
 %The special case check for extracting input to plotTreeData
 JustGettingInput = 0;
 if nargin == 1 && ischar(varargin{1})
