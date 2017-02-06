@@ -1,4 +1,4 @@
-# BRILIA  v2.0.5
+# BRILIA  v2.0.6
 ## (B-cell repertoire inductive lineage and immunosequence annotator)
 
 ## REFERENCE:

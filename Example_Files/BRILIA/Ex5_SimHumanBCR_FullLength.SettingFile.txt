@@ -1,11 +1,11 @@
-Date = '31-Jan-2017';
+Date = '06-Feb-2017';
 CheckSeqDir = 'n';
 Ddirection = 'all';
 Delimiter = ';';
-DevPerc = '3';
+DevPerc = '5';
 FileType = '';
-FullFileNames = 'Ex5_SimHumanBCR_FullLength.fa';
-SettingFile = 'Ex5_SettingFile.txt';
-Species = 'human';
-Strain = 'all';
+FullFileNames = 'C:\Users\dlee\Desktop\Matlab Script\BRILIA\BRILIA_2.0.5\Example_Files\Ex5_SimHumanBCR_FullLength.fa';
+SettingFile = '';
+Species = '';
+Strain = '';
 Vfunction = 'all';

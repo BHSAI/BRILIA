@@ -39,7 +39,7 @@
 %    The output annotation file will be saved automatically in the folder
 %    where the sequence input files are, in a new folder called BRILIA.
 %
-%  VERSION 2.0.5
+%  VERSION 2.0.6
 %    Version numbering is X.Y.Z, where
 %      X increments for changes that affect version compatibility
 %      Y increments for added/removed features, algorithm changes
@@ -49,7 +49,7 @@
 %  Last updated on Jan 2017
 
 function varargout = BRILIA(varargin)
-Version = '2.0.5'; %Version Number
+Version = '2.0.6'; %Version Number
 
 %Make sure BRILIA paths are added correctly
 CurPaths = regexp(path,';','split')';

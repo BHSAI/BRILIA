@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------
+##Patch notice for version 2.0.6
+Generage changes
+- renamed many coding variables into structure, for future proofing code developments.
+- removed many matlab scripts that either were temporarily made for the BRILIA paper, or will no longer work with Version 2 of BRILIA. These codes are being reworked.
+
+---------------------------------------------------------------------------
 ##Patch notice for version 2.0.5
 
 General changes
