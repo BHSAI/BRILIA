@@ -15,12 +15,12 @@
 
 function [Amat, Cmat, Gmat, Tmat] = findHotSpots(varargin)
 if isempty(varargin)
-    [VDJdata, NewHeader, ~, ~] = openSeqData;
+    [VDJdata, VDJheader, ~, ~] = openSeqData;
 else
     VDJdata = varargin{1};
-    NewHeader = varargin{2};
+    VDJheader = varargin{2};
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 ScanDir = 2;
 ScanLen = ScanDir*2+1;
@@ -37,7 +37,7 @@ Ycoor = [1:ScanLen]';
 
 %Determine locations of 1st seq of each group. Want to skip the "ancestral"
 %hot spot prediction, because you don't know where they came from.
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 [~,UnqIdx,~] = intersect(GrpNum,UnqGrpNum); %Tells you where the 1st seq of group starts.
 
@@ -46,8 +46,8 @@ for j = 1:size(VDJdata,1)
         continue
     end
     
-    SamSeq = VDJdata{j,SeqLoc}; 
-    RefSeq = VDJdata{j,RefSeqLoc};
+    SamSeq = VDJdata{j,H.SeqLoc}; 
+    RefSeq = VDJdata{j,H.RefSeqLoc};
     VDJloc = find(SamSeq ~= RefSeq);
     
     %Find only mismatched ones

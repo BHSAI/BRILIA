@@ -17,14 +17,14 @@ end
 %Obtain the VDJdata header info for output format
 [~, ~, StandardData] = xlsread('Headers.xlsx');
 NewHeaderLoc = findHeader(StandardData(1,:),'VDJdata');
-NewHeader = StandardData(2:end,NewHeaderLoc);
-for j = 1:length(NewHeader)
-    if isnan(NewHeader{j}); break; end
+VDJheader = StandardData(2:end,NewHeaderLoc);
+for j = 1:length(VDJheader)
+    if isnan(VDJheader{j}); break; end
 end
-NewHeader(j:end) = [];
-NewHeader = NewHeader';
+VDJheader(j:end) = [];
+VDJheader = VDJheader';
 
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 MinLen = 125;
 
 for f = 1:length(FileNames)

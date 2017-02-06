@@ -153,7 +153,7 @@ if JustGettingInput == 0
             error('getTreeData: Check the inputs');
         end
     end
-    getTreeHeaderVar; %Warning! Do not use getTreeHeaderVar AND getHeaderVar
+    TH = getTreeHeaderVar(TreeHeader); %Warning! Do not use getTreeHeaderVar AND H = getHeaderVar(VDJheader);
 
     %If structure param-value pairs are givert, convert to cell
     if ~isempty(varargin) && isstruct(varargin{1})
@@ -205,10 +205,10 @@ end
 %==========================================================================
 %Filter tree data, returning grp numbers to evaluate
 
-SeqNum = cell2mat(TreeData(:,SeqNumLoc));
-GrpNum = cell2mat(TreeData(:,GrpNumLoc));
+SeqNum = cell2mat(TreeData(:,TH.SeqNumLoc));
+GrpNum = cell2mat(TreeData(:,TH.GrpNumLoc));
 GrpSize = zeros(size(GrpNum));
-CDR3seq = TreeData(:,CDR3seqLoc);
+CDR3seq = TreeData(:,TH.CDR3seqLoc);
 
 %Determine grp sizes per each entity
 UnqGrpNum = unique(GrpNum);
@@ -295,15 +295,15 @@ for y = 1:length(EvalGrpNum)
     %Isolate group data and name
     GrpIdx = GrpNum == EvalGrpNum(y);
     TreeDataT = TreeData(GrpIdx,:);
-    GrpName = TreeDataT{1,GrpNameLoc};
+    GrpName = TreeDataT{1,TH.GrpNameLoc};
 
     %Obtain the X-Y coordinates for plotting the tree
     if strcmpi(P.DistanceUnit,'shm')
-        DistLoc = SHMdistLoc;
+        DistLoc = TH.SHMdistLoc;
     else %defaults to hamming distance
-        DistLoc = HAMdistLoc;
+        DistLoc = TH.HAMdistLoc;
     end
-    AncMap = cell2mat(TreeDataT(:,[ChildSeqNumLoc ParentSeqNumLoc DistLoc])); %Simple ancestry map matrix
+    AncMap = cell2mat(TreeDataT(:,[TH.ChildSeqNumLoc TH.ParentSeqNumLoc DistLoc])); %Simple ancestry map matrix
     AncMap = renumberAncMap(AncMap); %Ancestry maps to relative position now
     if lower(P.Sort(1)) == 'y' %Sort helps to group related sequences
         [AncMap,SortIdx] = sortrows(AncMap,[2 3 1]);
@@ -313,7 +313,7 @@ for y = 1:length(EvalGrpNum)
     TreeCoord = calcTreeCoord(AncMap);
     
     %Make the legend text and get default color scheme using CDR3
-    CDR3seqT = TreeDataT(:,CDR3seqLoc);
+    CDR3seqT = TreeDataT(:,TH.CDR3seqLoc);
     [CDR3legend, UnqCDR3seq] = makeTreeLegend_CDR3(CDR3seqT);
     
     %Map a unique CDR3 colors to TreeDataT based on the order UnqCDR3seq.
@@ -324,7 +324,7 @@ for y = 1:length(EvalGrpNum)
     end
     
     %Calc the dot sizes, resizing dots if one exceeds the max dot size.
-    DotSize = cell2mat(TreeDataT(:,TemplateLoc))*P.DotScalor;
+    DotSize = cell2mat(TreeDataT(:,TH.TemplateLoc))*P.DotScalor;
     CurMaxDotSize = max(DotSize);
     if CurMaxDotSize > P.DotMaxSize %Need rescaling
         DotSize = DotSize * P.DotMaxSize / CurMaxDotSize;

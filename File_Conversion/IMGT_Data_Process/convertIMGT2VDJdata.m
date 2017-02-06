@@ -20,12 +20,12 @@ end
 %Extract the VDJdata headers
 [~, ~, StandardData] = xlsread('Headers_Brilia.xlsx');
 NewHeaderLoc = findHeader(StandardData(1,:),'VDJdata');
-NewHeader = StandardData(2:end,NewHeaderLoc)';
-for j = 1:length(NewHeader)
-    if isnan(NewHeader{j}); break; end
+VDJheader = StandardData(2:end,NewHeaderLoc)';
+for j = 1:length(VDJheader)
+    if isnan(VDJheader{j}); break; end
 end
-NewHeader(j:end) = [];
-getHeaderVar;
+VDJheader(j:end) = [];
+H = getHeaderVar(VDJheader);
 
 %IMGTdata column locations
 SeqNameLocI = findHeader(IMGTheader,'SeqName');
@@ -38,12 +38,12 @@ NsegLoc = findHeader(IMGTheader,{'Pd3' 'N2' 'Pj'});
 JsegLoc = findHeader(IMGTheader,'5''J-REGION');
 
 %Build up the VDJdata matrix
-VDJdata = cell(size(IMGTdata,1),length(NewHeader));
+VDJdata = cell(size(IMGTdata,1),length(VDJheader));
 KeepThese = ones(size(IMGTdata,1),1) == 1;
 for j = 1:size(IMGTdata,1)
     FullSeq = IMGTdata{j,SeqLocI};
-    VDJdata{j,SeqNumLoc} = eval(cell2mat(regexp(IMGTdata{j,SeqNameLocI},'[\d*]+','match')));
-    VDJdata(j,SeqLoc) = IMGTdata(j,SeqLocI);
+    VDJdata{j,H.SeqNumLoc} = eval(cell2mat(regexp(IMGTdata{j,SeqNameLocI},'[\d*]+','match')));
+    VDJdata(j,H.SeqLoc) = IMGTdata(j,SeqLocI);
 
     %Determine gene names and number
     Vname = 'Unresolved';
@@ -62,8 +62,8 @@ for j = 1:size(IMGTdata,1)
             Vname = Vmap{VmapNum,3};
         end
     end
-    VDJdata{j,FamNumLoc(1)} = VmapNum;
-    VDJdata{j,FamLoc(1)} = Vname;
+    VDJdata{j,H.FamNumLoc(1)} = VmapNum;
+    VDJdata{j,H.FamLoc(1)} = Vname;
 
     Dname = 'Unresolved';
     DmapNum = 0;
@@ -81,8 +81,8 @@ for j = 1:size(IMGTdata,1)
             Dname = Dmap{DmapNum,3};
         end
     end
-    VDJdata{j,FamNumLoc(2)} = DmapNum;
-    VDJdata{j,FamLoc(2)} = Dname;
+    VDJdata{j,H.FamNumLoc(2)} = DmapNum;
+    VDJdata{j,H.FamLoc(2)} = Dname;
     
     Jname = 'Unresolved';
     JmapNum = 0;
@@ -100,8 +100,8 @@ for j = 1:size(IMGTdata,1)
             Jname = Jmap{JmapNum,3};
         end
     end
-    VDJdata{j,FamNumLoc(3)} = JmapNum;
-    VDJdata{j,FamLoc(3)} = Jname;
+    VDJdata{j,H.FamNumLoc(3)} = JmapNum;
+    VDJdata{j,H.FamLoc(3)} = Jname;
 
     if VmapNum(1) * JmapNum(1) * DmapNum(1) == 0  %Unresolved or unknown family cases, skip.
         KeepThese(j) = 0;
@@ -183,11 +183,11 @@ for j = 1:size(IMGTdata,1)
         Jdel = Jdel + length(JCheck) - length(Jnts);
     end    
     DelCt = [Vdel Ddel5 Ddel3 Jdel];
-    VDJdata(j,DelLoc) = num2cell(DelCt);
+    VDJdata(j,H.DelLoc) = num2cell(DelCt);
     
     Vnts = FullSeq(1:length(FullSeq)-length(Jnts)-length(Nnts)-length(Dnts)-length(Mnts)+Vdel+Jdel+Ddel5+Ddel3);
     VMDNJ = [length(Vnts)-Vdel length(Mnts) length(Dnts)-Ddel5-Ddel3 length(Nnts) length(Jnts)-Jdel];
-    VDJdata(j,LengthLoc) = num2cell(VMDNJ);
+    VDJdata(j,H.LengthLoc) = num2cell(VMDNJ);
     
     if isempty(Jnts) || isempty(Dnts) || isempty(Vnts)
         KeepThese(j) = 0;
@@ -197,17 +197,17 @@ for j = 1:size(IMGTdata,1)
 end
 
 %Set group number same as seq number
-if ~isnumeric(VDJdata{1,SeqNumLoc});
+if ~isnumeric(VDJdata{1,H.SeqNumLoc});
     for j = 1:size(VDJdata,1)
-        if isempty(VDJdata{j,SeqNumLoc});
+        if isempty(VDJdata{j,H.SeqNumLoc});
             continue
         end
-        VDJdata{j,SeqNumLoc} = eval(VDJdata{j,SeqNumLoc});
+        VDJdata{j,H.SeqNumLoc} = eval(VDJdata{j,H.SeqNumLoc});
     end
 end
-VDJdata(:,GrpNumLoc) = VDJdata(:,SeqNumLoc);
-VDJdata(KeepThese,:) = updateVDJdata(VDJdata(KeepThese,:),NewHeader,Vmap,Dmap,Jmap);
-VDJdata = sortrows(VDJdata,SeqNumLoc);
+VDJdata(:,H.GrpNumLoc) = VDJdata(:,H.SeqNumLoc);
+VDJdata(KeepThese,:) = updateVDJdata(VDJdata(KeepThese,:),VDJheader,Vmap,Dmap,Jmap);
+VDJdata = sortrows(VDJdata,H.SeqNumLoc);
 
 %Save the files
 DotLoc = find(FileName == '.');
@@ -215,14 +215,14 @@ DotLoc = DotLoc(end);
 SaveName = FileName(1:DotLoc-1);
 
 %Before saving to xlsx, convert columns with matrix values into char
-save([FilePath SaveName '.IMGT.mat'],'VDJdata','NewHeader')
+save([FilePath SaveName '.IMGT.mat'],'VDJdata','VDJheader')
 for q = 1:size(VDJdata,1)
     for w = 1:3
-        VDJdata{q,FamNumLoc(w)} = mat2str(VDJdata{q,FamNumLoc(w)});
+        VDJdata{q,H.FamNumLoc(w)} = mat2str(VDJdata{q,H.FamNumLoc(w)});
     end
 end
 if ispc
-    xlswrite([FilePath SaveName '.IMGT.xlsx'],[NewHeader; VDJdata]);
+    xlswrite([FilePath SaveName '.IMGT.xlsx'],[VDJheader; VDJdata]);
 else
-    writeDlmFile([NewHeader;VDJdata],[FilePath SaveName '.IMGT.csv'],'\t');
+    writeDlmFile([VDJheader;VDJdata],[FilePath SaveName '.IMGT.csv'],'\t');
 end

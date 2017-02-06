@@ -1,18 +1,18 @@
 %This will open IMGT and BRILIA annotation, and then compare the extra
 %subcluster vs BRILIA cluster size.
 
-[VDJdata1,NewHeader,FileName1,FilePath] = openSeqData; %IMGT
-[VDJdata2,NewHeader,FileName2,FilePath] = openSeqData; %BRILIA
+[VDJdata1,VDJheader,FileName1,FilePath] = openSeqData; %IMGT
+[VDJdata2,VDJheader,FileName2,FilePath] = openSeqData; %BRILIA
 DotLoc = find(FileName1 == '.');
 FileNamePre1 = FileName1(1:DotLoc(end)-1);
 DotLoc = find(FileName2 == '.');
 FileNamePre2 = FileName2(1:DotLoc(end)-1);
 
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 %Get tree stats
-ClusterInfo1 = cell2mat(VDJdata1(:,[SeqNumLoc,GrpNumLoc,CDR3Loc(2)])); %[SeqNum GrpNum CDR3Len]
-ClusterInfo2 = cell2mat(VDJdata2(:,[SeqNumLoc,GrpNumLoc,CDR3Loc(2)])); %[SeqNum GrpNum CDR3Len]
+ClusterInfo1 = cell2mat(VDJdata1(:,[H.SeqNumLoc,H.GrpNumLoc,H.CDR3Loc(2)])); %[SeqNum GrpNum CDR3Len]
+ClusterInfo2 = cell2mat(VDJdata2(:,[H.SeqNumLoc,H.GrpNumLoc,H.CDR3Loc(2)])); %[SeqNum GrpNum CDR3Len]
 
 %Calculate the comparison data matrix XYdata
 UnqGrpNum = unique(ClusterInfo2(:,2));
@@ -125,8 +125,8 @@ end
 
 ExtractMavricLoc = GrpLoc;
 
-SaveData1 = [NewHeader; VDJdata1(ExtractIMGTLoc,:)];
-SaveData2 = [NewHeader; VDJdata2(ExtractMavricLoc,:)];
+SaveData1 = [VDJheader; VDJdata1(ExtractIMGTLoc,:)];
+SaveData2 = [VDJheader; VDJdata2(ExtractMavricLoc,:)];
 xlswrite('WorstDiff_IMGT.xlsx',SaveData1);
 xlswrite('WorstDiff_Mavric.xlsx',SaveData2);
 
@@ -258,8 +258,8 @@ saveas(gca,[FilePath, FileNamePre1 '_Tree-ClustCorrBRILIA.png']);
 % % Tree2 = TreeStats;
 % 
 
-% Tree1 = findTreeStats(VDJdata1,NewHeader);
-% Tree2 = findTreeStats(VDJdata2,NewHeader);
+% Tree1 = findTreeStats(VDJdata1,VDJheader);
+% Tree2 = findTreeStats(VDJdata2,VDJheader);
 
 % %Comparing MaxNodeLevel
 % EdgesNode = [0:1:15];
@@ -351,9 +351,9 @@ saveas(gca,[FilePath, FileNamePre1 '_Tree-ClustCorrBRILIA.png']);
 % %Comparing annotation level differences in mutations
 % 
 %Comparing Vmut Freq
-VmutLoc = findHeader(NewHeader,'vMutCt_Germline');
-CDR3length = VDJdata1{1,CDR3Loc(2)};
-VframeLength = length(VDJdata1{1,SeqLoc}) - CDR3length;
+H.VmutLoc = findHeader(VDJheader,'vMutCt_Germline');
+CDR3length = VDJdata1{1,H.CDR3Loc(2)};
+VframeLength = length(VDJdata1{1,H.SeqLoc}) - CDR3length;
 
 %Get the V frame and CDR3 mut counts, with repsect to germline
 for w = 1:2
@@ -363,16 +363,16 @@ for w = 1:2
         VDJdataT = VDJdata2;
     end
     MutData = zeros(size(VDJdata1,1),2); %[Vmut and CDR3mut]
-    GrpNum = cell2mat(VDJdataT(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdataT(:,H.GrpNumLoc));
     UnqGrp = unique(GrpNum);
     for y = 1:length(UnqGrp)
         IdxLoc = find(GrpNum == UnqGrp(y));
-        RefSeq = VDJdataT{IdxLoc(1),RefSeqLoc};
+        RefSeq = VDJdataT{IdxLoc(1),H.RefSeqLoc};
         RefVframe = RefSeq(1:VframeLength);
         RefCDR3 = RefSeq(VframeLength+1:VframeLength+CDR3length);
 
         for k = 1:length(IdxLoc)
-            CurSeq = VDJdataT{IdxLoc(k),SeqLoc};
+            CurSeq = VDJdataT{IdxLoc(k),H.SeqLoc};
             CurVframe = CurSeq(1:VframeLength);
             CurCDR3 = CurSeq(VframeLength+1:VframeLength+CDR3length);
 
@@ -389,8 +389,8 @@ for w = 1:2
 end
 
 EdgesVmut = [0:0.03:0.21]; %[1:10]/VframeLength; %Determine bin sizes based on length of 104C framework / 10, or CDR3 nt length /10
-Vmut1 = MutData1(:,1)/VframeLength; %cell2mat(VDJdata1(:,VmutLoc));%./cell2mat(VDJdata1(:,LengthLoc(1)));
-Vmut2 = MutData2(:,1)/VframeLength; %cell2mat(VDJdata2(:,VmutLoc));%./cell2mat(VDJdata2(:,LengthLoc(1)));
+Vmut1 = MutData1(:,1)/VframeLength; %cell2mat(VDJdata1(:,H.VmutLoc));%./cell2mat(VDJdata1(:,H.LengthLoc(1)));
+Vmut2 = MutData2(:,1)/VframeLength; %cell2mat(VDJdata2(:,H.VmutLoc));%./cell2mat(VDJdata2(:,H.LengthLoc(1)));
 BinsVmut1 = histc(Vmut1,EdgesVmut);
 BinsVmut2 = histc(Vmut2,EdgesVmut);
 b6 = bar(EdgesVmut,[BinsVmut1,BinsVmut2],'histc');
@@ -409,8 +409,8 @@ formatPlotSize(gca,5,2);
 saveas(gcf,[FilePath, FileNamePre1 '_Vframemut.png']);
 
 EdgesCDR3mut = [0:0.03:0.21]; %[1:10]/CDR3length; %Determine bin sizes based on length of 104C framework / 10, or CDR3 nt length /10
-CDR3mut1 = MutData1(:,2)/CDR3length; %cell2mat(VDJdata1(:,VmutLoc));%./cell2mat(VDJdata1(:,LengthLoc(1)));
-CDR3mut2 = MutData2(:,2)/CDR3length; %cell2mat(VDJdata2(:,VmutLoc));%./cell2mat(VDJdata2(:,LengthLoc(1)));
+CDR3mut1 = MutData1(:,2)/CDR3length; %cell2mat(VDJdata1(:,H.VmutLoc));%./cell2mat(VDJdata1(:,H.LengthLoc(1)));
+CDR3mut2 = MutData2(:,2)/CDR3length; %cell2mat(VDJdata2(:,H.VmutLoc));%./cell2mat(VDJdata2(:,H.LengthLoc(1)));
 BinsCDR3mut1 = histc(CDR3mut1,EdgesCDR3mut);
 BinsCDR3mut2 = histc(CDR3mut2,EdgesCDR3mut);
 b6 = bar(EdgesCDR3mut,[BinsCDR3mut1,BinsCDR3mut2],'histc');
@@ -432,8 +432,8 @@ saveas(gcf,[FilePath, FileNamePre1 '_CDR3mut.png']);
 
 % 
 % EdgesVmut = [0:20]; %Determine bin sizes based on length of 104C framework / 10, or CDR3 nt length /10
-% Vmut1 = cell2mat(VDJdata1(:,VmutLoc));%./cell2mat(VDJdata1(:,LengthLoc(1)));
-% Vmut2 = cell2mat(VDJdata2(:,VmutLoc));%./cell2mat(VDJdata2(:,LengthLoc(1)));
+% Vmut1 = cell2mat(VDJdata1(:,H.VmutLoc));%./cell2mat(VDJdata1(:,H.LengthLoc(1)));
+% Vmut2 = cell2mat(VDJdata2(:,H.VmutLoc));%./cell2mat(VDJdata2(:,H.LengthLoc(1)));
 % BinsVmut1 = histc(Vmut1,EdgesVmut);
 % BinsVmut2 = histc(Vmut2,EdgesVmut);
 % b6 = bar(EdgesVmut,[BinsVmut1,BinsVmut2],'histc');
@@ -449,10 +449,10 @@ saveas(gcf,[FilePath, FileNamePre1 '_CDR3mut.png']);
 % saveas(gcf,[FilePath, FileNamePre1 '_Vmut.png']);
 % 
 % %Comparing Dmut Freq
-% DmutLoc = findHeader(NewHeader,'dMutCt_Germline');
+% H.DmutLoc = findHeader(VDJheader,'dMutCt_Germline');
 % EdgesDmut = [0:20];%[0:1/8:0.3];
-% Dmut1 = cell2mat(VDJdata1(:,DmutLoc));%./cell2mat(VDJdata1(:,LengthLoc(3)));
-% Dmut2 = cell2mat(VDJdata2(:,DmutLoc));%./cell2mat(VDJdata2(:,LengthLoc(3)));
+% Dmut1 = cell2mat(VDJdata1(:,H.DmutLoc));%./cell2mat(VDJdata1(:,H.LengthLoc(3)));
+% Dmut2 = cell2mat(VDJdata2(:,H.DmutLoc));%./cell2mat(VDJdata2(:,H.LengthLoc(3)));
 % BinsDmut1 = histc(Dmut1,EdgesDmut);
 % BinsDmut2 = histc(Dmut2,EdgesDmut);
 % b7 = bar(EdgesDmut,[BinsDmut1,BinsDmut2],'histc');
@@ -470,10 +470,10 @@ saveas(gcf,[FilePath, FileNamePre1 '_CDR3mut.png']);
 % 
 % 
 % %Comparing Jmut Freq
-% JmutLoc = findHeader(NewHeader,'jMutCt_Germline');
+% H.JmutLoc = findHeader(VDJheader,'jMutCt_Germline');
 % EdgesJmut = [0:20]; %;[0:1/16:0.3];
-% Jmut1 = cell2mat(VDJdata1(:,JmutLoc));%./cell2mat(VDJdata1(:,LengthLoc(5)));
-% Jmut2 = cell2mat(VDJdata2(:,JmutLoc));%./cell2mat(VDJdata2(:,LengthLoc(5)));
+% Jmut1 = cell2mat(VDJdata1(:,H.JmutLoc));%./cell2mat(VDJdata1(:,H.LengthLoc(5)));
+% Jmut2 = cell2mat(VDJdata2(:,H.JmutLoc));%./cell2mat(VDJdata2(:,H.LengthLoc(5)));
 % BinsJmut1 = histc(Jmut1,EdgesJmut);
 % BinsJmut2 = histc(Jmut2,EdgesJmut);
 % b8 = bar(EdgesJmut,[BinsJmut1,BinsJmut2],'histc');
@@ -493,10 +493,10 @@ saveas(gcf,[FilePath, FileNamePre1 '_CDR3mut.png']);
 % %Compare the CDR3 mutation frequencies now, IMGT vs BRILIA, using maximum
 % %deviation.
 % 
-% Output1 = findVvsCDR3mut(VDJdata1,NewHeader);
+% Output1 = findVvsCDR3mut(VDJdata1,VDJheader);
 % [Gx3,Ax3,PDFmat3] = plotVvsCDR3mut(Output1);
 % 
-% Output2 = findVvsCDR3mut(VDJdata2,NewHeader);
+% Output2 = findVvsCDR3mut(VDJdata2,VDJheader);
 % [Gx4,Ax4,PDFmat4] = plotVvsCDR3mut(Output2);
 % 
 % %Set the scale the same, by setting PDFmat(1,1) to be same.

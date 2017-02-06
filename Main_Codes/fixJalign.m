@@ -3,23 +3,23 @@
 %error occurs often if there is a trimmed sequence ending with the 118W
 %instead of going further.
 
-function VDJdata = fixJalign(VDJdata,NewHeader,varargin)
+function VDJdata = fixJalign(VDJdata,VDJheader,varargin)
 %Extract the VDJ database
 if length(varargin) >= 3
     [Vmap,Dmap,Jmap] = deal(varargin{1:3});
 else
     [Vmap, Dmap, Jmap] = getCurrentDatabase;
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 for y = 1:length(UnqGrpNum)
     IdxLoc = find(UnqGrpNum(y) == GrpNum);
     RootLoc = IdxLoc(1);
-    CDR3start = VDJdata{RootLoc,CDR3Loc(3)};
-    CDR3end = VDJdata{RootLoc,CDR3Loc(4)};
-    Seq = VDJdata{RootLoc,SeqLoc};
+    CDR3start = VDJdata{RootLoc,H.CDR3Loc(3)};
+    CDR3end = VDJdata{RootLoc,H.CDR3Loc(4)};
+    Seq = VDJdata{RootLoc,H.SeqLoc};
     
     try %No error handling. Just try.
         if CDR3end > length(Seq) %Check if there's something wrong with the J alignment
@@ -28,7 +28,7 @@ for y = 1:length(UnqGrpNum)
                 LastAA = nt2aa(Seq(end-2:end));
                 if (LastAA ~= '*') && (strcmpi(LastAA,'W') || strcmpi(LastAA,'F')) %Still a chance it's a bad J alignment
                     Tdata = VDJdata(IdxLoc,:);
-                    Jlen = Tdata{1,LengthLoc(5)}; %Which includes the 3 codons for 118residue
+                    Jlen = Tdata{1,H.LengthLoc(5)}; %Which includes the 3 codons for 118residue
                     Jseq = Seq(end-Jlen+1:end);
                     JtempDel = zeros(size(Jmap,1),1);
                     JmapT = Jmap;
@@ -62,16 +62,16 @@ for y = 1:length(UnqGrpNum)
                     Jmatch = Jmatch(BestLoc,:);
                     Jmatch = reduceFamily(Jmatch);
                     Jmatch = Jmatch(1,:); %If there's still ties, pick 1.                
-                    Tdata(:,[FamNumLoc(3) FamLoc(3) DelLoc(4)]) = repmat([Jmatch(1) Jmatch(2) Jmatch{1,3}(1)],size(Tdata,1),1);
+                    Tdata(:,[H.FamNumLoc(3) H.FamLoc(3) H.DelLoc(4)]) = repmat([Jmatch(1) Jmatch(2) Jmatch{1,3}(1)],size(Tdata,1),1);
 
                     %See if it fixes the CDR3 problem
-                    Tdata = findCDR3(Tdata,NewHeader); %Get the CDR3 seq and info                
-                    if Tdata{1,CDR3Loc(4)} <= length(Seq)
+                    Tdata = findCDR3(Tdata,VDJheader); %Get the CDR3 seq and info                
+                    if Tdata{1,H.CDR3Loc(4)} <= length(Seq)
                         disp('correct cdr3')
-                        Tdata = buildRefSeq(Tdata,NewHeader,'germline','single'); %must do singles, since group therapy not done.
-                        Tdata = buildVDJalignment(Tdata,NewHeader,Vmap,Dmap,Jmap); %Alignment Info
-                        Tdata = makeClassifier(Tdata,NewHeader); %Classifier + FormattedSeq
-                        Tdata = appendMutCt(Tdata,NewHeader); %SHM infor on the VMDNJ segments
+                        Tdata = buildRefSeq(Tdata,VDJheader,'germline','single'); %must do singles, since group therapy not done.
+                        Tdata = buildVDJalignment(Tdata,VDJheader,Vmap,Dmap,Jmap); %Alignment Info
+                        Tdata = makeClassifier(Tdata,VDJheader); %Classifier + FormattedSeq
+                        Tdata = appendMutCt(Tdata,VDJheader); %SHM infor on the VMDNJ segments
                         VDJdata(IdxLoc,:) = Tdata;
                     end
                 end

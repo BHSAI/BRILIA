@@ -1,11 +1,11 @@
 %buildRefSeq will fill in the predicted germline reference sequence for
 %each sequence cluster.
 %
-%  VDJdata = buildRefSeq(VDJdata, NewHeader)
+%  VDJdata = buildRefSeq(VDJdata, VDJheader)
 %
-%  [VDJdata, NewRange] = buildRefSeq(VDJdata, NewHeader)
+%  [VDJdata, NewRange] = buildRefSeq(VDJdata, VDJheader)
 %
-%  VDJdata = buildRefSeq(VDJdata, NewHeader, LengthOpt, InnerOpt, GroupOpt)
+%  VDJdata = buildRefSeq(VDJdata, VDJheader, LengthOpt, InnerOpt, GroupOpt)
 %
 %  INPUT OPTIONS, which can be in any order in inputs
 %    LengthOpt: 
@@ -28,10 +28,10 @@
 %  OUTPUT
 %    NewRange: the start and end nt sequence positions in Seq that the
 %      reference sequence is extracted from.
-function [VDJdata, varargout] = buildRefSeq(VDJdata,NewHeader,varargin)
+function [VDJdata, varargout] = buildRefSeq(VDJdata,VDJheader,varargin)
 %Extract the full VDJ database
 [Vmap, Dmap, Jmap] = getCurrentDatabase; %Always use the full database for this
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 %Setup the options
 LengthOpt = 'same';
@@ -61,7 +61,7 @@ if strcmpi(GroupOpt,'single')
     GrpNum = [1:size(VDJdata,1)]';
     UnqGrpNum = GrpNum;
 else    
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     UnqGrpNum = unique(GrpNum);
 end
 
@@ -73,14 +73,14 @@ for y = 1:length(UnqGrpNum)
     
     try
         %Extract the other informations about ref sequences
-        DelCt = unique(cell2mat(VDJdata(IdxLoc,DelLoc)),'rows');    
-        VmapNum = VDJdata{IdxLoc(1),FamNumLoc(1)}(1);
-        DmapNum = VDJdata{IdxLoc(1),FamNumLoc(2)}(1);
-        JmapNum = VDJdata{IdxLoc(1),FamNumLoc(3)}(1);
+        DelCt = unique(cell2mat(VDJdata(IdxLoc,H.DelLoc)),'rows');    
+        VmapNum = VDJdata{IdxLoc(1),H.FamNumLoc(1)}(1);
+        DmapNum = VDJdata{IdxLoc(1),H.FamNumLoc(2)}(1);
+        JmapNum = VDJdata{IdxLoc(1),H.FamNumLoc(3)}(1);
 
         %Assemble the full length germline VDJ first
-        Seq = Tdata{1,SeqLoc};
-        VMDNJ = unique(cell2mat(Tdata(:,LengthLoc)),'rows');
+        Seq = Tdata{1,H.SeqLoc};
+        VMDNJ = unique(cell2mat(Tdata(:,H.LengthLoc)),'rows');
         if size(VMDNJ,1) > 1
             error('This data has not be conformed to unity per group. Perform group treatment first');
         end
@@ -136,19 +136,19 @@ for y = 1:length(UnqGrpNum)
         %Fill in RefSeq as needed
         switch GroupOpt
             case 'first'
-                VDJdata(IdxLoc(1),RefSeqLoc) = {FullRefSeq};
-                VDJdata(IdxLoc(2:end),RefSeqLoc) = Tdata(2:end,RefSeqLoc);
+                VDJdata(IdxLoc(1),H.RefSeqLoc) = {FullRefSeq};
+                VDJdata(IdxLoc(2:end),H.RefSeqLoc) = Tdata(2:end,H.RefSeqLoc);
             case 'group'
-                VDJdata(IdxLoc,RefSeqLoc) = repmat({FullRefSeq},length(IdxLoc),1);
+                VDJdata(IdxLoc,H.RefSeqLoc) = repmat({FullRefSeq},length(IdxLoc),1);
             case 'single'
-                VDJdata(IdxLoc(1),RefSeqLoc) = {FullRefSeq};
+                VDJdata(IdxLoc(1),H.RefSeqLoc) = {FullRefSeq};
         end
         NewRange(IdxLoc,1) = S1;
         NewRange(IdxLoc,2) = S2;
     catch
         ErrorMsg = sprintf('Errored at %s, sequence # %d',mfilename,y);
         disp(ErrorMsg);
-        VDJdata(IdxLoc,MiscLoc) = repmat({ErrorMsg},length(IdxLoc),1);
+        VDJdata(IdxLoc,H.MiscLoc) = repmat({ErrorMsg},length(IdxLoc),1);
     end
 end
 

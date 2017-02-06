@@ -6,22 +6,22 @@
 %  2) No pseudogene for V
 %
 %  VDJdata = getprodVDJ()
-%  VDJdata = getprodVDJ(VDJdata,NewHeader)
+%  VDJdata = getprodVDJ(VDJdata,VDJheader)
 %  [VDJdata, VDJdataNP] = getprodVDJ(...)    will return the nonprodVDJ's
 %  too.
 
 function [VDJdata,varargout] = getProdVDJ(varargin)
 if isempty(varargin)
-    [VDJdata, NewHeader, ~, ~] = openSeqData;
+    [VDJdata, VDJheader, ~, ~] = openSeqData;
 else
     VDJdata = varargin{1};
-    NewHeader = varargin{2};
+    VDJheader = varargin{2};
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 KeepThis = ones(size(VDJdata,1),1,'logical');
 for j = 1:length(size(VDJdata,1))
-    if strcmpi(VDJdata{j,FunctLoc},'N')
+    if strcmpi(VDJdata{j,H.FunctLoc},'N')
         KeepThis(j) = 0;
     end
 end

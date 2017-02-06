@@ -1,25 +1,25 @@
 %fixDegenVDJ will remove pseudogene (P) and open reading frame (ORF)
 %annotations if a functional gene annotations are also suggested by BRILIA.
 %
-%  VDJdata = fixPseudoVDJ(VDJdata,NewHeader)
+%  VDJdata = fixPseudoVDJ(VDJdata,VDJheader)
 %
-%  VDJdata = fixPseudoVDJ(VDJdata,NewHeader,Vmap,Dmap,Jmap)
+%  VDJdata = fixPseudoVDJ(VDJdata,VDJheader,Vmap,Dmap,Jmap)
 %
-%  VDJdata = fixPseudoVDJ(VDJdata,NewHeader,Vmap,Dmap,Jmap,VDJ)
+%  VDJdata = fixPseudoVDJ(VDJdata,VDJheader,Vmap,Dmap,Jmap,VDJ)
 %
 %  INPUT
 %    VDJ ['V','D','J'] or any combo: Specifies which pseudogene to remove.
 %    Default is VDJ = 'VDJ' to do all V, D, J genes. 
 %
 %  See also BRILIA
-function VDJdata = fixDegenVDJ(VDJdata,NewHeader,varargin)
+function VDJdata = fixDegenVDJ(VDJdata,VDJheader,varargin)
 %Extract the V database
 if length(varargin) >= 3 
     [Vmap,Dmap,Jmap] = deal(varargin{1:3});
 else
     [Vmap,Dmap,Jmap] = getCurrentDatabase;
 end       
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 %Header for the Vmap;
 MapFunctLoc = 7;
@@ -35,16 +35,16 @@ UpdateIdx = zeros(size(VDJdata,1),1,'logical');
 for x = 1:length(VDJ)
     switch upper(VDJ(x))
         case 'V'
-            FamLocX = FamLoc(1);
-            FamNumLocX = FamNumLoc(1);
+            FamLocX = H.FamLoc(1);
+            FamNumLocX = H.FamNumLoc(1);
             Xmap = Vmap;
         case 'D'
-            FamLocX = FamLoc(2);
-            FamNumLocX = FamNumLoc(2);
+            FamLocX = H.FamLoc(2);
+            FamNumLocX = H.FamNumLoc(2);
             Xmap = Dmap;
         case 'J'
-            FamLocX = FamLoc(3);
-            FamNumLocX = FamNumLoc(3);
+            FamLocX = H.FamLoc(3);
+            FamNumLocX = H.FamNumLoc(3);
             Xmap = Jmap;
     end
 
@@ -57,7 +57,7 @@ for x = 1:length(VDJ)
     end
 
     %Iteratively find groups
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     UnqGrpNum = unique(GrpNum);
     for y = 1:length(UnqGrpNum)
         try
@@ -98,5 +98,5 @@ for x = 1:length(VDJ)
 end
 
 %Update those that have changed
-VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),NewHeader,'germline','first'); %must do first seq of all cluster
-VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),NewHeader,varargin);
+VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),VDJheader,'germline','first'); %must do first seq of all cluster
+VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),VDJheader,varargin);

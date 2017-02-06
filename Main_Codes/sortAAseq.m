@@ -50,16 +50,16 @@ end
 
 %Looking for sequence information as cells
 if isempty(varargin) %Ask the user for the file Name
-    [VDJdata, NewHeader, FileName, FilePath] = openSeqData();
-    getHeaderVar;
-    AAseq = VDJdata(:,CDR3Loc(1));
+    [VDJdata, VDJheader, FileName, FilePath] = openSeqData();
+    H = getHeaderVar(VDJheader);
+    AAseq = VDJdata(:,H.CDR3Loc(1));
 else
     if iscell(varargin{1}) %Probably sequences
         AAseq = varargin{1};
     else
-        [VDJdata, NewHeader, FileName, FilePath] = openSeqData(varargin{v});
-        getHeaderVar;
-        AAseq = VDJdata(:,CDR3Loc(1));
+        [VDJdata, VDJheader, FileName, FilePath] = openSeqData(varargin{v});
+        H = getHeaderVar(VDJheader);
+        AAseq = VDJdata(:,H.CDR3Loc(1));
     end
 end
 

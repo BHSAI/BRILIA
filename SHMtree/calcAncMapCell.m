@@ -2,17 +2,17 @@
 %location made up, and return the AncMapCell variable required to make the
 %phylogenetic trees.
 %
-%  AncMapCell = calcAncMapCell(VDJdata,NewHeader)
+%  AncMapCell = calcAncMapCell(VDJdata,VDJheader)
 
-function AncMapCell = calcAncMapCell(VDJdata,NewHeader,varargin)
+function AncMapCell = calcAncMapCell(VDJdata,VDJheader,varargin)
 
 OutputDistMode = 'shmham';
 if ~isempty(varargin)
     OutputDistMode = varargin{1};
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 AncMapCell = cell(length(UnqGrpNum),2);
 for y = 1:length(UnqGrpNum)
@@ -21,10 +21,10 @@ for y = 1:length(UnqGrpNum)
     
     AncMapT = zeros(size(Tdata,1),4);
     AncMapT(:,1) = 1:size(Tdata,1);
-    AncMapT(:,4) = cell2mat(Tdata(:,TemplateLoc));
+    AncMapT(:,4) = cell2mat(Tdata(:,H.TemplateLoc));
     
-    RefSeq = char(Tdata(:,RefSeqLoc));
-    SamSeq = char(Tdata(:,SeqLoc));
+    RefSeq = char(Tdata(:,H.RefSeqLoc));
+    SamSeq = char(Tdata(:,H.SeqLoc));
     
     for j = 1:size(Tdata,1)
         for k = 1:size(Tdata,1)
@@ -42,5 +42,5 @@ for y = 1:length(UnqGrpNum)
     
     AncMapT(1,2) = 0;
     AncMapCell{y,1} = AncMapT;
-    AncMapCell{y,2} = Tdata(AncMapT(:,1),CDR3Loc(1));    
+    AncMapCell{y,2} = Tdata(AncMapT(:,1),H.CDR3Loc(1));    
 end

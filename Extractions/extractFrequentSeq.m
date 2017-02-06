@@ -49,7 +49,7 @@ if isempty(varargin)
     Fnum = length(FileNames);
 else
     VDJdata = varargin{1};
-    NewHeader = varargin{2};
+    VDJheader = varargin{2};
     SkipLoad = 1;
     Fnum = 1;
 end
@@ -58,18 +58,18 @@ for f = 1:Fnum
     
     if SkipLoad == 0
         FileName = FileNames{f};
-        [VDJdata,NewHeader,~,~] = openSeqData([FilePath FileName]);
+        [VDJdata,VDJheader,~,~] = openSeqData([FilePath FileName]);
     end
     
-    getHeaderVar;
+    H = getHeaderVar(VDJheader);
     
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     GrpNumUnq = unique(GrpNum);
     GrpTempMat = zeros(length(GrpNumUnq),4);
     
     for y = 1:length(GrpNumUnq)
         GrpIdx = find(GrpNum == GrpNumUnq(y));
-        TempCt = cell2mat(VDJdata(GrpIdx,TemplateLoc));
+        TempCt = cell2mat(VDJdata(GrpIdx,H.TemplateLoc));
         GrpTempMat(y,1) = GrpNumUnq(y);
         GrpTempMat(y,2) = length(GrpIdx);
         GrpTempMat(y,3) = sum(TempCt);
@@ -85,7 +85,7 @@ for f = 1:Fnum
     NumOfElem = sum(GrpTempMat(1:TopPicks,2));
     
     %Extract sequence with the same group and CDR3
-    NewVDJdata = cell(NumOfElem,length(NewHeader));
+    NewVDJdata = cell(NumOfElem,length(VDJheader));
     r = 1;
     for q = 1:length(SelectGrpNum)
         IdxLoc = find(GrpNum == SelectGrpNum(q));
@@ -97,14 +97,14 @@ for f = 1:Fnum
     NewVDJdata = reformatAlignment(NewVDJdata,1);
     for q = 1:size(NewVDJdata,1)
         for w = 1:3
-            NewVDJdata{q,FamNumLoc(w)} = mat2str(NewVDJdata{q,FamNumLoc(w)});
+            NewVDJdata{q,H.FamNumLoc(w)} = mat2str(NewVDJdata{q,H.FamNumLoc(w)});
         end
     end
     
     if SkipLoad == 0
         %Saving just the frequentSeq and the group
         SaveName = ['FreqSeqOPT' num2str(Option) '_' FileName];
-        xlswrite(SaveName,[NewHeader;NewVDJdata]);
+        xlswrite(SaveName,[VDJheader;NewVDJdata]);
     end
 end
         

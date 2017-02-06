@@ -3,16 +3,16 @@
 %array called BadIdx that can be used to delete the bad sequences, defined
 %as one with > 10% of sequence with non-nucleotide letters.
 %
-%  [VDJdata, BadIdx] = checkInputQuality(VDJdata,NewHeader);
+%  [VDJdata, BadIdx] = checkInputQuality(VDJdata,VDJheader);
 %
 %  See also BRILIA
 
-function [VDJdata, varargout] = fixInputSeq(VDJdata,NewHeader) 
-getHeaderVar;
+function [VDJdata, varargout] = fixInputSeq(VDJdata,VDJheader) 
+H = getHeaderVar(VDJheader);
 
 BadIdx = zeros(size(VDJdata,1),1,'logical');
 for j = 1:size(VDJdata,1)
-    Seq = VDJdata{j,SeqLoc};
+    Seq = VDJdata{j,H.SeqLoc};
     
     %Make sure it is all caps
     Seq = upper(Seq);
@@ -26,7 +26,7 @@ for j = 1:size(VDJdata,1)
         BadIdx(j) = 1;
         continue
     else
-        VDJdata{j,SeqLoc} = Seq;
+        VDJdata{j,H.SeqLoc} = Seq;
     end
 end
 

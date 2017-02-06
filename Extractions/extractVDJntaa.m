@@ -18,10 +18,10 @@ AllRefAA = {};
 for j = 1:length(FileNames)
     FileName = FileNames{j};
     FullName = [FilePath FileName];
-    [VDJdata, NewHeader, ~, ~] = openSeqData(FullName);
+    [VDJdata, VDJheader, ~, ~] = openSeqData(FullName);
     
     %Determine the RefSeq
-    RefSeq = buildRefSeq(VDJdata,NewHeader,'single','VJ','full');
+    RefSeq = buildRefSeq(VDJdata,VDJheader,'single','VJ','full');
     RefAA = translateNT(RefSeq);
     
     AllRefSeq = cat(1,AllRefSeq,RefSeq);

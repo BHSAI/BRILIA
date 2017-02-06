@@ -45,25 +45,25 @@ else %Up to family name provided
 end
 
 %Look for the match locations
-MatchLoc = zeros(size(Xmap,1),length(LookUpCol));
+H.MatchLoc = zeros(size(Xmap,1),length(LookUpCol));
 for k = 1:length(LookUpCol)
     for j = 1:size(Xmap,1)
         if strcmpi(Xmap{j,LookUpCol(k)},GeneName)
-            MatchLoc(j,k) = 1;
+            H.MatchLoc(j,k) = 1;
         end
     end
 end
-MatchLoc = sum(MatchLoc,2)>0;
+H.MatchLoc = sum(H.MatchLoc,2)>0;
 
-if max(MatchLoc) == 0 %In case there is no match
+if max(H.MatchLoc) == 0 %In case there is no match
     GeneSeq = '';
     if nargout == 2;
         varargout{1} = 0;
     end
 else     %Output the selected sequence
-    GeneSeq = Xmap(MatchLoc,1);
+    GeneSeq = Xmap(H.MatchLoc,1);
     if nargout == 2 %Also outputs the index location in the gene map
-        varargout{1} = find(MatchLoc == 1);
+        varargout{1} = find(H.MatchLoc == 1);
     end    
 end
 

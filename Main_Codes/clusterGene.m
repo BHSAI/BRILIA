@@ -6,7 +6,7 @@
 %can return scores larger/smaller that DevPerc length of Seq depending on
 %if the SHM patterns match with expected patterns.
 %
-%  VDJdata = clusterGene(VDJdata,NewHeader,DevPerc)
+%  VDJdata = clusterGene(VDJdata,VDJheader,DevPerc)
 %
 %  INPUT
 %    DevPerc: Ranges 0 to 100, indicating % of sequence length to use as
@@ -14,21 +14,21 @@
 %
 %  See also buildTreeLink
 
-function  VDJdata = clusterGene(VDJdata,NewHeader,DevPerc)
-getHeaderVar;
+function  VDJdata = clusterGene(VDJdata,VDJheader,DevPerc)
+H = getHeaderVar(VDJheader);
 
 %Create the clusters
 ClustMap = zeros(size(VDJdata,1),4); %[RowNum CDR3length VfamNum JfamNum]
 for j = 1:size(VDJdata,1)
     %Find length of the CDR3nts
-    CDR3start = VDJdata{j,CDR3Loc(3)};
+    CDR3start = VDJdata{j,H.CDR3Loc(3)};
     if isempty(CDR3start); CDR3start = 0; end
-    CDR3end = VDJdata{j,CDR3Loc(4)};
+    CDR3end = VDJdata{j,H.CDR3Loc(4)};
     if isempty(CDR3end); CDR3end = 0; end
     CDR3Len = CDR3end - CDR3start;
     
     %Determine the V family number
-    Vname = VDJdata{j,FamLoc(1)};    
+    Vname = VDJdata{j,H.FamLoc(1)};    
     Vnums = regexp(Vname,'[^\d]*','split');
     for k = 1:length(Vnums)
         if ~isempty(Vnums{k}); break; end
@@ -36,7 +36,7 @@ for j = 1:size(VDJdata,1)
     Vfamily = eval(Vnums{k});
     
     %Determine the J family number
-    Jname = VDJdata{j,FamLoc(3)};
+    Jname = VDJdata{j,H.FamLoc(3)};
     Jnums = regexp(Jname,'[^\d]*','split');
     for k = 1:length(Jnums)
         if ~isempty(Jnums{k}); break; end
@@ -54,18 +54,18 @@ ClustMap(:,1) = 1:size(VDJdata,1); %Renumber
 
 %For each coarse cluster, find subclusters using Tree clustering and SHM
 %distance cutoff
-MaxDev = ceil(length(VDJdata{1,SeqLoc})*DevPerc/100); %Cutoff SHM distance
+MaxDev = ceil(length(VDJdata{1,H.SeqLoc})*DevPerc/100); %Cutoff SHM distance
 GrpNumCt = 0; %buildTreeLink will provide a group number clust from 1 to N
 for j = 1:max(CrudeClustIdx)
     try
         ClustIdx = ClustMap(CrudeClustIdx == j,1);
         Tdata = VDJdata(ClustIdx,:);       
-        [~,Tdata] = buildTreeLink(Tdata,NewHeader,MaxDev);
+        [~,Tdata] = buildTreeLink(Tdata,VDJheader,MaxDev);
 
         %Adjust the group numbers
-        GrpNum2 = cell2mat(Tdata(:,GrpNumLoc)) + GrpNumCt; %Get new grp nums
+        GrpNum2 = cell2mat(Tdata(:,H.GrpNumLoc)) + GrpNumCt; %Get new grp nums
         GrpNumCt = max(GrpNum2); %Update grp num starting point
-        Tdata(:,GrpNumLoc) = num2cell(GrpNum2);
+        Tdata(:,H.GrpNumLoc) = num2cell(GrpNum2);
     
         VDJdata(ClustIdx,:) = Tdata;
     catch

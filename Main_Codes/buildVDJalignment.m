@@ -3,31 +3,31 @@
 %from the germline gene, and a capital letter is a mismatch with the
 %germline gene, and an "|" marks where the germline gene was deleted.
 %
-%  VDJdata = buildVDJalignment(VDJdata, NewHeader)
+%  VDJdata = buildVDJalignment(VDJdata, VDJheader)
 %
-%  VDJdata = buildVDJalignment(VDJdata, NewHeader, Vmap, Dmap, Jmap)
+%  VDJdata = buildVDJalignment(VDJdata, VDJheader, Vmap, Dmap, Jmap)
 
-function VDJdata = buildVDJalignment(VDJdata,NewHeader,varargin)
+function VDJdata = buildVDJalignment(VDJdata,VDJheader,varargin)
 %Extract the VDJ database
 if length(varargin) >= 3
     [Vmap,Dmap,Jmap] = deal(varargin{1:3});
 else
     [Vmap,Dmap,Jmap] = getCurrentDatabase;
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 for j = 1:size(VDJdata,1)
     try
-        Seq = VDJdata{j,SeqLoc};
-        VMDNJ = cell2mat(VDJdata(j,LengthLoc));
+        Seq = VDJdata{j,H.SeqLoc};
+        VMDNJ = cell2mat(VDJdata(j,H.LengthLoc));
 
         %----------------------------------------------------------------------
         %Setting V alignment
-        Vnum = VDJdata{j,FamNumLoc(1)}(1);
+        Vnum = VDJdata{j,H.FamNumLoc(1)}(1);
         if ~isempty(Vnum)
             VsamSeq = Seq(1:VMDNJ(1));
             VrefSeq = Vmap{Vnum,1};
-            VntDel = VDJdata{j,DelLoc(1)};
+            VntDel = VDJdata{j,H.DelLoc(1)};
 
             %Determine if there are extra nts left for padding
             ExtraLeft = VMDNJ(1)+ VntDel - length(VrefSeq);
@@ -47,18 +47,18 @@ for j = 1:size(VDJdata,1)
             Valign = VrefSeq;
             Valign(VsamSeq == VrefSeq | VsamSeq == 'X') = '-';
             Valign = [Valign '|' lower(Vref3)];
-            VDJdata{j,AlignLoc(1)} = Valign;
+            VDJdata{j,H.AlignLoc(1)} = Valign;
         end
 
         %----------------------------------------------------------------------
         %Setting D alignment
-        Dnum = VDJdata{j,FamNumLoc(2)}(1);
+        Dnum = VDJdata{j,H.FamNumLoc(2)}(1);
         if ~isempty(Dnum)
             DsamSeq = Seq(sum(VMDNJ(1:2))+1:sum(VMDNJ(1:3)));
 
             %Extract the germline seq
-            DntDel5 = VDJdata{j,DelLoc(2)};
-            DntDel3 = VDJdata{j,DelLoc(3)};        
+            DntDel5 = VDJdata{j,H.DelLoc(2)};
+            DntDel3 = VDJdata{j,H.DelLoc(3)};        
             DrefSeq = Dmap{Dnum,1}(1+DntDel5:end-DntDel3);       
             if DntDel5 > 0
                 Dref5 = Dmap{Dnum,1}(1:DntDel5);
@@ -74,16 +74,16 @@ for j = 1:size(VDJdata,1)
             Dalign = DrefSeq;
             Dalign(DsamSeq==DrefSeq | DsamSeq == 'X') = '-';
             Dalign = [lower(Dref5) '|' Dalign '|' lower(Dref3)];
-            VDJdata{j,AlignLoc(2)} = Dalign;
+            VDJdata{j,H.AlignLoc(2)} = Dalign;
         end
 
         %----------------------------------------------------------------------
         %Setting J alignment
-        Jnum = VDJdata{j,FamNumLoc(3)}(1);
+        Jnum = VDJdata{j,H.FamNumLoc(3)}(1);
         if ~isempty(Jnum)
             JsamSeq = Seq(end-VMDNJ(5)+1:end);
             JrefSeq = Jmap{Jnum,1};
-            JntDel = VDJdata{j,DelLoc(4)};
+            JntDel = VDJdata{j,H.DelLoc(4)};
 
             %Determine if there are extra nts left for padding
             ExtraRight = VMDNJ(5) + JntDel - length(JrefSeq);
@@ -103,11 +103,11 @@ for j = 1:size(VDJdata,1)
             Jalign = JrefSeq;
             Jalign(JsamSeq == JrefSeq | JsamSeq == 'X') = '-';
             Jalign = [lower(Jref5) '|' Jalign];
-            VDJdata{j,AlignLoc(3)} = Jalign;
+            VDJdata{j,H.AlignLoc(3)} = Jalign;
         end
     catch
         ErrorMsg = sprintf('Errored at %s, sequence # %d',mfilename,j);
         disp(ErrorMsg);
-        VDJdata{j,MiscLoc} = ErrorMsg;
+        VDJdata{j,H.MiscLoc} = ErrorMsg;
     end
 end

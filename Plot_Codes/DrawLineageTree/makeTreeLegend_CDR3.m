@@ -35,8 +35,8 @@ if nargin == 1
 elseif nargin == 2
     TreeData = varargin{1};
     TreeHeader = varargin{2};
-    getTreeHeaderVar;
-    CDR3seq = TreeData(:,CDR3seqLoc);
+    TH = getTreeHeaderVar(TreeHeader);
+    CDR3seq = TreeData(:,TH.CDR3seqLoc);
 else
     error('makeTreeLegend: Number of inputs is not correct');
 end
@@ -70,7 +70,7 @@ CDR3legend = cell(size(UnqCDR3seq));
 CDR3legend{1} = RootCDR3;
 for j = 2:length(CDR3legend)
     CurCDR3seq = UnqCDR3seq{j};
-    MatchLoc = RootCDR3 == CurCDR3seq;
-    CurCDR3seq(MatchLoc) = '-';
+    H.MatchLoc = RootCDR3 == CurCDR3seq;
+    CurCDR3seq(H.MatchLoc) = '-';
     CDR3legend{j} = CurCDR3seq;
 end

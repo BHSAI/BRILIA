@@ -4,35 +4,35 @@
 %
 %  VDJdata = renumberGrpNum(FullFileName)
 %
-%  VDJdata = renumberGrpNum(VDJdata,NewHeader);
+%  VDJdata = renumberGrpNum(VDJdata,VDJheader);
 %
 
 function VDJdata = renumberGrpNum(varargin)
 %Prepare the inputs
 if isempty(varargin)
-    [VDJdata,NewHeader,FileName,FilePath] = openSeqData;
+    [VDJdata,VDJheader,FileName,FilePath] = openSeqData;
 else
     if ischar(varargin{1})
         FullFileName = varargin{1};
-        [VDJdata,NewHeader,FileName,FilePath] = openSeqData(FullFileName);
+        [VDJdata,VDJheader,FileName,FilePath] = openSeqData(FullFileName);
     elseif iscell(varargin{1})
         VDJdata = varargin{1};
-        NewHeader = varargin{2};
+        VDJheader = varargin{2};
         FileName = '';
         FilePath = '';
     end
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 %Begin renumbering the group numbers
 GrpCt = 1;
-CurGrp = VDJdata{1,GrpNumLoc};
+CurGrp = VDJdata{1,H.GrpNumLoc};
 for j = 1:size(VDJdata,1)
-    if VDJdata{j,GrpNumLoc} ~= CurGrp
+    if VDJdata{j,H.GrpNumLoc} ~= CurGrp
         GrpCt = GrpCt + 1;
-        CurGrp = VDJdata{j,GrpNumLoc};
+        CurGrp = VDJdata{j,H.GrpNumLoc};
     end
-    VDJdata{j,GrpNumLoc} = GrpCt;
+    VDJdata{j,H.GrpNumLoc} = GrpCt;
 end
 
 %Save the file
@@ -43,5 +43,5 @@ if ~isempty(FileName)
     end
     SaveDelimiter = ';';
     SaveFullName = sprintf('%s%s.Renum.%s',FilePath,FileName(1:DotLoc(end)-1),'csv');
-    saveSeqData(SaveFullName,VDJdata,NewHeader,'Delimiter',SaveDelimiter);
+    saveSeqData(SaveFullName,VDJdata,VDJheader,'Delimiter',SaveDelimiter);
 end

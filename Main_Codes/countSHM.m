@@ -1,25 +1,25 @@
 %countSHM will count how many SHMs are present between the current sequence
 %and the germline sequence of each group.
 %
-%  VDJdata = countSHM(VDJdata,NewHeader)
+%  VDJdata = countSHM(VDJdata,VDJheader)
 
-function VDJdata = countSHM(VDJdata,NewHeader)
-getHeaderVar;
+function VDJdata = countSHM(VDJdata,VDJheader)
+H = getHeaderVar(VDJheader);
 
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 for y = 1:length(UnqGrpNum)
     IdxLoc = find(GrpNum == UnqGrpNum(y));
-    RefSeq = VDJdata{IdxLoc(1),RefSeqLoc};
+    RefSeq = VDJdata{IdxLoc(1),H.RefSeqLoc};
     RefSeqXLoc = RefSeq == 'X';
-    VMDNJ = cell2mat(VDJdata(IdxLoc(1),LengthLoc));
+    VMDNJ = cell2mat(VDJdata(IdxLoc(1),H.LengthLoc));
     
     if sum(VMDNJ) ~= length(RefSeq) || isempty(RefSeq)
         continue
     end
     
     for j = 1:length(IdxLoc)
-        Seq = VDJdata{IdxLoc(j),SeqLoc};
+        Seq = VDJdata{IdxLoc(j),H.SeqLoc};
         SeqXLoc = Seq == 'X';
         if length(Seq) ~= length(RefSeq); 
             warning('countSHM: Seq and RefSeq lengths do not match for entry # %d',IdxLoc(j));
@@ -40,10 +40,10 @@ for y = 1:length(UnqGrpNum)
         if isempty(Nmiss); Nmiss = 0; end
         if isempty(Jmiss); Jmiss = 0; end        
         
-        VDJdata{IdxLoc(j),VmutLoc} = Vmiss;
-        VDJdata{IdxLoc(j),MmutLoc} = Mmiss;
-        VDJdata{IdxLoc(j),DmutLoc} = Dmiss;
-        VDJdata{IdxLoc(j),NmutLoc} = Nmiss;
-        VDJdata{IdxLoc(j),JmutLoc} = Jmiss;
+        VDJdata{IdxLoc(j),H.VmutLoc} = Vmiss;
+        VDJdata{IdxLoc(j),H.MmutLoc} = Mmiss;
+        VDJdata{IdxLoc(j),H.DmutLoc} = Dmiss;
+        VDJdata{IdxLoc(j),H.NmutLoc} = Nmiss;
+        VDJdata{IdxLoc(j),H.JmutLoc} = Jmiss;
     end
 end

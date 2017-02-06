@@ -3,14 +3,14 @@
 
 function TreeStats = findTreeStats(varargin)
 if isempty(varargin)
-    [VDJdata,NewHeader,FileName,FilePath] = openSeqData;
+    [VDJdata,VDJheader,FileName,FilePath] = openSeqData;
 else
     VDJdata = varargin{1};
-    NewHeader = varargin{2};
+    VDJheader = varargin{2};
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 GrpNumUnq = unique(GrpNum);
 TreeStats = zeros(length(GrpNumUnq),7); %ClustNum | WtNodeLevel | AvgChildperNode | MaxMutFullBCR| NumSeq | MaxHamDistTraveled | NodeCount
 for y = 1:length(GrpNumUnq)
@@ -20,7 +20,7 @@ for y = 1:length(GrpNumUnq)
     end
     Tdata = VDJdata(IdxLoc,:);
     DistMode = 'shmham';
-    [AncMapCell,~] = buildTreeLink3(Tdata,NewHeader,DistMode);
+    [AncMapCell,~] = buildTreeLink3(Tdata,VDJheader,DistMode);
 
     AncMap = AncMapCell{1,1};
     if AncMap(1,2) ~= 0
@@ -34,8 +34,8 @@ for y = 1:length(GrpNumUnq)
         NodeData(j,2) = length(findChild(AncMap,AncMap(j,1)));
     end
     
-    RefSeq = Tdata{1,RefSeqLoc};
-    SamSeq = char(Tdata(:,SeqLoc));
+    RefSeq = Tdata{1,H.RefSeqLoc};
+    SamSeq = char(Tdata(:,H.SeqLoc));
     
     %Compute maximum hamming distance to RefSeq
     CmprRefSamSeq = SamSeq ~= repmat(RefSeq,size(SamSeq,1),1);

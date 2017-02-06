@@ -7,7 +7,7 @@
 %SHM. We are not considering unproductive VDJ genes in the 2nd chromosome
 %that could also undergo SHM if there is a productive gene.
 %
-%  [VDJdata, NewHeader] = generateVDJseq(Param1,Value1,...)
+%  [VDJdata, VDJheader] = generateVDJseq(Param1,Value1,...)
 %
 %  INPUT
 %    Param           Value                   This sets:
@@ -27,7 +27,7 @@
 %
 %  OUTPUT
 %    VDJdata: cell matrix storing all information about each VDJgene
-%    NewHeader: cell matrix storing data field names for VDJdata
+%    VDJheader: cell matrix storing data field names for VDJdata
 %  
 %  NOTE
 %    The total number of sequences generated will be CloneCount *
@@ -50,7 +50,7 @@
 %    and T's.
 %
 %    Only genes with well-defined C and W locations can be used.
-function [VDJdata, NewHeader] = generateVDJseq(varargin)
+function [VDJdata, VDJheader] = generateVDJseq(varargin)
 %--------------------------------------------------------------------------
 %Parse inputs to this simulator
 P = inputParser;
@@ -228,12 +228,12 @@ end
 
 %Create the VDJdata default matrix
 HeaderData = readDlmFile('Headers_BRILIA.csv','Delimiter',';'); %Obtain the VDJdata header info for output format
-NewHeader = HeaderData(2:end,1)';
-getHeaderVar;
-VDJdata = cell(SeqCount,length(NewHeader));
-VDJdata(:,TemplateLoc) = num2cell(ones(SeqCount,1)); %Always initialize TempCt column with 1.
-VDJdata(:,SeqNumLoc) = num2cell(1:SeqCount); %Always assign a unique numbering order for VDJdata
-VDJdata(:,GrpNumLoc) = num2cell(1:SeqCount); %Always assign a unique numbering order for VDJdata
+VDJheader = HeaderData(2:end,1)';
+H = getHeaderVar(VDJheader);
+VDJdata = cell(SeqCount,length(VDJheader));
+VDJdata(:,H.TemplateLoc) = num2cell(ones(SeqCount,1)); %Always initialize TempCt column with 1.
+VDJdata(:,H.SeqNumLoc) = num2cell(1:SeqCount); %Always assign a unique numbering order for VDJdata
+VDJdata(:,H.GrpNumLoc) = num2cell(1:SeqCount); %Always assign a unique numbering order for VDJdata
 
 SeqNum = 1;
 GrpNum = 1;
@@ -292,19 +292,19 @@ while SeqNum <= SeqCount
     if ~isempty(regexpi(CDR3seq,'\*','once')); continue; end %Stop codon   
     
     %Save information temporarily to Tdata
-    Tdata = cell(1,length(NewHeader)); %For temporary single entries;
-    Tdata([SeqNumLoc GrpNumLoc SeqLoc RefSeqLoc SeqNameLoc]) = {SeqNum, GrpNum, Seq Seq num2str(SeqNum)}; %Note that Seq and RefSeq are same.
-    Tdata(LengthLoc) = num2cell(VMDNJ);
-    Tdata(DelLoc) = {V3del D5del D3del J5del};
-    Tdata(FamLoc) = {Vmap{Vnum,2} Dmap{Dnum,2} Jmap{Jnum,2}};
-    Tdata(FamNumLoc) = {Vnum, Dnum, Jnum};
-    Tdata(CDR3Loc) = {CDR3seq CDR3len Cloc Wloc};
-    Tdata(FunctLoc) = {'Y'};
+    Tdata = cell(1,length(VDJheader)); %For temporary single entries;
+    Tdata([H.SeqNumLoc H.GrpNumLoc H.SeqLoc H.RefSeqLoc H.SeqNameLoc]) = {SeqNum, GrpNum, Seq Seq num2str(SeqNum)}; %Note that Seq and RefSeq are same.
+    Tdata(H.LengthLoc) = num2cell(VMDNJ);
+    Tdata(H.DelLoc) = {V3del D5del D3del J5del};
+    Tdata(H.FamLoc) = {Vmap{Vnum,2} Dmap{Dnum,2} Jmap{Jnum,2}};
+    Tdata(H.FamNumLoc) = {Vnum, Dnum, Jnum};
+    Tdata(H.CDR3Loc) = {CDR3seq CDR3len Cloc Wloc};
+    Tdata(H.FunctLoc) = {'Y'};
 
     %Perform SHM here.
     if BranchLength > 1
         AllowRepeatMut = 'y'; %Allow SHM in same position as prior SHM?
-        Tdata = generateSHMseq(Tdata,NewHeader,SHMrate,BranchLength,BranchCount,AllowRepeatMut);
+        Tdata = generateSHMseq(Tdata,VDJheader,SHMrate,BranchLength,BranchCount,AllowRepeatMut);
     end
     
     %Update to VDJdata
@@ -314,26 +314,26 @@ while SeqNum <= SeqCount
 end 
 
 %Perform final updates and renumber sequences
-VDJdata = updateVDJdata(VDJdata,NewHeader,Vmap,Dmap,Jmap);
-VDJdata = renumberVDJdata(VDJdata,NewHeader,'seq','grp');
+VDJdata = updateVDJdata(VDJdata,VDJheader,Vmap,Dmap,Jmap);
+VDJdata = renumberVDJdata(VDJdata,VDJheader,'seq','grp');
 
 %Create seq names and update
-SeqNum = cell2mat(VDJdata(:,SeqNumLoc));
-GrpNum = cell2mat(VDJdata(:,SeqNumLoc));
+SeqNum = cell2mat(VDJdata(:,H.SeqNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.SeqNumLoc));
 MaxSeqDigit = floor(log10(max(SeqNum)))+1;
 MaxGrpDigit = floor(log10(max(GrpNum)))+1;
 StrPat = ['Seq%0' num2str(MaxSeqDigit) 'd_Grp%0' num2str(MaxGrpDigit) 'd_%s_%s_%s_Len(%d|%d|%d|%d|%d)_Del(%d|%d|%d|%d)'];
 SeqNames = cell(size(SeqNum));
 for s = 1:length(SeqNames)
-    SeqNames{s} = sprintf(StrPat,SeqNum(s),GrpNum(s),VDJdata{s,FamLoc},VDJdata{s,LengthLoc},VDJdata{s,DelLoc});
+    SeqNames{s} = sprintf(StrPat,SeqNum(s),GrpNum(s),VDJdata{s,H.FamLoc},VDJdata{s,H.LengthLoc},VDJdata{s,H.DelLoc});
 end
-VDJdata(:,SeqNameLoc) = SeqNames;
+VDJdata(:,H.SeqNameLoc) = SeqNames;
 
 %Save the simulated VDJdata
-saveSeqData(SaveFileName,VDJdata,NewHeader,'Delimiter',';');
+saveSeqData(SaveFileName,VDJdata,VDJheader,'Delimiter',';');
 
 %Save the simulate sequence only as fasta
-fastawrite(SaveFileName_Fasta,VDJdata(:,SeqNameLoc),VDJdata(:,SeqLoc));
+fastawrite(SaveFileName_Fasta,VDJdata(:,H.SeqNameLoc),VDJdata(:,H.SeqLoc));
 
 %Save the settings used to simulate this, but convert matrix to str.
 P.CloneCount = CloneCount;

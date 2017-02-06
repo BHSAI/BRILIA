@@ -2,11 +2,11 @@
 %then extract the relevant information required to make the VDJdata format
 %file used by BRILIA. This initializes the VDJdata cell. 
 %
-%  [VDJdata,NewHeader] = convertInput2VDJdata()
+%  [VDJdata,VDJheader] = convertInput2VDJdata()
 %
-%  [VDJdata,NewHeader] = convertInput2VDJdata(FullFileName)
+%  [VDJdata,VDJheader] = convertInput2VDJdata(FullFileName)
 %
-%  [VDJdata,NewHeader] = convertInput2VDJdata(FullFileName,'FileType',FileType,'Delimiter',Delimiter)
+%  [VDJdata,VDJheader] = convertInput2VDJdata(FullFileName,'FileType',FileType,'Delimiter',Delimiter)
 %
 %  INPUT
 %    FullFileName: Full name of input file. If empty, will ask users to
@@ -17,10 +17,10 @@
 %
 %  OUTPUT
 %    VDJdata: main cell matrix used by BRILIA to store data
-%    NewHeader: Name of each data column of VDJdata. To modify this, look
+%    VDJheader: Name of each data column of VDJdata. To modify this, look
 %      for Headers_BRILIA.csv
 
-function [VDJdata,NewHeader,varargout] = convertInput2VDJdata(varargin)
+function [VDJdata,VDJheader,varargout] = convertInput2VDJdata(varargin)
 P = inputParser;
 addOptional(P,'FullFileName','',@(x) ischar(x) || isempty(x));
 addParameter(P,'FileType','',@(x)ismember({lower(x)},{'','fasta','fastq','excel','delimited'}));
@@ -99,20 +99,20 @@ end
         
 %Create the VDJdata default matrix
 HeaderData = readDlmFile('Headers_BRILIA.csv','Delimiter',';'); %Obtain the VDJdata header info for output format
-NewHeader = HeaderData(2:end,1)';
-getHeaderVar;
-VDJdata = cell(size(InputData,1),length(NewHeader)); 
-VDJdata(:,TemplateLoc) = num2cell(ones(size(InputData,1),1)); %Always initialize TempCt column with 1.
-VDJdata(:,SeqNumLoc) = num2cell(1:size(InputData,1)); %Always assign a unique numbering order for VDJdata
-VDJdata(:,GrpNumLoc) = num2cell(1:size(InputData,1)); %Always assign a unique numbering order for VDJdata
+VDJheader = HeaderData(2:end,1)';
+H = getHeaderVar(VDJheader);
+VDJdata = cell(size(InputData,1),length(VDJheader)); 
+VDJdata(:,H.TemplateLoc) = num2cell(ones(size(InputData,1),1)); %Always initialize TempCt column with 1.
+VDJdata(:,H.SeqNumLoc) = num2cell(1:size(InputData,1)); %Always assign a unique numbering order for VDJdata
+VDJdata(:,H.GrpNumLoc) = num2cell(1:size(InputData,1)); %Always assign a unique numbering order for VDJdata
         
 %Fill in the information that you have
-VDJdata(:,SeqNameLoc) = InputData(:,InSeqNameLoc);
-VDJdata(:,SeqLoc) = InputData(:,InSeqLoc);
+VDJdata(:,H.SeqNameLoc) = InputData(:,InSeqNameLoc);
+VDJdata(:,H.SeqLoc) = InputData(:,InSeqLoc);
 if InTemplateLoc > 0
     for j = 1:size(VDJdata,1)
         if max(isstrprop(InputData{j,InTemplateLoc},'digit')) == 1;
-            VDJdata(j,TemplateLoc) = InputData(j,InTemplateLoc);
+            VDJdata(j,H.TemplateLoc) = InputData(j,InTemplateLoc);
         end
     end
 end

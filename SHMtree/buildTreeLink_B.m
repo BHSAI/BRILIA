@@ -9,12 +9,12 @@
 %* This linking step is indepedent of cutoff distance, as it will always
 %link it.
 
-function AncMap = buildTreeLink_B(Tdata,NewHeader)
-getHeaderVar;
+function AncMap = buildTreeLink_B(Tdata,VDJheader)
+H = getHeaderVar(VDJheader);
 
 AncMap = [[1:size(Tdata,1)]' zeros(size(Tdata,1),4)]; %[ChildNum ParNum SHMHAMdist Template ClusterNum]
-if TemplateLoc > 0
-    AncMap(:,4) = cell2mat(Tdata(:,TemplateLoc));
+if H.TemplateLoc > 0
+    AncMap(:,4) = cell2mat(Tdata(:,H.TemplateLoc));
     AncMap(isnan(AncMap(:,4)),4) = 1;
     AncMap(AncMap(:,4)==0,4) = 1;
 else
@@ -22,10 +22,10 @@ else
 end
 
 %Fill in the first entry
-AncMap(1,3) = calcSHMHAMdist(Tdata{1,RefSeqLoc},Tdata{1,SeqLoc});
+AncMap(1,3) = calcSHMHAMdist(Tdata{1,H.RefSeqLoc},Tdata{1,H.SeqLoc});
 
 %Now link, starting from root and working down.
-PairDist = calcPairDist(Tdata(:,SeqLoc),'shmham');
+PairDist = calcPairDist(Tdata(:,H.SeqLoc),'shmham');
 Active = ones(1,size(PairDist,2)) > 0;
 Active(1) = 0;
 while max(Active) == 1

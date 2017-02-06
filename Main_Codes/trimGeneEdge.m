@@ -3,7 +3,7 @@
 %knowledge. This is the function to add exception rules to gene edge
 %finding.
 %
-%  VDJdata = trimGeneEdge(VDJdata,NewHeader)
+%  VDJdata = trimGeneEdge(VDJdata,VDJheader)
 %
 %  NOTES ON LOGIC RULES
 %    1) Identify "consensus" mismatch using 50% majority rule, inclusive of
@@ -20,17 +20,17 @@
 %
 %  See also BRILIA, findVDJmatch
 
-function VDJdata = trimGeneEdge(VDJdata,NewHeader,varargin)
+function VDJdata = trimGeneEdge(VDJdata,VDJheader,varargin)
 %Extract the VDJ database
 if length(varargin) >= 3
     [Vmap,Dmap,Jmap] = deal(varargin{1:3});
 else
     [Vmap,Dmap,Jmap] = getCurrentDatabase;
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 %Look for better N
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 UpdateIdx = zeros(size(VDJdata,1),1,'logical');
 for y = 1:length(UnqGrpNum)
@@ -38,10 +38,10 @@ for y = 1:length(UnqGrpNum)
         %Extract the basic info
         GrpIdx = find(UnqGrpNum(y) == GrpNum);
         Tdata = VDJdata(GrpIdx,:); 
-        RefSeq = Tdata{1,RefSeqLoc};
-        VMDNJ = cell2mat(Tdata(1,LengthLoc));
-        [VdelCur,D5delCur,D3delCur,JdelCur] = deal(Tdata{1,DelLoc});
-        [CDR3start,CDR3end] = deal(Tdata{1,CDR3Loc(3:4)});
+        RefSeq = Tdata{1,H.RefSeqLoc};
+        VMDNJ = cell2mat(Tdata(1,H.LengthLoc));
+        [VdelCur,D5delCur,D3delCur,JdelCur] = deal(Tdata{1,H.DelLoc});
+        [CDR3start,CDR3end] = deal(Tdata{1,H.CDR3Loc(3:4)});
         if CDR3start < 1
             CDR3start = 1;
         end
@@ -50,7 +50,7 @@ for y = 1:length(UnqGrpNum)
         end
         
         %Extract necessary V informations
-        VmapNum = Tdata{1,FamNumLoc(1)};
+        VmapNum = Tdata{1,H.FamNumLoc(1)};
         VallowedDel = Vmap{VmapNum(1),end} - 3; %Correct -3 as deletion length is AFTER C codon.
         if VallowedDel < 0; VallowedDel = 25; end        
  
@@ -58,7 +58,7 @@ for y = 1:length(UnqGrpNum)
         XlocRef = RefSeq == 'X';
         ConsMissCt = zeros(size(RefSeq));
         for k = 1:size(Tdata,1)
-            Seq = Tdata{k,SeqLoc};
+            Seq = Tdata{k,H.SeqLoc};
             XlocSeq = Seq == 'X';
             MissLoc = ~(RefSeq == Seq | XlocSeq | XlocRef);
             ConsMissCt = ConsMissCt + MissLoc;
@@ -254,8 +254,8 @@ for y = 1:length(UnqGrpNum)
             end
 
             %Update the necessary fields 
-            Tdata(:,LengthLoc) = repmat(num2cell(VMDNJnew),size(Tdata,1),1);
-            Tdata(:,DelLoc) = repmat(num2cell(NewDel),size(Tdata,1),1);    
+            Tdata(:,H.LengthLoc) = repmat(num2cell(VMDNJnew),size(Tdata,1),1);
+            Tdata(:,H.DelLoc) = repmat(num2cell(NewDel),size(Tdata,1),1);    
             VDJdata(GrpIdx,:) = Tdata;
             UpdateIdx(GrpIdx) = 1;
         end
@@ -266,5 +266,5 @@ for y = 1:length(UnqGrpNum)
 end
 
 %Update those that have changed
-VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),NewHeader,'germline','first'); %must do first seq of all cluster
-VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),NewHeader,varargin);
+VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),VDJheader,'germline','first'); %must do first seq of all cluster
+VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),VDJheader,varargin);

@@ -4,7 +4,7 @@
 %Option = 1, individual gene usage data
 %Option = 2, group by gene family
 
-function [VDJcombo, varargout] = findGeneFamilyUsage(VDJdata,NewHeader,Option,varargin)
+function [VDJcombo, varargout] = findGeneFamilyUsage(VDJdata,VDJheader,Option,varargin)
 %Extract the VDJ database
 if length(varargin) == 3
     Vmap = varargin{1};
@@ -14,21 +14,21 @@ else
     [Vmap, Dmap, Jmap] = getCurrentDatabase;
 end
 
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 if Option == 1
     %Make the 3D coordinate matrix
     VDJcombo = zeros(size(Vmap,1),size(Dmap,1),size(Jmap,1));
 
     %Get all the gene usage. Degenerate matches contribute fractions. 
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     UnqGrpNum = unique(GrpNum);
     for y = 1:length(UnqGrpNum)
         IdxLoc = find(UnqGrpNum(y) == GrpNum);
         IdxLoc = IdxLoc(1); %You only need 1 of the cluter data.
-        Vnum = VDJdata{IdxLoc,FamNumLoc(1)};
-        Dnum = VDJdata{IdxLoc,FamNumLoc(2)};
-        Jnum = VDJdata{IdxLoc,FamNumLoc(3)};
+        Vnum = VDJdata{IdxLoc,H.FamNumLoc(1)};
+        Dnum = VDJdata{IdxLoc,H.FamNumLoc(2)};
+        Jnum = VDJdata{IdxLoc,H.FamNumLoc(3)};
         if isempty(Vnum) || isempty(Dnum) || isempty(Jnum)
             continue
         elseif Vnum(1)*Dnum(1)*Jnum(1) == 0
@@ -70,14 +70,14 @@ elseif Option == 2
     VDJcombo = zeros(length(VunqFam),length(DunqFam),length(JunqFam));
 
     %Get all the gene usage. Degenerate matches contribute fractions. 
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     UnqGrpNum = unique(GrpNum);
     for y = 1:length(UnqGrpNum)
         IdxLoc = find(UnqGrpNum(y) == GrpNum);
         IdxLoc = IdxLoc(1); %You only need 1 of the cluter data.
-        Vnum = VDJdata{IdxLoc,FamNumLoc(1)};
-        Dnum = VDJdata{IdxLoc,FamNumLoc(2)};
-        Jnum = VDJdata{IdxLoc,FamNumLoc(3)};
+        Vnum = VDJdata{IdxLoc,H.FamNumLoc(1)};
+        Dnum = VDJdata{IdxLoc,H.FamNumLoc(2)};
+        Jnum = VDJdata{IdxLoc,H.FamNumLoc(3)};
 
         if isempty(Vnum) || isempty(Dnum) || isempty(Jnum)
             continue
@@ -110,14 +110,14 @@ else
     VDJcombo = zeros(length(VunqFam),length(DunqFam),length(JunqFam));
 
     %Get all the gene usage. Degenerate matches contribute fractions. 
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     UnqGrpNum = unique(GrpNum);
     for y = 1:length(UnqGrpNum)
         IdxLoc = find(UnqGrpNum(y) == GrpNum);
         IdxLoc = IdxLoc(1); %You only need 1 of the cluter data.
-        Vnum = VDJdata{IdxLoc,FamNumLoc(1)};
-        Dnum = VDJdata{IdxLoc,FamNumLoc(2)};
-        Jnum = VDJdata{IdxLoc,FamNumLoc(3)};
+        Vnum = VDJdata{IdxLoc,H.FamNumLoc(1)};
+        Dnum = VDJdata{IdxLoc,H.FamNumLoc(2)};
+        Jnum = VDJdata{IdxLoc,H.FamNumLoc(3)};
 
         if isempty(Vnum) || isempty(Dnum) || isempty(Jnum)
             continue

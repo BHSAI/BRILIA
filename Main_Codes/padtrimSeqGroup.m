@@ -2,7 +2,7 @@
 %are all the same length. This is required to ensure phylogeny trees are
 %constructed correctly and conformGeneGroup works.
 %
-%  VDJdata = padtrimSeqGroup(VDJdata,NewHeader,GroupBy,KeepMode,BasedOn);
+%  VDJdata = padtrimSeqGroup(VDJdata,VDJheader,GroupBy,KeepMode,BasedOn);
 %
 %  VDJdata = padtrimSeqGroup(...,Vmap,Dmap,Jmap);
 %
@@ -30,28 +30,28 @@
 %
 %  See also clusterGene, conformGeneGroup, padtrimSeq.
 
-function [VDJdata, BadVDJdata] = padtrimSeqGroup(VDJdata,NewHeader,GroupBy,KeepMode,BasedOn,varargin)
-getHeaderVar;
+function [VDJdata, BadVDJdata] = padtrimSeqGroup(VDJdata,VDJheader,GroupBy,KeepMode,BasedOn,varargin)
+H = getHeaderVar(VDJheader);
 
-%Ensure no empty values in the CDR3Loc column
-EmpLoc1 = findCell(VDJdata(:,CDR3Loc(3)),[]);
-EmpLoc2 = findCell(VDJdata(:,CDR3Loc(4)),[]);
+%Ensure no empty values in the H.CDR3Loc column
+EmpLoc1 = findCell(VDJdata(:,H.CDR3Loc(3)),[]);
+EmpLoc2 = findCell(VDJdata(:,H.CDR3Loc(4)),[]);
 if min(EmpLoc1) > 0
-    VDJdata(EmpLoc1,CDR3Loc(3)) = {0};
+    VDJdata(EmpLoc1,H.CDR3Loc(3)) = {0};
 end
 if min(EmpLoc2) > 0
-    VDJdata(EmpLoc2,CDR3Loc(4)) = {0};
+    VDJdata(EmpLoc2,H.CDR3Loc(4)) = {0};
 end
 
 %Get the length of sequences
 SeqLengths = zeros(size(VDJdata,1),1);
 for j = 1:length(SeqLengths)
-    SeqLengths(j) = length(VDJdata{j,SeqLoc});
+    SeqLengths(j) = length(VDJdata{j,H.SeqLoc});
 end
 
 %Identify start and end locations of CDR3 region
-CDR3starts = cell2mat(VDJdata(:,CDR3Loc(3)));
-CDR3ends = cell2mat(VDJdata(:,CDR3Loc(4)));
+CDR3starts = cell2mat(VDJdata(:,H.CDR3Loc(3)));
+CDR3ends = cell2mat(VDJdata(:,H.CDR3Loc(4)));
 CDR3Lengths = CDR3ends - CDR3starts + 1;
 
 %Remove those without CDR3s
@@ -68,7 +68,7 @@ end
 %Determine how to group sequences
 switch lower(GroupBy)
     case 'grpnum'
-        GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+        GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
         [~,~,UnqIdx] = unique(GrpNum);
     case 'cdr3length'
         [~,~,UnqIdx] = unique(CDR3Lengths);
@@ -76,11 +76,11 @@ end
 
 %Determine which one to base trimming on
 if strcmpi(KeepMode,'trim') && strcmpi(BasedOn,'RefSeq');
-    EvalSeqLoc = RefSeqLoc; %Uses flanking X's in RefSeq to decide trim
-    OtherSeqLoc = SeqLoc; %Will trim Seq to keep the lengths the same
+    EvalSeqLoc = H.RefSeqLoc; %Uses flanking X's in RefSeq to decide trim
+    OtherSeqLoc = H.SeqLoc; %Will trim Seq to keep the lengths the same
 else
-    EvalSeqLoc = SeqLoc; %Uses flanking X's in Seq ot decide trim
-    OtherSeqLoc = RefSeqLoc; %Will trim RefSeq to keep the lenghts the same
+    EvalSeqLoc = H.SeqLoc; %Uses flanking X's in Seq ot decide trim
+    OtherSeqLoc = H.RefSeqLoc; %Will trim RefSeq to keep the lenghts the same
 end
 
 %Trim/pad sequences of a group
@@ -143,8 +143,8 @@ for y = 1:max(UnqIdx)
         %Extract variables to update
         EvalSeq = VDJdata{GrpIdx(j),EvalSeqLoc};
         OtherSeq = VDJdata{GrpIdx(j),OtherSeqLoc};
-        Vlen = VDJdata{GrpIdx(j),LengthLoc(1)};
-        Jlen = VDJdata{GrpIdx(j),LengthLoc(5)};
+        Vlen = VDJdata{GrpIdx(j),H.LengthLoc(1)};
+        Jlen = VDJdata{GrpIdx(j),H.LengthLoc(5)};
         CDR3start = CDR3starts(GrpIdx(j));
         CDR3end = CDR3ends(GrpIdx(j));
         
@@ -174,10 +174,10 @@ for y = 1:max(UnqIdx)
         NewCDR3start = CDR3start + LeftAdd(j);
         NewCDR3end = CDR3end + LeftAdd(j);
         
-        VDJdata(GrpIdx(j),[EvalSeqLoc OtherSeqLoc LengthLoc(1) LengthLoc(5) CDR3Loc(3) CDR3Loc(4)]) = {NewEvalSeq NewOtherSeq NewVlen NewJlen NewCDR3start NewCDR3end};
+        VDJdata(GrpIdx(j),[EvalSeqLoc OtherSeqLoc H.LengthLoc(1) H.LengthLoc(5) H.CDR3Loc(3) H.CDR3Loc(4)]) = {NewEvalSeq NewOtherSeq NewVlen NewJlen NewCDR3start NewCDR3end};
         UpdateIdx(GrpIdx(j)) = 1;
     end
 end
 
 %Update those that have changed
-VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),NewHeader,varargin);
+VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),VDJheader,varargin);

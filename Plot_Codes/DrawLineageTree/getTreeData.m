@@ -7,11 +7,11 @@
 %
 %  [TreeData, TreeHeader] = getTreeData(FileName)
 %
-%  [TreeData, TreeHeader] = getTreeData(VDJdata,NewHeader)
+%  [TreeData, TreeHeader] = getTreeData(VDJdata,VDJheader)
 %
 %  INPUT
 %    VDJdata: MxN cell of VDJ annotations AFTER clustering by lineage
-%    NewHeader: 1xN cell storing header names for VDJdata
+%    VDJheader: 1xN cell storing header names for VDJdata
 %
 %  OUTPUT
 %    TreeData: a Mx5 matrix required to draw a lineage tree. The column
@@ -42,21 +42,21 @@
 function [TreeData, TreeHeader] = getTreeData(varargin)
 %See if user gave VDJdata
 if isempty(varargin) || (~isempty(varargin) && isempty(varargin{1})) %Need to find file
-    [VDJdata,NewHeader] = openSeqData;
+    [VDJdata,VDJheader] = openSeqData;
 elseif ~isempty(varargin)
     if ischar(varargin{1}) %Filename was given
-        [VDJdata,NewHeader] = openSeqData(varargin{1});
-    elseif length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2}) %VDJdata and NewHeader was given
+        [VDJdata,VDJheader] = openSeqData(varargin{1});
+    elseif length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2}) %VDJdata and VDJheader was given
         VDJdata = varargin{1};
-        NewHeader = varargin{2};
+        VDJheader = varargin{2};
     end
 else
     error('getTreeData: Check the inputs');
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 %Extract sequence grouping information
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 
 %Initialize output variables
@@ -69,7 +69,7 @@ for y = 1:length(UnqGrpNum)
     GrpIdx = find(UnqGrpNum(y) == GrpNum);
 
     %Build the default group name as Vname|Dname|Jname (Grp##, Size = ##)
-    VDJnames = VDJdata(GrpIdx(1),FamLoc);
+    VDJnames = VDJdata(GrpIdx(1),H.FamLoc);
     for w = 1:3
         TempName = VDJnames{w};
         ColonLoc = regexp(TempName,'\:');
@@ -91,8 +91,8 @@ for y = 1:length(UnqGrpNum)
         
     for j = 1:length(GrpIdx)
         %The current Seq is the child sequence
-        ChildSeqNum = VDJdata{GrpIdx(j),SeqNumLoc};
-        ChildRefSeq = VDJdata{GrpIdx(j),RefSeqLoc}; %The parent seq matches this child's RefSeq.
+        ChildSeqNum = VDJdata{GrpIdx(j),H.SeqNumLoc};
+        ChildRefSeq = VDJdata{GrpIdx(j),H.RefSeqLoc}; %The parent seq matches this child's RefSeq.
         
         %The parent of current Seq is the RefSeq, which must be found.
         if j == 1 %1st sequence is always linked to germline sequence
@@ -103,7 +103,7 @@ for y = 1:length(UnqGrpNum)
             %Find the nth GrpIdx position that has Seq = ChildRefSeq.
             ParentSeqRelIdx = 0;
             for k = 1:length(GrpIdx)
-                if strcmp(VDJdata{GrpIdx(k),SeqLoc},ChildRefSeq) == 1
+                if strcmp(VDJdata{GrpIdx(k),H.SeqLoc},ChildRefSeq) == 1
                     ParentSeqRelIdx = k;
                     break
                 end
@@ -113,23 +113,23 @@ for y = 1:length(UnqGrpNum)
                 warning('Cannot resolve parent of sequence #%d. Defaulting to germline seq.',ChildSeqNum);
                 ParentSeqNum =  0;
             else %Return the sequence number
-                ParentSeqNum = VDJdata{GrpIdx(ParentSeqRelIdx(1)),SeqNumLoc};
+                ParentSeqNum = VDJdata{GrpIdx(ParentSeqRelIdx(1)),H.SeqNumLoc};
             end
         end
         
         %Determine Template Count        
-        TemplateCount = VDJdata{j,TemplateLoc};
+        TemplateCount = VDJdata{j,H.TemplateLoc};
         if isempty(TemplateCount) || TemplateCount <= 0
             TemplateCount = 1;
         end
         
         %Determine the SHMdist and HAMdist and template count
-        ChildSeq = VDJdata{GrpIdx(j),SeqLoc};
-        ParentSeq = VDJdata{GrpIdx(j),RefSeqLoc};
+        ChildSeq = VDJdata{GrpIdx(j),H.SeqLoc};
+        ParentSeq = VDJdata{GrpIdx(j),H.RefSeqLoc};
         [SHMdist, ~, HAMdist] = calcSHMHAMdist(ParentSeq,ChildSeq);
         
         %Extract CDR3info, if available
-        CDR3seq = VDJdata{GrpIdx(j),CDR3Loc(1)};
+        CDR3seq = VDJdata{GrpIdx(j),H.CDR3Loc(1)};
         
         %Fill in TreeData
         TreeData(GrpIdx(j),:) = {ChildSeqNum ParentSeqNum TemplateCount SHMdist HAMdist CDR3seq GrpName UnqGrpNum(y)};

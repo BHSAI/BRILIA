@@ -3,7 +3,7 @@
 %generate AddSize number of linear descendants. Hence, running
 %generateSHMseq on the same VDJdata will create branched lineages.
 %
-%  VDJdata = generateSHMseq(VDJdata,NewHeader,SHMrate,AddSiz,AllowRepeatMut)
+%  VDJdata = generateSHMseq(VDJdata,VDJheader,SHMrate,AddSiz,AllowRepeatMut)
 %
 %  INPUT
 %    SHMrate: % of nts that must undergo SHM in order to save that seq
@@ -21,8 +21,8 @@
 %    does not have to be specified, as it is determined via unique GrpNum
 %    in VDJdata.
 
-function VDJdata = generateSHMseq(VDJdata,NewHeader,SHMrate,BranchLength,BranchCount,AllowRepeatMut)
-getHeaderVar;
+function VDJdata = generateSHMseq(VDJdata,VDJheader,SHMrate,BranchLength,BranchCount,AllowRepeatMut)
+H = getHeaderVar(VDJheader);
 
 AllowRepeatMut = lower(AllowRepeatMut);
 
@@ -50,7 +50,7 @@ CPnt2nt = cumsum(Pnt2nt,1)./repmat(sum(Pnt2nt,1),4,1); %Cumulative probability p
 
 for b = 1:BranchCount
     %--------------------------------------------------------------------------
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     UnqGrpNum = unique(GrpNum);
     CloneCount = length(UnqGrpNum);
     SeqAddCount = CloneCount * BranchLength;
@@ -67,10 +67,10 @@ for b = 1:BranchCount
         q = q + length(GrpIdx);
 
         %Extract basics
-        Seq = upper(VDJdata{SeqIdx,SeqLoc});
-        SeqNum = VDJdata{SeqIdx,SeqNumLoc};
-        CDR3start = VDJdata{SeqIdx,CDR3Loc(3)};
-        CDR3end = VDJdata{SeqIdx,CDR3Loc(4)};
+        Seq = upper(VDJdata{SeqIdx,H.SeqLoc});
+        SeqNum = VDJdata{SeqIdx,H.SeqNumLoc};
+        CDR3start = VDJdata{SeqIdx,H.CDR3Loc(3)};
+        CDR3end = VDJdata{SeqIdx,H.CDR3Loc(4)};
         ReadFrame = mod(CDR3end,3)+1;
         SHMcount = round(SHMrate/100 * length(Seq));   
 
@@ -158,22 +158,22 @@ for b = 1:BranchCount
 
             %Update the new entry after accumulating enough mutations
             NewVDJdata(q,:) = VDJdata(SeqIdx,:); %Copy existing info
-            NewVDJdata{q,SeqLoc} = Seq; %Replace Seq with mutated one
-            NewVDJdata{q,CDR3Loc(1)} = nt2aa(Seq(CDR3start:CDR3end),'ACGTonly','false'); %Replace Seq with mutated one        
+            NewVDJdata{q,H.SeqLoc} = Seq; %Replace Seq with mutated one
+            NewVDJdata{q,H.CDR3Loc(1)} = nt2aa(Seq(CDR3start:CDR3end),'ACGTonly','false'); %Replace Seq with mutated one        
 
             %Save the ancestral seq
             if g == 1
-                NewVDJdata{q,RefSeqLoc} = VDJdata{SeqIdx,SeqLoc}; %First "Ancestor" seq
+                NewVDJdata{q,H.RefSeqLoc} = VDJdata{SeqIdx,H.SeqLoc}; %First "Ancestor" seq
             else
-                NewVDJdata{q,RefSeqLoc} = NewVDJdata{q-1,SeqLoc}; %Immediate Parent seq
+                NewVDJdata{q,H.RefSeqLoc} = NewVDJdata{q-1,H.SeqLoc}; %Immediate Parent seq
             end
 
             %Assign new number to seq (will renumber later anyways)
-            NewVDJdata{q,SeqNumLoc} = SeqNum + size(VDJdata,1)*g;
-            NewVDJdata{q,SeqNameLoc} = num2str(SeqNum + size(VDJdata,1)*g);
+            NewVDJdata{q,H.SeqNumLoc} = SeqNum + size(VDJdata,1)*g;
+            NewVDJdata{q,H.SeqNameLoc} = num2str(SeqNum + size(VDJdata,1)*g);
 
             q = q + 1;
         end
     end
-    VDJdata = countSHM(NewVDJdata,NewHeader); %SHM info on the VMDNJ segments, and convert NewVDJdata to VDJdata for output.
+    VDJdata = countSHM(NewVDJdata,VDJheader); %SHM info on the VMDNJ segments, and convert NewVDJdata to VDJdata for output.
 end

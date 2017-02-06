@@ -16,39 +16,39 @@ for f = 1:length(FileNames)
     DotLoc = find(FileName == '.');
     FileNamePre = FileName(1:DotLoc(end)-1);
 
-    [VDJdata,NewHeader] = openSeqData([FilePath FileNames{f}]);
+    [VDJdata,VDJheader] = openSeqData([FilePath FileNames{f}]);
     
 
-    getHeaderVar
+    H = getHeaderVar(VDJheader);
     
     %Renumber group number, assuming groups are already grouped together in
     %the file.
     GrpN = 1;
-    SetNum = VDJdata{1,GrpNumLoc};
+    SetNum = VDJdata{1,H.GrpNumLoc};
     for j = 1:size(VDJdata,1)
-       CurNum = VDJdata{j,GrpNumLoc};
+       CurNum = VDJdata{j,H.GrpNumLoc};
        if CurNum ~= SetNum
            GrpN = GrpN + 1;
            SetNum = CurNum;
        end
-       VDJdata{j,GrpNumLoc} = GrpN;
+       VDJdata{j,H.GrpNumLoc} = GrpN;
     end
     
     %Extract the group data = [GrpNum GrpSize SumTemp MaxTemp Vnum Dnum Jnum]
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     GrpNumUnq = unique(GrpNum);
     GrpTempMat = zeros(length(GrpNumUnq),4);
     
     for y = 1:length(GrpNumUnq)
         GrpIdx = find(GrpNum == GrpNumUnq(y));
-        TempCt = cell2mat(VDJdata(GrpIdx,TemplateLoc));
+        TempCt = cell2mat(VDJdata(GrpIdx,H.TemplateLoc));
         GrpTempMat(y,1) = GrpNumUnq(y);
         GrpTempMat(y,2) = length(GrpIdx);
         GrpTempMat(y,3) = sum(TempCt);
         GrpTempMat(y,4) = max(TempCt);
         
         for k = 1:3
-            Xname = VDJdata{GrpIdx,FamLoc(k)};
+            Xname = VDJdata{GrpIdx,H.FamLoc(k)};
             ColonLoc = find(Xname == ':');
             if ~isempty(ColonLoc)
                 Xname = Xname(ColonLoc+1:end);
@@ -153,7 +153,7 @@ for f = 1:length(FileNames)
 %     if size(GrpTempMat,1) < TopPicks
 %         TopPicks = size(GrpTempMat,1);
 %     end
-%     TempCt = cell2mat(VDJdata(:,TemplateLoc));
+%     TempCt = cell2mat(VDJdata(:,H.TemplateLoc));
 %     
 %     %Find the top unique sequence counts
 %     GrpTempMat = sortrows(GrpTempMat,-2); %UnqSeqCount
@@ -164,7 +164,7 @@ for f = 1:length(FileNames)
 %         IdxLoc2 = TempCt == max(TempCt(IdxLoc1));
 %         IdxLoc = find(IdxLoc1 & IdxLoc2);
 %         IdxLoc = IdxLoc(1);
-%         CDR3seq = VDJdata{IdxLoc,CDR3Loc(1)};
+%         CDR3seq = VDJdata{IdxLoc,H.CDR3Loc(1)};
 %         if ~ischar(CDR3seq)
 %             CDR3seq = 'noCDR3';
 %         end
@@ -180,7 +180,7 @@ for f = 1:length(FileNames)
 %         IdxLoc2 = TempCt == max(TempCt(IdxLoc1));
 %         IdxLoc = find(IdxLoc1 & IdxLoc2);
 %         IdxLoc = IdxLoc(1);
-%         CDR3seq = VDJdata{IdxLoc,CDR3Loc(1)};
+%         CDR3seq = VDJdata{IdxLoc,H.CDR3Loc(1)};
 %         if ~ischar(CDR3seq)
 %             CDR3seq = 'noCDR3';
 %         end

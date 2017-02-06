@@ -163,7 +163,7 @@ Ddirection = DsearchOptions{SearchDopt};
 
 %==========================================================================
 %Determine if you want to include pseudo or orf sequences
-FunctLoc = findCell(Header,'function');
+H.FunctLoc = findCell(Header,'function');
 FunctOptions = {'All'; 'F'; 'P'; 'ORF'};
 
 if isempty(Vfunction) %Ask user to determine which direction D to search
@@ -190,7 +190,7 @@ end
 
 if min(FunctOpt(1)) > 1 && length(FunctOpt) > 1 %You have to filter
     for j = 1:size(Vmap,1)
-        CurFunct = Vmap{j,FunctLoc};
+        CurFunct = Vmap{j,H.FunctLoc};
         ParLoc = regexp(CurFunct,'\(|\)|\[|\]');
         CurFunct(ParLoc) = [];
         WantThis = 0;
@@ -213,16 +213,16 @@ Vfunction = sprintf(StrPat,FunctOptions{FunctOpt});
 
 %==========================================================================
 %Now set all nuceotide columns to empty
-SeqLoc = findCell(Header,'nucleotide');
+H.SeqLoc = findCell(Header,'nucleotide');
 
 if strcmpi(KeepThis,'no')
     Vdel = Vdel == 0;
     Ddel = Ddel == 0;
     Jdel = Jdel == 0;
 end
-Vmap(Vdel,SeqLoc) = {''};
-Dmap(Ddel,SeqLoc) = {''};
-Jmap(Jdel,SeqLoc) = {''};
+Vmap(Vdel,H.SeqLoc) = {''};
+Dmap(Ddel,H.SeqLoc) = {''};
+Jmap(Jdel,H.SeqLoc) = {''};
 
 %Make sure there is at least some entries left for V,D,J
 if sum(Vdel) == size(Vmap,1)

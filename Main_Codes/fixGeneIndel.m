@@ -2,37 +2,37 @@
 %produced by the sequencing platform error. Will not do D and J indel
 %corrections since they are generall too short to be certain. 
 %
-%  VDJdata = fixGeneIndel(VDJdata, NewHeader)
+%  VDJdata = fixGeneIndel(VDJdata, VDJheader)
 %
-%  VDJdata = fixGeneIndel(VDJdata, NewHeader, Vmap, Dmap, Jmap)
+%  VDJdata = fixGeneIndel(VDJdata, VDJheader, Vmap, Dmap, Jmap)
 %
-%  [VDJdata, BadIdx] = fixGeneIndel(VDJdata, NewHeader)
+%  [VDJdata, BadIdx] = fixGeneIndel(VDJdata, VDJheader)
 
-function [VDJdata,varargout] = fixGeneIndel(VDJdata,NewHeader,varargin)
+function [VDJdata,varargout] = fixGeneIndel(VDJdata,VDJheader,varargin)
 %Extract the VDJ database
 if length(varargin) >= 3
     [Vmap,Dmap,Jmap] = deal(varargin{1:3});
 else
     [Vmap, Dmap, Jmap] = getCurrentDatabase;
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 BadIdx = zeros(size(VDJdata,1),1,'logical');
 UpdateIdx = zeros(size(VDJdata,1),1,'logical');
 for j = 1:size(VDJdata,1)
     try
         %Correct if deletion is too excessive
-        VmapNum = VDJdata{j,FamNumLoc(1)};    
+        VmapNum = VDJdata{j,H.FamNumLoc(1)};    
         VallowedDel = Vmap{VmapNum(1),end} - 3; %Subtract 3 since you want to preserve codon of C
         if VallowedDel < 0; VallowedDel = 25; end
-        Vdel = VDJdata{j,DelLoc(1)}; %Correction needed if deletion exceeds allowed deletion
+        Vdel = VDJdata{j,H.DelLoc(1)}; %Correction needed if deletion exceeds allowed deletion
 
         %Correct if the mismatch count is too excessive
-        VmissCt = VDJdata{j,VmutLoc};
-        Vlen = VDJdata{j,LengthLoc(1)};
+        VmissCt = VDJdata{j,H.VmutLoc};
+        Vlen = VDJdata{j,H.LengthLoc(1)};
         Videntity = VmissCt/Vlen; %Normally, VDJ V's are 98% conserved. Hence, 95% identity is questionable. 
         if Vdel > VallowedDel || Videntity >= 0.30 %greater than 30% missed
-            Seq = VDJdata{j,SeqLoc};
+            Seq = VDJdata{j,H.SeqLoc};
 
             %Determine minimum Seq needed to reach RefGene's C codon
             VaddLen = Vdel - VallowedDel;
@@ -91,21 +91,21 @@ for j = 1:size(VDJdata,1)
 
             %Preserve Seq Length for all seq, trim ends
             FinalSeq = [TempSeq Seq(VendLoc+1:end)];        
-            VDJdata{j,SeqLoc} = FinalSeq(end-length(Seq)+1:end); %Ensuring same length seq
-            VDJdata(j,:) = findVDJmatch(VDJdata(j,:),NewHeader,Vmap,Dmap,Jmap);
+            VDJdata{j,H.SeqLoc} = FinalSeq(end-length(Seq)+1:end); %Ensuring same length seq
+            VDJdata(j,:) = findVDJmatch(VDJdata(j,:),VDJheader,Vmap,Dmap,Jmap);
             UpdateIdx(j) = 1;
         end
     catch
         ErrorMsg = sprintf('Errored at %s, sequence # %d',mfilename,j);
         disp(ErrorMsg);
-        VDJdata{j,MiscLoc} = ErrorMsg;
+        VDJdata{j,H.MiscLoc} = ErrorMsg;
         BadIdx(j) = 1;        
     end
 end
 
 %Update those that have changed
-VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),NewHeader,'germline','first');
-VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),NewHeader,varargin);
+VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),VDJheader,'germline','first');
+VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),VDJheader,varargin);
 
 if nargout >=2
     varargout{1} = BadIdx;

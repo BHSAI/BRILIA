@@ -5,7 +5,7 @@
 %(since incorrect direction will lead to many bad alignments and
 %positions).
 %
-%  VDJdata = seedCDR3position(VDJdata,NewHeader,Xmap,X,Nleft,Nright,CheckSeqDir)
+%  VDJdata = seedCDR3position(VDJdata,VDJheader,Xmap,X,Nleft,Nright,CheckSeqDir)
 %
 %  INPUT
 %    Xmap [Vmap or Dmap]: Database for V or J germline gene
@@ -25,11 +25,11 @@
 %
 %  See also findVDJmatch, findGeneMatch, updateVDJdata
 
-function VDJdata = seedCDR3position(VDJdata,NewHeader,Xmap,X,Nleft,Nright,CheckSeqDir)
-%Extract getHeaderVar variables since parfor can't handle it.
-SeqLoc = findCell(NewHeader,{'nucleotide','Seq'});
-CDR3startLoc = findCell(NewHeader,{'CDR3_Start'});
-CDR3endLoc = findCell(NewHeader,{'CDR3_End'});
+function VDJdata = seedCDR3position(VDJdata,VDJheader,Xmap,X,Nleft,Nright,CheckSeqDir)
+%Extract H = getHeaderVar(VDJheader); variables since parfor can't handle it.
+H.SeqLoc = findCell(VDJheader,{'nucleotide','Seq'});
+CDR3startLoc = findCell(VDJheader,{'CDR3_Start'});
+CDR3endLoc = findCell(VDJheader,{'CDR3_End'});
 
 %Setup seed and inputs
 Xseed = getGeneSeed(Xmap,X,Nleft,Nright,'nt');
@@ -60,7 +60,7 @@ end
 %Find the CDR3start or CDR3end locations. Flip seq too if needed.
 parfor j = 1:size(VDJdata,1)
     Tdata = VDJdata(j,:);  %Extract this to "slice" VDJdata
-    Seq = Tdata{SeqLoc};
+    Seq = Tdata{H.SeqLoc};
     
     %Do seed alignments, forward sense
     AlignScores = zeros(size(Xseed,1),3);
@@ -88,7 +88,7 @@ parfor j = 1:size(VDJdata,1)
             FwdPos = unique(AlignScores(:,3));
             RevPos = unique(AlignScores(:,3));
             if length(RevPos) <= length(FwdPos) %Means seeds are converging more on reverse direction          
-                Tdata{1,SeqLoc} = SeqNTR;
+                Tdata{1,H.SeqLoc} = SeqNTR;
                 AlignScores = AlignScoresR;
             end
         end

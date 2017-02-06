@@ -8,12 +8,12 @@
 %it will assign a negative frequency for mark for exclusion in calculations of Avg and Std mut rates.
 
 %EX: Vseg = 'TGTAGG', DJseg = 'GGGTGG'
-%CorrMat = findMutCorrVvsDJ(VDJdata,NewHeader
+%CorrMat = findMutCorrVvsDJ(VDJdata,VDJheader
 %CorrMat = []
 
 
-function varargout = findMutationFreq(VDJdata,NewHeader,Option)
-getHeaderVar;
+function varargout = findMutationFreq(VDJdata,VDJheader,Option)
+H = getHeaderVar(VDJheader);
 
 %Matrix for: Ac Ag At Ca Ct Cg Ga Gc Gt Ta Tc Tg Atot Ctot Gtot Ttot
 CountMatV = zeros(size(VDJdata,1),16+4); 
@@ -22,9 +22,9 @@ CountMatJ = zeros(size(VDJdata,1),16+4);
 
 for j = 1:size(VDJdata,1)
     %Find the mismatch locations with respect to par-child relation
-    VMDNJ = cell2mat(VDJdata(j,LengthLoc));
-    RefSeq = VDJdata{j,RefSeqLoc};
-    CurSeq = VDJdata{j,SeqLoc};
+    VMDNJ = cell2mat(VDJdata(j,H.LengthLoc));
+    RefSeq = VDJdata{j,H.RefSeqLoc};
+    CurSeq = VDJdata{j,H.SeqLoc};
     MissLoc = find(CurSeq ~= RefSeq);
     
     %Make sure ambiguous nts are excluded from mutation analysis
@@ -34,27 +34,27 @@ for j = 1:size(VDJdata,1)
     MissLoc(AmbLoc) = 0; 
     
     %Start counting pairwise mutations
-    VmutLoc = MissLoc(MissLoc <= VMDNJ(1));
-    DmutLoc = MissLoc(MissLoc > sum(VMDNJ(1:2)) & MissLoc <= sum(VMDNJ(1:3)));
-    JmutLoc = MissLoc(MissLoc > sum(VMDNJ(1:4)));
+    H.VmutLoc = MissLoc(MissLoc <= VMDNJ(1));
+    H.DmutLoc = MissLoc(MissLoc > sum(VMDNJ(1:2)) & MissLoc <= sum(VMDNJ(1:3)));
+    H.JmutLoc = MissLoc(MissLoc > sum(VMDNJ(1:4)));
         
     %Fill in the mutation 4x4 matrix, where col is par, row is child
-    Vmut0 = nt2int(RefSeq(VmutLoc));
-    Vmut1 = nt2int(CurSeq(VmutLoc));
+    Vmut0 = nt2int(RefSeq(H.VmutLoc));
+    Vmut1 = nt2int(CurSeq(H.VmutLoc));
     Vmat = zeros(4);
     for x = 1:length(Vmut0)
         Vmat(Vmut1(x),Vmut0(x)) = Vmat(Vmut1(x),Vmut0(x)) + 1;
     end
     
-    Dmut0 = nt2int(RefSeq(DmutLoc));
-    Dmut1 = nt2int(CurSeq(DmutLoc));
+    Dmut0 = nt2int(RefSeq(H.DmutLoc));
+    Dmut1 = nt2int(CurSeq(H.DmutLoc));
     Dmat = zeros(4);
     for x = 1:length(Dmut0)
         Dmat(Dmut1(x),Dmut0(x)) = Dmat(Dmut1(x),Dmut0(x)) + 1;
     end
     
-    Jmut0 = nt2int(RefSeq(JmutLoc));
-    Jmut1 = nt2int(CurSeq(JmutLoc));
+    Jmut0 = nt2int(RefSeq(H.JmutLoc));
+    Jmut1 = nt2int(CurSeq(H.JmutLoc));
     Jmat = zeros(4);
     for x = 1:length(Jmut0)
         Jmat(Jmut1(x),Jmut0(x)) = Jmat(Jmut1(x),Jmut0(x)) + 1;
@@ -136,7 +136,7 @@ JmutCt = zeros(size(VDJdata,1),1);
 if strcmpi(Option,'single')
     GrpNum = [1:size(VDJdata,1)]';
 else
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 end
 UnqGrpNum = unique(GrpNum);
 
@@ -145,8 +145,8 @@ for y = 1:length(UnqGrpNum)
     
     for j = 1:length(IdxLoc)
         %Obtain necessary informations
-        Seq = char(VDJdata{IdxLoc(j),SeqLoc});
-        RefSeq = char(VDJdata{IdxLoc(1),RefSeqLoc});    
+        Seq = char(VDJdata{IdxLoc(j),H.SeqLoc});
+        RefSeq = char(VDJdata{IdxLoc(1),H.RefSeqLoc});    
         if length(RefSeq) ~= length(Seq)
             continue
         end
@@ -159,7 +159,7 @@ for y = 1:length(UnqGrpNum)
         MissLoc = find(MismatchLoc == 1);
 
         %Determine the V, D, J locations
-        VMDNJ = cell2mat(VDJdata(IdxLoc(j),LengthLoc));
+        VMDNJ = cell2mat(VDJdata(IdxLoc(j),H.LengthLoc));
         if sum(VMDNJ) ~= length(Seq)
             continue
         elseif isempty(VMDNJ)

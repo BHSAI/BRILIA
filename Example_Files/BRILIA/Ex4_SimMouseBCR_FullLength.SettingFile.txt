@@ -1,10 +1,10 @@
-Date = '03-Feb-2017';
+Date = '06-Feb-2017';
 CheckSeqDir = 'n';
 Ddirection = 'all';
 Delimiter = ';';
 DevPerc = '5';
 FileType = '';
-FullFileNames = 'C:\Users\dlee\Desktop\Matlab Script\BRILIA\BRILIA_2.0.4 - Staging\Example_Files\Ex4_SimMouseBCR_FullLength.fa';
+FullFileNames = 'C:\Users\dlee\Desktop\Matlab Script\BRILIA\BRILIA_2.0.5\Example_Files\Ex4_SimMouseBCR_FullLength.fa';
 SettingFile = '';
 Species = '';
 Strain = '';

@@ -17,15 +17,15 @@ ClustThis = input('Do you want to cluster the data? 0 for no, 1 for yes (default
 
 for f = 1:length(FileNames)
     %Open the datafile
-    [VDJdata, NewHeader, FileName, ~] = openSeqData([FilePath FileNames{f}]);
+    [VDJdata, VDJheader, FileName, ~] = openSeqData([FilePath FileNames{f}]);
     DotLoc = find(FileName == '.');
     SaveFilePre = FileName(1:DotLoc(end)-1);
     SavePath = FilePath;
     % [SaveFilePre, SavePath] = uiputfile('*.*','Set the savefile Prefix and Folder',SaveFilePre);
 
-    % VDJdata = buildTree(VDJdata,NewHeader,2);
+    % VDJdata = buildTree(VDJdata,VDJheader,2);
 
-    GrpLoc = findHeader(NewHeader,'GroupNum');
+    GrpLoc = findHeader(VDJheader,'GroupNum');
     if isempty(ClustThis); ClustThis = 1; end
     if ClustThis ~= 1
         VDJdata(:,GrpLoc) = num2cell([1:size(VDJdata,1)]'); %Gets rid of group info.
@@ -34,8 +34,8 @@ for f = 1:length(FileNames)
     
     %==========================================================================
     %Plotting the VDJ gene usage scatterplot
-    %VDJdata = renumberVDJmap(VDJdata,NewHeader,Vmap,Dmap,Jmap);
-    [VDJcombo, AxisLabels] = findGeneFamilyUsage(VDJdata,NewHeader,1,Vmap,Dmap,Jmap);
+    %VDJdata = renumberVDJmap(VDJdata,VDJheader,Vmap,Dmap,Jmap);
+    [VDJcombo, AxisLabels] = findGeneFamilyUsage(VDJdata,VDJheader,1,Vmap,Dmap,Jmap);
     
     %Select the top 10 V, top 10 D, top 4 J.
     Jsum = zeros(size(VDJcombo,3),1);
@@ -101,7 +101,7 @@ for f = 1:length(FileNames)
     %==========================================================================
     %Comparing V,D,J mutation frequencies + N1/N2 compositions
     Option = 'single';
-    [Vmat, Dmat, Jmat, VDJlen] = findMutationFreq(VDJdata,NewHeader,Option);
+    [Vmat, Dmat, Jmat, VDJlen] = findMutationFreq(VDJdata,VDJheader,Option);
     Gx = plotMutRateCorr(Vmat,Dmat,Jmat,'a');
 
     %Gx = plotMutationFreq(Vmat, Dmat, Jmat, Vmat+Dmat+Jmat,'Legend',{'V','D','J','V+D+J'});
@@ -114,13 +114,13 @@ for f = 1:length(FileNames)
 
     %==========================================================================
     %Comparing V,D,J mutation frequencies + N1/N2 compositions
-    [TDTmatrix, TDTcomp, Left2Right] = findTDTmatrix(VDJdata,NewHeader,'single'); %Doesn't divide the N regions
+    [TDTmatrix, TDTcomp, Left2Right] = findTDTmatrix(VDJdata,VDJheader,'single'); %Doesn't divide the N regions
     Gx2 = plotTDTmatrix(TDTmatrix, TDTcomp);
 
     set(Gx2,'PaperPosition',[0 0 10 5])
     saveas(Gx2,[SavePath SaveFilePre '_TDTsingle.png']);
 
-    [TDTmatrix, TDTcomp, Left2Right] = findTDTmatrix(VDJdata,NewHeader,'flip'); %divide the N regions
+    [TDTmatrix, TDTcomp, Left2Right] = findTDTmatrix(VDJdata,VDJheader,'flip'); %divide the N regions
     Gx2 = plotTDTmatrix(TDTmatrix, TDTcomp, Left2Right);
 
     set(Gx2,'PaperPosition',[0 0 10 5])
@@ -132,7 +132,7 @@ for f = 1:length(FileNames)
     %     LeftNTs = CleaveNT{1};
     %     RightNTs = CleaveNT{2};
     %         
-    %     [TDTmatrix, TDTcomp] = findTDTmatrix(VDJdata,NewHeader,'flip',LeftNTs,RightNTs); %divide the N regions
+    %     [TDTmatrix, TDTcomp] = findTDTmatrix(VDJdata,VDJheader,'flip',LeftNTs,RightNTs); %divide the N regions
     %     Gx2 = plotTDTmatrix(TDTmatrix, TDTcomp);
     % 
     %     set(Gx2,'PaperPosition',[0 0 10 5])
@@ -150,7 +150,7 @@ for f = 1:length(FileNames)
     % 
     % %==========================================================================
     % %Comparing ADAR vs AID mutation correlation
-    % Output = findMutationCorr(VDJdata,NewHeader); %Returns the matlab default AA order: ARNDCQEGHILKMFPSTWYV
+    % Output = findMutationCorr(VDJdata,VDJheader); %Returns the matlab default AA order: ARNDCQEGHILKMFPSTWYV
     % Gx3 = plotMutationCorr(Output);
     % 
     % set(Gx3,'PaperPosition',[0 0 5 5])
@@ -159,7 +159,7 @@ for f = 1:length(FileNames)
     % 
     % %==========================================================================
     % %Comparing hot spot stats
-    % [Amat, Cmat, Gmat, Tmat] = findHotSpots(VDJdata,NewHeader); %Returns the matlab default AA order: ARNDCQEGHILKMFPSTWYV
+    % [Amat, Cmat, Gmat, Tmat] = findHotSpots(VDJdata,VDJheader); %Returns the matlab default AA order: ARNDCQEGHILKMFPSTWYV
     % Gx4 = plotHotSpots(Amat, Cmat, Gmat, Tmat);
     % 
     % set(Gx4{1},'PaperPosition',[0 0 20 5])
@@ -192,7 +192,7 @@ for f = 1:length(FileNames)
 
     %==========================================================================
     %Comparing V,D,J mutation frequencies + N1/N2 compositions
-    FreqMat = findCDR3MutFreq(VDJdata,NewHeader); %Returns the matlab default AA order: ARNDCQEGHILKMFPSTWYV
+    FreqMat = findCDR3MutFreq(VDJdata,VDJheader); %Returns the matlab default AA order: ARNDCQEGHILKMFPSTWYV
     % 
     % %Based on amino acid VDV properties
     % %http://www.proteinsandproteomics.org/content/free/tables_1/table08.pdf

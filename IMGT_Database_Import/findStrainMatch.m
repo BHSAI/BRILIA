@@ -4,18 +4,18 @@ function AllStrains = findStrainMatch(GeneName,Xtable,StrainLoc,NameLoc)
 EvalLoc = findHeader(Xtable(:,NameLoc),GeneName,'all');
 if EvalLoc(end) > 0
     Strains = cell(1,length(EvalLoc)*length(StrainLoc));
-    DelLoc = zeros(size(Strains))>1;
+    H.DelLoc = zeros(size(Strains))>1;
     q = 1;
     for k = 1:length(StrainLoc)
         for w = 1:length(EvalLoc)
             Strains(q) = Xtable(EvalLoc(w),StrainLoc(k));
             if isempty(Strains{q})
-                DelLoc(q) = 1;
+                H.DelLoc(q) = 1;
             end
             q = q+1;
         end            
     end
-    Strains(DelLoc) = [];
+    Strains(H.DelLoc) = [];
     UnqStrains = unique(Strains);
     if isempty(UnqStrains)
         UnqStrains = {'Cloned'};

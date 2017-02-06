@@ -4,7 +4,7 @@
 %Option = 1, individual gene usage data
 %Option = 2, group by gene family
 
-function [Dcombo, varargout] = findGeneFamilyUsage(VDJdata,NewHeader,Option,varargin)
+function [Dcombo, varargout] = findGeneFamilyUsage(VDJdata,VDJheader,Option,varargin)
 %Extract the VDJ database
 if length(varargin) == 3
     Vmap = varargin{1};
@@ -15,19 +15,19 @@ else
     [Vmap, Dmap, Jmap] = filterRefGene(Vmap,Dmap,Jmap); %Selelect host strain
 end
 
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 if Option == 1
     %Make the 3D coordinate matrix
     Dcombo = zeros(size(Dmap,1),3);
 
     %Get all the gene usage. Degenerate matches contribute fractions. 
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     UnqGrpNum = unique(GrpNum);
     for y = 1:length(UnqGrpNum)
         IdxLoc = find(UnqGrpNum(y) == GrpNum);
         IdxLoc = IdxLoc(1); %You only need 1 of the cluter data.
-        Dnum = VDJdata{IdxLoc,FamNumLoc(2)};
+        Dnum = VDJdata{IdxLoc,H.FamNumLoc(2)};
         if isempty(Dnum)
             continue
         end
@@ -35,10 +35,10 @@ if Option == 1
         Weight = 1/length(Dnum);
         
         %Determine the reading frame of the D gene
-        [VMDNJ] = cell2mat(VDJdata(IdxLoc,LengthLoc));
-        D5del = VDJdata{IdxLoc,DelLoc(2)};
+        [VMDNJ] = cell2mat(VDJdata(IdxLoc,H.LengthLoc));
+        D5del = VDJdata{IdxLoc,H.DelLoc(2)};
         Dstart = VMDNJ(1) + VMDNJ(2) + 1 - D5del;
-        CDR3start = VDJdata{IdxLoc,CDR3Loc(3)};
+        CDR3start = VDJdata{IdxLoc,H.CDR3Loc(3)};
         RFloc = mod(Dstart - CDR3start + 1,3);
         if RFloc == 0; RFloc = 3; end
 
@@ -66,12 +66,12 @@ elseif Option == 2
     Dcombo = zeros(length(DunqFam),3);
 
     %Get all the gene usage. Degenerate matches contribute fractions. 
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     UnqGrpNum = unique(GrpNum);
     for y = 1:length(UnqGrpNum)
         IdxLoc = find(UnqGrpNum(y) == GrpNum);
         IdxLoc = IdxLoc(1); %You only need 1 of the cluter data.
-        Dnum = VDJdata{IdxLoc,FamNumLoc(2)};
+        Dnum = VDJdata{IdxLoc,H.FamNumLoc(2)};
 
         if isempty(Dnum)
             continue
@@ -80,10 +80,10 @@ elseif Option == 2
         Weight = 1/length(Dnum);
         
         %Determine the reading frame of the D gene
-        [VMDNJ] = cell2mat(VDJdata(IdxLoc,LengthLoc));
-        D5del = VDJdata{IdxLoc,DelLoc(2)};
+        [VMDNJ] = cell2mat(VDJdata(IdxLoc,H.LengthLoc));
+        D5del = VDJdata{IdxLoc,H.DelLoc(2)};
         Dstart = VMDNJ(1) + VMDNJ(2) + 1 - D5del;
-        CDR3start = VDJdata{IdxLoc,CDR3Loc(3)};
+        CDR3start = VDJdata{IdxLoc,H.CDR3Loc(3)};
         RFloc = mod(Dstart - CDR3start + 1,3);
         if RFloc == 0; RFloc = 3; end
         
@@ -112,14 +112,14 @@ end
 %     Dcombo = zeros(length(VunqFam),length(DunqFam),length(JunqFam));
 % 
 %     %Get all the gene usage. Degenerate matches contribute fractions. 
-%     GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+%     GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 %     UnqGrpNum = unique(GrpNum);
 %     for y = 1:length(UnqGrpNum)
 %         IdxLoc = find(UnqGrpNum(y) == GrpNum);
 %         IdxLoc = IdxLoc(1); %You only need 1 of the cluter data.
-%         Vnum = VDJdata{IdxLoc,FamNumLoc(1)};
-%         Dnum = VDJdata{IdxLoc,FamNumLoc(2)};
-%         Jnum = VDJdata{IdxLoc,FamNumLoc(3)};
+%         Vnum = VDJdata{IdxLoc,H.FamNumLoc(1)};
+%         Dnum = VDJdata{IdxLoc,H.FamNumLoc(2)};
+%         Jnum = VDJdata{IdxLoc,H.FamNumLoc(3)};
 % 
 %         if isempty(Vnum) || isempty(Dnum) || isempty(Jnum)
 %             continue

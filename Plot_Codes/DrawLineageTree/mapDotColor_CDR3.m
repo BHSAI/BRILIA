@@ -45,8 +45,8 @@ if length(varargin) == 2
 elseif length(varargin) == 3
     TreeData = varargin{1};
     TreeHeader = varargin{2};
-    getTreeHeaderVar;
-    CDR3seq = TreeData(:,CDR3seqLoc);
+    TH = getTreeHeaderVar(TreeHeader);
+    CDR3seq = TreeData(:,TH.CDR3seqLoc);
     UnqCDR3seq = varargin{3};
 else
     error('mapDotColor_CDR3: Number of inputs is not correct');

@@ -13,11 +13,11 @@ UnqSeqNum = 0; %Going to temporarily assign a unique number to each sequence, du
 
 for f = 1:length(FileNames)
     FileData(f,1) = FileNames(f);
-    [VDJdata,NewHeader] = openSeqData([FilePath FileNames{f}]);
-    getHeaderVar;
+    [VDJdata,VDJheader] = openSeqData([FilePath FileNames{f}]);
+    H = getHeaderVar(VDJheader);
     
     %Extract the relevent data
-    RevData = VDJdata(:,[SeqNumLoc SeqLoc CDR3Loc(1)]);
+    RevData = VDJdata(:,[H.SeqNumLoc H.SeqLoc H.CDR3Loc(1)]);
     UnqSeq = [1:size(RevData,1)]' + UnqSeqNum;
     UnqSeqNum = max(UnqSeq);
     

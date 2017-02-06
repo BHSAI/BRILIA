@@ -299,11 +299,11 @@ if strcmpi(ExactMatch(1),'y')
             if nargout >= 3 %Return start locs'
                 varargout{3} = [1; 1];
                 if nargout >= 4 %Return match locs
-                    MatchLoc = find(MatchPat == '|');
-                    if isempty(MatchLoc)
-                        MatchLoc = 0;
+                    H.MatchLoc = find(MatchPat == '|');
+                    if isempty(H.MatchLoc)
+                        H.MatchLoc = 0;
                     end
-                    varargout{4} = [MatchLoc(1); MatchLoc(end)];
+                    varargout{4} = [H.MatchLoc(1); H.MatchLoc(end)];
                 end
             end
         end
@@ -430,11 +430,11 @@ if nargout >= 1 %Return the match ct and score
             varargout{3} = [SeqAstart; SeqBstart];
             
             if nargout >= 4 %Return the MatchAt info
-                MatchLoc = find(Alignment(2,:) == '|');
-                if isempty(MatchLoc)
+                H.MatchLoc = find(Alignment(2,:) == '|');
+                if isempty(H.MatchLoc)
                     varargout{4} = [0;0];
                 else
-                    varargout{4} = [MatchLoc(1); MatchLoc(end)];
+                    varargout{4} = [H.MatchLoc(1); H.MatchLoc(end)];
                 end
             end
         end

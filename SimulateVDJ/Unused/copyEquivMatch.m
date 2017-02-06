@@ -5,12 +5,12 @@
 %2) Find File2 from "generateSHMlib"
 %3) Run this script copyEquivMatch, looking for the File1 and File2.
 
-[RefVDJdata,NewHeader,~,~] = openSeqData;
-[ShmVDJdata,NewHeader,~,~] = openSeqData;
+[RefVDJdata,VDJheader,~,~] = openSeqData;
+[ShmVDJdata,VDJheader,~,~] = openSeqData;
 
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
-GrpNum = cell2mat(ShmVDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(ShmVDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 
 
@@ -18,15 +18,15 @@ for y = 1:length(UnqGrpNum)
     IdxLoc = find(UnqGrpNum(y) == GrpNum);
     
     RefIdx = IdxLoc(1);
-    RefSeq =ShmVDJdata{RefIdx,RefSeqLoc};
+    RefSeq =ShmVDJdata{RefIdx,H.RefSeqLoc};
     
     for k = 1:size(RefVDJdata)
-        if min(RefSeq == RefVDJdata{k,SeqLoc}) == 1;
-            ShmVDJdata(IdxLoc,FamNumLoc) = repmat(RefVDJdata(k,FamNumLoc),length(IdxLoc),1);
-            ShmVDJdata(IdxLoc,FamLoc) = repmat(RefVDJdata(k,FamLoc),length(IdxLoc),1);
+        if min(RefSeq == RefVDJdata{k,H.SeqLoc}) == 1;
+            ShmVDJdata(IdxLoc,H.FamNumLoc) = repmat(RefVDJdata(k,H.FamNumLoc),length(IdxLoc),1);
+            ShmVDJdata(IdxLoc,H.FamLoc) = repmat(RefVDJdata(k,H.FamLoc),length(IdxLoc),1);
         end
     end
 end
 
 [FileName,FilePath] = uiputfile('*.xlsx');
-xlswrite([FilePath FileName],[NewHeader;ShmVDJdata])
+xlswrite([FilePath FileName],[VDJheader;ShmVDJdata])

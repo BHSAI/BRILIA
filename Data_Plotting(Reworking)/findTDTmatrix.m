@@ -2,12 +2,12 @@
 %the 4x4 adjacency matrix of the nucleotide. Each entry tells what is the
 %probability C is next A,C,G,T. 
 %
-%  [TDTmatrix, TDTcomp] = findTDTmatrix(VDJdata,NewHeader) will return the
+%  [TDTmatrix, TDTcomp] = findTDTmatrix(VDJdata,VDJheader) will return the
 %  matrix revealing the likelihood X nt is next to Y nt. TDTmatrix is a
 %  normalized, diagonally symmetric matrix. TDTcomp reveals frequency count
 %  of a each nt.
 %
-%  findTDTmatrix(VDJdata,NewHeader,'divide') does the same thing as above,
+%  findTDTmatrix(VDJdata,VDJheader,'divide') does the same thing as above,
 %  but will attempt to divide the N regions into a 5' and 3' side, and then
 %  find the stats using 5' and complement 3' strand N region. This is
 %  because TDT could add to complement strand G and A's which translates to
@@ -20,7 +20,7 @@ function [TDTmatrix, varargout] = findTDTmatrix(varargin)
 %Parse the input
 P = inputParser;
 addOptional(P,'VDJdata',{},@iscell);
-addOptional(P,'NewHeader',{},@iscell);
+addOptional(P,'VDJheader',{},@iscell);
 addParameter(P,'ScanThese','MN',@ischar);
 addParameter(P,'LeftNTs','AG',@ischar);
 addParameter(P,'RightNTs','CT',@ischar);
@@ -28,7 +28,7 @@ addParameter(P,'Mode','single',@(x) any(validatestring(x,{'single','divide','fli
 parse(P,varargin{:});
 
 VDJdata = P.Results.VDJdata;
-NewHeader = P.Results.NewHeader;
+VDJheader = P.Results.NewHeader;
 ScanThese = P.Results.ScanThese;
 LeftNTs = P.Results.LeftNTs;
 RightNTs = P.Results.RightNTs;
@@ -36,11 +36,11 @@ Mode = P.Results.Mode;
 
 %Open file if needed
 if isempty(VDJdata)
-    [VDJdata,NewHeader] = openSeqData;
+    [VDJdata,VDJheader] = openSeqData;
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 GrpNumUnq = unique(GrpNum);
 IdxMap = 1:size(GrpNum,1);
 
@@ -58,8 +58,8 @@ for y = 1:length(GrpNumUnq)
     j = IdxLoc(1); %First one is fine
     
     %Extract relevant information from VDJdata
-    RefSeq = VDJdata{IdxLoc(1),RefSeqLoc};
-    Classifier = VDJdata{IdxLoc(1),FormClassLoc(2)};
+    RefSeq = VDJdata{IdxLoc(1),H.RefSeqLoc};
+    Classifier = VDJdata{IdxLoc(1),H.FormClassLoc(2)};
     
     for q = 1:length(ScanThese)   
         Mloc = regexpi(Classifier,ScanThese(q));

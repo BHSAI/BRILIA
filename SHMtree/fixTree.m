@@ -3,10 +3,10 @@
 %see if the 1st seq has MORE shm than another seq. Do this at the way end,
 %after D and N region fixes.
 
-function VDJdata = fixTree(VDJdata,NewHeader)
-getHeaderVar;
+function VDJdata = fixTree(VDJdata,VDJheader)
+H = getHeaderVar(VDJheader);
 
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 for y = 1:length(UnqGrpNum)
     try
@@ -17,9 +17,9 @@ for y = 1:length(UnqGrpNum)
         end
 
         Tdata = VDJdata(IdxLoc,:);
-        SHMcount = sum(cell2mat(Tdata(:,SHMLoc)),2);
+        SHMcount = sum(cell2mat(Tdata(:,H.SHMLoc)),2);
         MinLoc = find(SHMcount == min(SHMcount));
-        TempCt = cell2mat(Tdata(MinLoc,TemplateLoc));
+        TempCt = cell2mat(Tdata(MinLoc,H.TemplateLoc));
         CompareMat = [MinLoc TempCt];
         CompareMat = sortrows(CompareMat,-2);
         MinLoc = CompareMat(1,1);
@@ -29,26 +29,26 @@ for y = 1:length(UnqGrpNum)
         %trees.
 
         %Change the root on AncMap
-        AncMapCell = calcAncMapCell(Tdata,NewHeader);
+        AncMapCell = calcAncMapCell(Tdata,VDJheader);
         AncMap = AncMapCell{1};
         AncMap(1,2) = size(AncMap,1); %It can be anything, since we'll recalc this.
         AncMap(MinLoc,2) = 0;
 
         %Update the Root RefSeq.
-        Tdata{MinLoc,RefSeqLoc} = Tdata{1,RefSeqLoc};
+        Tdata{MinLoc,H.RefSeqLoc} = Tdata{1,H.RefSeqLoc};
         AncMap = sortrows(AncMap,[2 1]);
         Tdata = Tdata(AncMap(:,1),:);
 
         %Update the refseqs after making the tree
-        AncMap = buildTreeLink_B(Tdata,NewHeader);
-        Tdata = mapData2AncMap(Tdata,NewHeader,AncMap,'SkipRef');
+        AncMap = buildTreeLink_B(Tdata,VDJheader);
+        Tdata = mapData2AncMap(Tdata,VDJheader,AncMap,'SkipRef');
     
         %Update the child count per parent
         ChildCt = zeros(size(AncMap,1),1);
         for k = 1:size(AncMap,1)
             ChildCt(k) = length(findChild(AncMap,AncMap(k,1)));
         end
-        Tdata(:,ChildCountLoc) = num2cell(ChildCt);
+        Tdata(:,H.ChildCountLoc) = num2cell(ChildCt);
         
         VDJdata(IdxLoc,:) = Tdata;
     catch

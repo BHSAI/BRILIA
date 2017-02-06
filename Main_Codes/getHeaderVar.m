@@ -1,43 +1,72 @@
-%getHeaderVar is used to return the column number associated with the data
-%type of VDJdata. It is NOT an enumeration class because newer version of
-%VDJdata can have different headers, hence once must alway compute the new
-%column locations.
+%H = getHeaderVar(VDJheader); is used to return the column number associated with the data
+%type of VDJdata via a short naming system and ending with "Loc". It is NOT
+%an enumeration class because newer version of VDJdata can have different
+%headers, hence once must alway compute the new column locations.
 %
-%  getHeaderVar;
-
+%  H = H = getHeaderVar(VDJheader); 
+%
+%  H = H = getHeaderVar(VDJheader);(VDJheader)
+%
+%  INPUT
+%    VDJheader: 1xM cell headers for the VDJdata cell matrix.
+%
+%  OUTPUT
+%    H: standardized header name variable
+%      H.SeqLoc
+%      H.SeqNumLoc
+%      H.SeqNameLoc
+%      H.TemplateLoc
+%      H.CDR3Loc
+%      H.GrpNumLoc
+%      H.RefSeqLoc
+%      H.FamLoc
+%      H.LengthLoc
+%      H.DelLoc
+%      H.MatchLoc
+%      H.SHMLoc
+%      H.AlignLoc
+%      H.FormClassLoc
+%      H.ChildCountLoc
+%      H.FunctLoc
+%      H.VmutLoc
+%      H.MmutLoc
+%      H.DmutLoc
+%      H.JmutLoc
+%      H.LeftTrimLoc
+%      H.RightTrimLoc
+%      H.MiscLoc
+function H = getHeaderVar(VDJheader)
 %Extract relevant column locations
-SeqLoc      = findCell(NewHeader,{'nucleotide','Seq'});
-SeqNumLoc   = findCell(NewHeader,'SeqNum');
-SeqNameLoc  = findCell(NewHeader,'SeqName');
+H.SeqLoc      = findCell(VDJheader,{'nucleotide','Seq'});
+H.SeqNumLoc   = findCell(VDJheader,'SeqNum');
+H.SeqNameLoc  = findCell(VDJheader,'SeqName');
 
-TemplateLoc = findCell(NewHeader,{'count (templates)','TemplateCount'});
-CDR3Loc     = findCell(NewHeader,{'CDR3_AminoAcid','CDR3_Length','CDR3_Start','CDR3_End'});
-%CDR3Loc     = findCell(NewHeader,{'aminoAcid', 'cdr3Length','CDR3_AminoAcid','CDR3_Length','CDR3_Start','CDR3_End'});
+H.TemplateLoc = findCell(VDJheader,{'count (templates)','TemplateCount'});
+H.CDR3Loc     = findCell(VDJheader,{'CDR3_AminoAcid','CDR3_Length','CDR3_Start','CDR3_End'});
 
-GrpNumLoc   = findCell(NewHeader,'GroupNum');
-RefSeqLoc   = findCell(NewHeader,'RefSeq');
-FamNumLoc   = findCell(NewHeader,{'vMapNum','dMapNum','jMapNum','V_MapNum','D_MapNum','J_MapNum'});
-FamLoc      = findCell(NewHeader,{'vMaxResolved','dMaxResolved','jMaxResolved','V_GeneName','D_GeneName','J_GeneName'});
+H.GrpNumLoc   = findCell(VDJheader,'GroupNum');
+H.RefSeqLoc   = findCell(VDJheader,'RefSeq');
+H.FamNumLoc   = findCell(VDJheader,{'vMapNum','dMapNum','jMapNum','V_MapNum','D_MapNum','J_MapNum'});
+H.FamLoc      = findCell(VDJheader,{'vMaxResolved','dMaxResolved','jMaxResolved','V_GeneName','D_GeneName','J_GeneName'});
 
-LengthLoc   = findCell(NewHeader,{'vAlignLength' 'n2AlignLength' 'dAlignLength' 'n1AlignLength' 'jAlignLength','Length_V','Length_Nvd','Length_D','Length_Ndj','Length_J'});
-DelLoc      = findCell(NewHeader,{'vDeletion','d5Deletion','d3Deletion','jDeletion','V_Deletion3','D_Deletion5','D_Deletion3','J_Deletion5'});
+H.LengthLoc   = findCell(VDJheader,{'vAlignLength' 'n2AlignLength' 'dAlignLength' 'n1AlignLength' 'jAlignLength','Length_V','Length_Nvd','Length_D','Length_Ndj','Length_J'});
+H.DelLoc      = findCell(VDJheader,{'vDeletion','d5Deletion','d3Deletion','jDeletion','V_Deletion3','D_Deletion5','D_Deletion3','J_Deletion5'});
 
-MatchLoc    = findCell(NewHeader,{'vMatchCount' 'dMatchCount', 'jMatchCount'});
-SHMLoc      = findCell(NewHeader,{'SHM_V' 'SHM_D', 'SHM_J'});    
+H.MatchLoc    = findCell(VDJheader,{'vMatchCount' 'dMatchCount', 'jMatchCount'});
+H.SHMLoc      = findCell(VDJheader,{'SHM_V' 'SHM_D', 'SHM_J'});    
 
-AlignLoc    = findCell(NewHeader,{'vAlignment','dAlignment','jAlignment','V_Alignment','D_Alignment','J_Alignment'});
-FormClassLoc    = findCell(NewHeader,{'FormattedSeq'; 'Classifier'});
-ChildCountLoc   = findCell(NewHeader,'TreeChildCount');
+H.AlignLoc    = findCell(VDJheader,{'vAlignment','dAlignment','jAlignment','V_Alignment','D_Alignment','J_Alignment'});
+H.FormClassLoc = findCell(VDJheader,{'FormattedSeq'; 'Classifier'});
+H.ChildCountLoc = findCell(VDJheader,'TreeChildCount');
     
-FunctLoc    = findCell(NewHeader,{'Functional'});
+H.FunctLoc    = findCell(VDJheader,{'Functional'});
 
-VmutLoc     = findCell(NewHeader,{'vMutCt_Germline','SHM_V'});
-MmutLoc     = findCell(NewHeader,{'mMutCt_Germline','SHM_Nvd'});
-DmutLoc     = findCell(NewHeader,{'dMutCt_Germline','SHM_D'});
-NmutLoc     = findCell(NewHeader,{'nMutCt_Germline','SHM_Ndj'});
-JmutLoc     = findCell(NewHeader,{'jMutCt_Germline','SHM_J'});
+H.VmutLoc     = findCell(VDJheader,{'vMutCt_Germline','SHM_V'});
+H.MmutLoc     = findCell(VDJheader,{'mMutCt_Germline','SHM_Nvd'});
+H.DmutLoc     = findCell(VDJheader,{'dMutCt_Germline','SHM_D'});
+H.NmutLoc     = findCell(VDJheader,{'nMutCt_Germline','SHM_Ndj'});
+H.JmutLoc     = findCell(VDJheader,{'jMutCt_Germline','SHM_J'});
 
-LeftTrimLoc     = findCell(NewHeader,'TrimmedSeqLeft');
-RightTrimLoc    = findCell(NewHeader,'TrimmedSeqRight');
-
-MiscLoc     = findCell(NewHeader,{'Misc'});
+H.LeftTrimLoc     = findCell(VDJheader,'TrimmedSeqLeft');
+H.RightTrimLoc    = findCell(VDJheader,'TrimmedSeqRight');
+H.MiscLoc     = findCell(VDJheader,{'Misc'});

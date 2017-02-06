@@ -24,12 +24,12 @@ end
 %Extract the VDJdata headers
 [~, ~, StandardData] = xlsread('Headers_Brilia.xlsx');
 NewHeaderLoc = findHeader(StandardData(1,:),'VDJdata');
-NewHeader = StandardData(2:end,NewHeaderLoc)';
-for j = 1:length(NewHeader)
-    if isnan(NewHeader{j}); break; end
+VDJheader = StandardData(2:end,NewHeaderLoc)';
+for j = 1:length(VDJheader)
+    if isnan(VDJheader{j}); break; end
 end
-NewHeader(j:end) = [];
-getHeaderVar;
+VDJheader(j:end) = [];
+H = getHeaderVar(VDJheader);
 
 %PartisData column locations
 SeqNameLocI = findHeader(PartisHeader,'unique_ids');
@@ -43,14 +43,14 @@ NvdLocI = findHeader(PartisHeader,'vd_insertion');
 NdjLocI = findHeader(PartisHeader,'dj_insertion');
 
 %Build up the VDJdata matrix
-VDJdata = cell(size(PartisData,1),length(NewHeader));
+VDJdata = cell(size(PartisData,1),length(VDJheader));
 KeepThese = ones(size(PartisData,1),1,'logical');
 for j = 1:size(PartisData,1)
     %Fill in the basic seq name and number info
-    VDJdata{j,SeqNumLoc} = cell2mat(regexp(PartisData{j,SeqNameLocI},'[\d*]+','match'));
-    VDJdata(j,SeqLoc) = PartisData(j,SeqLocI);
-    VDJdata(j,SeqNameLoc) = PartisData(j,SeqNameLocI);
-    VDJdata(j,RefSeqLoc) = PartisData(j,RefSeqLocI);
+    VDJdata{j,H.SeqNumLoc} = cell2mat(regexp(PartisData{j,SeqNameLocI},'[\d*]+','match'));
+    VDJdata(j,H.SeqLoc) = PartisData(j,SeqLocI);
+    VDJdata(j,H.SeqNameLoc) = PartisData(j,SeqNameLocI);
+    VDJdata(j,H.RefSeqLoc) = PartisData(j,RefSeqLocI);
     
     %Fill in the VDJ gene name and number info
     Vname = 'Unresolved';
@@ -69,8 +69,8 @@ for j = 1:size(PartisData,1)
             Vname = Vmap{VmapNum,3};
         end
     end
-    VDJdata{j,FamNumLoc(1)} = VmapNum;
-    VDJdata{j,FamLoc(1)} = Vname;
+    VDJdata{j,H.FamNumLoc(1)} = VmapNum;
+    VDJdata{j,H.FamLoc(1)} = Vname;
 
     Dname = 'Unresolved';
     DmapNum = 0;
@@ -88,8 +88,8 @@ for j = 1:size(PartisData,1)
             Dname = Dmap{DmapNum,3};
         end
     end
-    VDJdata{j,FamNumLoc(2)} = DmapNum;
-    VDJdata{j,FamLoc(2)} = Dname;
+    VDJdata{j,H.FamNumLoc(2)} = DmapNum;
+    VDJdata{j,H.FamLoc(2)} = Dname;
     
     Jname = 'Unresolved';
     JmapNum = 0;
@@ -108,8 +108,8 @@ for j = 1:size(PartisData,1)
             Jname = Jmap{JmapNum,3};
         end
     end
-    VDJdata{j,FamNumLoc(3)} = JmapNum;
-    VDJdata{j,FamLoc(3)} = Jname;
+    VDJdata{j,H.FamNumLoc(3)} = JmapNum;
+    VDJdata{j,H.FamLoc(3)} = Jname;
     
     if VmapNum * JmapNum * DmapNum == 0
         KeepThese(j) = 0;
@@ -138,29 +138,29 @@ for j = 1:size(PartisData,1)
     JrefLen = length(Jmap{JmapNum,1});
     Jlen = JrefLen - J5del - J3del;
     
-    VDJdata(j,LengthLoc) = num2cell([Vlen Mlen Dlen Nlen Jlen]);
-    VDJdata(j,DelLoc) = num2cell([V3del D5del D3del J5del]);
+    VDJdata(j,H.LengthLoc) = num2cell([Vlen Mlen Dlen Nlen Jlen]);
+    VDJdata(j,H.DelLoc) = num2cell([V3del D5del D3del J5del]);
 
 end
 
 %Set group number same as seq number
-if ~isnumeric(VDJdata{1,SeqNumLoc});
+if ~isnumeric(VDJdata{1,H.SeqNumLoc});
     for j = 1:size(VDJdata,1)
-        VDJdata{j,SeqNumLoc} = eval(VDJdata{j,SeqNumLoc});
+        VDJdata{j,H.SeqNumLoc} = eval(VDJdata{j,H.SeqNumLoc});
     end
 end
-VDJdata(:,GrpNumLoc) = VDJdata(:,SeqNumLoc);
+VDJdata(:,H.GrpNumLoc) = VDJdata(:,H.SeqNumLoc);
 
 VDJdataT = VDJdata(KeepThese==0,:);
 VDJdata = VDJdata(KeepThese,:);
-VDJdata = buildVDJalignment(VDJdata,NewHeader,Vmap,Dmap,Jmap); %Alignment Info
-VDJdata = makeClassifier(VDJdata,NewHeader); %Classifier + FormattedSeq
-VDJdata = appendMutCt(VDJdata,NewHeader); %SHM infor on the VMDNJ segments
-VDJdata = findCDR3(VDJdata,NewHeader); %Get the CDR3 seq and info 
-VDJdata = labelNonprodVDJ(VDJdata,NewHeader);
+VDJdata = buildVDJalignment(VDJdata,VDJheader,Vmap,Dmap,Jmap); %Alignment Info
+VDJdata = makeClassifier(VDJdata,VDJheader); %Classifier + FormattedSeq
+VDJdata = appendMutCt(VDJdata,VDJheader); %SHM infor on the VMDNJ segments
+VDJdata = findCDR3(VDJdata,VDJheader); %Get the CDR3 seq and info 
+VDJdata = labelNonprodVDJ(VDJdata,VDJheader);
 VDJdata = [VDJdata; VDJdataT]; %Rejoin the neglected ones
 
-VDJdata = sortrows(VDJdata,SeqNumLoc); %Sort it
+VDJdata = sortrows(VDJdata,H.SeqNumLoc); %Sort it
 
 %Save the files
 DotLoc = find(FileName == '.');
@@ -168,14 +168,14 @@ DotLoc = DotLoc(end);
 SaveName = FileName(1:DotLoc-1);
 
 %Before saving to xlsx, convert columns with matrix values into char
-save([FilePath SaveName '.partis.mat'],'VDJdata','NewHeader')
+save([FilePath SaveName '.partis.mat'],'VDJdata','VDJheader')
 for q = 1:size(VDJdata,1)
     for w = 1:3
-        VDJdata{q,FamNumLoc(w)} = mat2str(VDJdata{q,FamNumLoc(w)});
+        VDJdata{q,H.FamNumLoc(w)} = mat2str(VDJdata{q,H.FamNumLoc(w)});
     end
 end
 if ispc
-    xlswrite([FilePath SaveName '.partis.xlsx'],[NewHeader; VDJdata]);
+    xlswrite([FilePath SaveName '.partis.xlsx'],[VDJheader; VDJdata]);
 else
-    writeDlmFile([NewHeader;VDJdata],[FilePath SaveName '.partis.csv'],'\t');
+    writeDlmFile([VDJheader;VDJdata],[FilePath SaveName '.partis.csv'],'\t');
 end

@@ -23,14 +23,14 @@
 function SeedSeq = getGeneSeed(Xmap,X,Nleft,Nright,Alphabet)
 KeyNTloc = 10; %Column in Xmap that store the position of the 104C 1st nt from the 5' end, or 118W 3rd nt from the 3' end.
 FuncLoc = 7;
-SeqLoc = 1; 
+H.SeqLoc = 1; 
 
 %Remove all sequences without conserved residue or empty sequences
 DelThese = zeros(size(Xmap,1),1,'logical');
 for j = 1:size(Xmap,1)
     if Xmap{j,KeyNTloc} < 3
         DelThese(j) = 1;
-    elseif isempty(Xmap{j,SeqLoc})
+    elseif isempty(Xmap{j,H.SeqLoc})
         DelThese(j) = 1;
     elseif ~strcmpi(Xmap{j,FuncLoc},'F')
         DelThese(j) = 1;
@@ -48,11 +48,11 @@ end
 SeedSeq = cell(size(Xmap,1),1);
 if strcmpi(X,'V')
     for j = 1:size(Xmap,1)
-        SeedSeq{j,1} = padtrimSeq(Xmap{j,SeqLoc}, length(Xmap{j,SeqLoc})-Xmap{j,KeyNTloc}+1, Nleft, Nright);
+        SeedSeq{j,1} = padtrimSeq(Xmap{j,H.SeqLoc}, length(Xmap{j,H.SeqLoc})-Xmap{j,KeyNTloc}+1, Nleft, Nright);
     end
 elseif strcmpi(X,'J')
     for j = 1:size(Xmap,1)
-        SeedSeq{j,1} = padtrimSeq(Xmap{j,SeqLoc}, Xmap{j,KeyNTloc}, Nleft, Nright);
+        SeedSeq{j,1} = padtrimSeq(Xmap{j,H.SeqLoc}, Xmap{j,KeyNTloc}, Nleft, Nright);
     end
 end
 %Translate set to AA if needed

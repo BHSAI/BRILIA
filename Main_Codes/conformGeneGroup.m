@@ -2,19 +2,19 @@
 %same Gene family and VMDNJ segment lengths as the first sequence in the
 %cluster, which is suppose to be close to the germline sequence.
 %
-%  VDJdata = conformGeneGroup(VDJdata,NewHeader)
+%  VDJdata = conformGeneGroup(VDJdata,VDJheader)
 %
-function VDJdata = conformGeneGroup(VDJdata,NewHeader,varargin)
+function VDJdata = conformGeneGroup(VDJdata,VDJheader,varargin)
 %Extract the VDJ database
 if length(varargin) >= 3
     [Vmap,Dmap,Jmap] = deal(varargin{1:3});
 else
     [Vmap,Dmap,Jmap] = getCurrentDatabase;
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 %Perform 1st group therapy: Conforming VMDNJ lengths to group
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 for y = 1:length(UnqGrpNum)
     try
@@ -24,7 +24,7 @@ for y = 1:length(UnqGrpNum)
 
         %Standardize the other fields as well (1st one is the root)
         Tdata = VDJdata(IdxLoc,:);    
-        Tdata(:,[LengthLoc(:); FamLoc(:); FamNumLoc(:); DelLoc(:)]) = repmat(Tdata(1,[LengthLoc(:); FamLoc(:); FamNumLoc(:); DelLoc(:)]),size(Tdata,1),1);
+        Tdata(:,[H.LengthLoc(:); H.FamLoc(:); H.FamNumLoc(:); H.DelLoc(:)]) = repmat(Tdata(1,[H.LengthLoc(:); H.FamLoc(:); H.FamNumLoc(:); H.DelLoc(:)]),size(Tdata,1),1);
 
         VDJdata(IdxLoc,:) = Tdata;  
     catch
@@ -34,6 +34,6 @@ for y = 1:length(UnqGrpNum)
 end
 
 %Update all data
-VDJdata = buildRefSeq(VDJdata,NewHeader,'germline','first'); %must do first seq of each cluster
-VDJdata = updateVDJdata(VDJdata,NewHeader,varargin);
+VDJdata = buildRefSeq(VDJdata,VDJheader,'germline','first'); %must do first seq of each cluster
+VDJdata = updateVDJdata(VDJdata,VDJheader,varargin);
 

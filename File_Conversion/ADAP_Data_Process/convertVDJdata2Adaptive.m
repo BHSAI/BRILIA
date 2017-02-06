@@ -63,13 +63,13 @@ end
 
 %Do this for all files
 for f = 1:length(FileNames)
-    [VDJdata,NewHeader,FileName,FilePath] = openSeqData([FilePath FileNames{f}]);
-    getHeaderVar;
+    [VDJdata,VDJheader,FileName,FilePath] = openSeqData([FilePath FileNames{f}]);
+    H = getHeaderVar(VDJheader);
     
     SaveData = cell(size(VDJdata,1),length(Header2));
     
     %Transfering over direct matches
-    VDJdataLoc = [SeqLoc  SeqNumLoc  GrpNumLoc  LengthLoc  DelLoc  TemplateLoc  SHMLoc   FunctLoc  CDR3Loc(1:2) RefSeqLoc ];
+    VDJdataLoc = [H.SeqLoc  H.SeqNumLoc  H.GrpNumLoc  H.LengthLoc  H.DelLoc  H.TemplateLoc  H.SHMLoc   H.FunctLoc  H.CDR3Loc(1:2) H.RefSeqLoc ];
     SaveDataLoc =[SeqLoc2 SeqNumLoc2 GrpNumLoc2 LengthLoc2 DelLoc2 TemplateLoc2 SHMLoc2  FunctLoc2 CDR3Loc2     RefSeqLoc2];   
     DelThese = VDJdataLoc == 0 | SaveDataLoc == 0; %Make sure there is a corresponding column. Otherwise remove.
     VDJdataLoc(DelThese) = [];
@@ -83,7 +83,7 @@ for f = 1:length(FileNames)
     Xmap = {Vmap Dmap Jmap};
     for j = 1:size(VDJdata,1)
         for k = 1:3
-            Xnum = VDJdata{j,FamNumLoc(k)};
+            Xnum = VDJdata{j,H.FamNumLoc(k)};
             if ~isempty(Xnum) && min(~isnan(Xnum) == 1)
                 Xname = Xmap{k}(Xnum(1),3:6);
             else

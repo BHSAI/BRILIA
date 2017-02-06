@@ -1,18 +1,18 @@
 %
 function PlotData = findCDR3vsSize()
 
-[VDJdata,NewHeader,FileName,FilePath] = openSeqData;
+[VDJdata,VDJheader,FileName,FilePath] = openSeqData;
 
-getHeaderVar
+H = getHeaderVar(VDJheader);
 
 %Extract the unique groups
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 
 Data = zeros(length(UnqGrpNum),3); %[GrpNum GrpSize CDR3Length]
 for y = 1:length(UnqGrpNum)
     IdxLoc = find(UnqGrpNum(y) == GrpNum);
-    Data(y,[1 3])= cell2mat(VDJdata(IdxLoc(1),[GrpNumLoc CDR3Loc(2)]));
+    Data(y,[1 3])= cell2mat(VDJdata(IdxLoc(1),[H.GrpNumLoc H.CDR3Loc(2)]));
     Data(y,2) = length(IdxLoc);
 end
 

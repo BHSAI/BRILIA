@@ -1,20 +1,20 @@
 function FreqMat = findCDR3MutFreq(varargin)
 if isempty(varargin)
-    [VDJdata, NewHeader, ~, ~] = openSeqData;
+    [VDJdata, VDJheader, ~, ~] = openSeqData;
 else
     VDJdata = varargin{1};
-    NewHeader = varargin{2};
+    VDJheader = varargin{2};
 end
 
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 [Vmap, Dmap, Jmap] = getCurrentDatabase;
 
 FreqMat = zeros(20,20);
 
 %Separate 1-size clusters from >1-size clusters
-GrpNumLoc = findHeader(NewHeader,'GroupNum');
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+H.GrpNumLoc = findHeader(VDJheader,'GroupNum');
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 GrpNumUnq = unique(GrpNum);
 IdxMap = 1:size(GrpNum,1);
 
@@ -27,16 +27,16 @@ for y = 1:length(GrpNumUnq)
     IdxLoc = IdxMap(GrpLoc);
     Tdata = VDJdata(IdxLoc,:);    
     
-    RefSeq = Tdata{1,RefSeqLoc};
+    RefSeq = Tdata{1,H.RefSeqLoc};
     
     if sum(isnan(RefSeq))>0 || isempty(RefSeq); continue; end
 
     
-    VMDNJ = cell2mat(VDJdata(IdxLoc(1),LengthLoc));
-    Vdel = VDJdata{IdxLoc(1),DelLoc(1)};
-    Jdel = VDJdata{IdxLoc(1),DelLoc(end)};    
-    Vnum = VDJdata{IdxLoc(1),FamNumLoc(1)}(1);    
-    Jnum = VDJdata{IdxLoc(1),FamNumLoc(end)}(1);    
+    VMDNJ = cell2mat(VDJdata(IdxLoc(1),H.LengthLoc));
+    Vdel = VDJdata{IdxLoc(1),H.DelLoc(1)};
+    Jdel = VDJdata{IdxLoc(1),H.DelLoc(end)};    
+    Vnum = VDJdata{IdxLoc(1),H.FamNumLoc(1)}(1);    
+    Jnum = VDJdata{IdxLoc(1),H.FamNumLoc(end)}(1);    
     Cloc = VMDNJ(1) + Vdel - Vmap{Vnum,end} + 1;
     Wloc = sum(VMDNJ(1:4)) - Jdel + Jmap{Jnum,end} + 2; %Add 2 to capture the codon end.
     
@@ -46,7 +46,7 @@ for y = 1:length(GrpNumUnq)
     
     CDR3Ref = nt2aa(RefSeq(Cloc:Wloc),'ACGTonly','false');
 %     
-%     [CDR3, ~] = findCDR3(Tdata(1,:),NewHeader,'RefSeq');
+%     [CDR3, ~] = findCDR3(Tdata(1,:),VDJheader,'RefSeq');
 %     if isempty(CDR3{1})
 %         continue
 %     end
@@ -54,11 +54,11 @@ for y = 1:length(GrpNumUnq)
 % %     CDR3Ref = char(CDR3);   
 %     CDR3Sam = cell(size(Tdata,1),1);
 %     for w = 1:size(Tdata,1)
-%         CDR3Sam{w} = nt2aa(Tdata{w,SeqLoc}(Cloc:Wloc));
+%         CDR3Sam{w} = nt2aa(Tdata{w,H.SeqLoc}(Cloc:Wloc));
 %     end
 %     CDR3Sam = char(CDR3Sam);
     
-    CDR3Sam = Tdata(:,CDR3Loc(1));    
+    CDR3Sam = Tdata(:,H.CDR3Loc(1));    
     DelThis = zeros(size(CDR3Sam,1),1)==1;
     for k = 1:size(CDR3Sam,1)    
         if ~isnan(CDR3Sam{k})

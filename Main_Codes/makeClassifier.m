@@ -2,7 +2,7 @@
 %segment it belongs to. The "Classifier" sequence is stored in VDJdata in
 %the "Classifier" column.
 %
-%  VDJdata = makeClassifier(VDJdata,NewHeader)
+%  VDJdata = makeClassifier(VDJdata,VDJheader)
 %
 %  EXAMPLE
 %    Classifier = 'VVVVVVVVVVVVVVVVppmmmppDDDDDDppnnppJJJJJJJJJ';
@@ -15,11 +15,11 @@
 %      P = p-nucleotides in the Ndj region
 %      v,m,d,n,j,b,p = lowercase are mismatched with the reference sequence
 
-function VDJdata = makeClassifier(VDJdata,NewHeader)
-getHeaderVar;
+function VDJdata = makeClassifier(VDJdata,VDJheader)
+H = getHeaderVar(VDJheader);
 
 %Correct the classifiers according to the group, mainly p and b's only.
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 for y = 1:length(UnqGrpNum)
     try
@@ -27,9 +27,9 @@ for y = 1:length(UnqGrpNum)
         j = IdxLoc(1);
 
         %Extract information
-        Seq = VDJdata{j,SeqLoc};
-        RefSeq = VDJdata{j,RefSeqLoc};
-        VMDNJ = cell2mat(VDJdata(j,LengthLoc));
+        Seq = VDJdata{j,H.SeqLoc};
+        RefSeq = VDJdata{j,H.RefSeqLoc};
+        VMDNJ = cell2mat(VDJdata(j,H.LengthLoc));
 
         if sum(VMDNJ) ~= length(Seq) || sum(VMDNJ) ~= length(RefSeq)
             continue;
@@ -43,10 +43,10 @@ for y = 1:length(UnqGrpNum)
         ClassJ = repmat('J',1,VMDNJ(5)); %J segment
 
         %To find p-nucleotides, see if germline deletions are 0.
-        VrefDel3 = VDJdata{j,DelLoc(1)};
-        DrefDel5 = VDJdata{j,DelLoc(2)};
-        DrefDel3 = VDJdata{j,DelLoc(3)};
-        JrefDel5 = VDJdata{j,DelLoc(4)};
+        VrefDel3 = VDJdata{j,H.DelLoc(1)};
+        DrefDel5 = VDJdata{j,H.DelLoc(2)};
+        DrefDel3 = VDJdata{j,H.DelLoc(3)};
+        JrefDel5 = VDJdata{j,H.DelLoc(4)};
 
         RefClass = sprintf('%s%s%s%s%s',ClassV,ClassM,ClassD,ClassN,ClassJ);
 
@@ -62,18 +62,18 @@ for y = 1:length(UnqGrpNum)
 
         %Fillin the Classifier and Formatted Seq 
         for k = 1:length(IdxLoc)
-            CurSeq = VDJdata{IdxLoc(k),SeqLoc};
+            CurSeq = VDJdata{IdxLoc(k),H.SeqLoc};
             MissLoc = CurSeq ~= RefSeq;
             SeqClass = RefClass;
             SeqClass(MissLoc) = lower(SeqClass(MissLoc));
 
-            VDJdata{IdxLoc(k),FormClassLoc(1)} = formatSeq(VDJdata{IdxLoc(k),SeqLoc},SeqClass);
-            VDJdata{IdxLoc(k),FormClassLoc(2)} = SeqClass;
+            VDJdata{IdxLoc(k),H.FormClassLoc(1)} = formatSeq(VDJdata{IdxLoc(k),H.SeqLoc},SeqClass);
+            VDJdata{IdxLoc(k),H.FormClassLoc(2)} = SeqClass;
         end
     catch
         ErrorMsg = sprintf('Errored at %s, sequence # %d',mfilename,y);
         disp(ErrorMsg);
-        VDJdata(IdxLoc,MiscLoc) = repmat({ErrorMsg},length(IdxLoc),1);
+        VDJdata(IdxLoc,H.MiscLoc) = repmat({ErrorMsg},length(IdxLoc),1);
     end
     clear ClassV ClassM ClassD ClassN ClassJ
 end

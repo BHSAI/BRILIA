@@ -10,23 +10,23 @@
 %instance, will yield high alignment score for long sequences with random
 %nts. This one will yield negative values if that happens.
 %
-%  VDJdata = findBetterD(VDJdata,NewHeader)
+%  VDJdata = findBetterD(VDJdata,VDJheader)
 %
-%  VDJdata = findBetterD(VDJdata,NewHeader,Vmap,Dmap,Jmap)
+%  VDJdata = findBetterD(VDJdata,VDJheader,Vmap,Dmap,Jmap)
 %
 %  See also calcTDTscore
 
-function VDJdata = findBetterD(VDJdata,NewHeader,varargin)
+function VDJdata = findBetterD(VDJdata,VDJheader,varargin)
 %Extract the VDJ database
 if length(varargin) >= 3
     [Vmap,Dmap,Jmap] = deal(varargin{1:3});
 else
     [Vmap,Dmap,Jmap] = getCurrentDatabase;
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 %Look for better D
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 UpdateIdx = zeros(size(VDJdata,1),1,'logical');
 for y = 1:length(UnqGrpNum)
@@ -34,28 +34,28 @@ for y = 1:length(UnqGrpNum)
         %Identify group, if any. For single, check all mutations.
         IdxLoc = find((UnqGrpNum(y) == GrpNum));
         Tdata = VDJdata(IdxLoc,:);
-        VMDNJ = cell2mat(Tdata(1,LengthLoc));
+        VMDNJ = cell2mat(Tdata(1,H.LengthLoc));
         
         %Extract necessary V informations
-        Vname = Tdata{1,FamLoc(1)};
-        VdelCur = Tdata{1,DelLoc(1)};
-        VmapNum = Tdata{1,FamNumLoc(1)};
+        Vname = Tdata{1,H.FamLoc(1)};
+        VdelCur = Tdata{1,H.DelLoc(1)};
+        VmapNum = Tdata{1,H.FamNumLoc(1)};
         VallowedDel = Vmap{VmapNum(1),end} - 3; %Correct -3 as deletion length is AFTER C codon.
         if VallowedDel < 0; VallowedDel = 25; end
 
         %Extract necessary J informations
-        Jname = Tdata{1,FamLoc(3)};
-        JdelCur = Tdata{1,DelLoc(end)};
-        JmapNum = Tdata{1,FamNumLoc(end)};
+        Jname = Tdata{1,H.FamLoc(3)};
+        JdelCur = Tdata{1,H.DelLoc(end)};
+        JmapNum = Tdata{1,H.FamNumLoc(end)};
         JallowedDel = Jmap{JmapNum(1),end} - 1; %Correct -1 as deletion length is BEFORE F/W codon.
         if JallowedDel < 0; JallowedDel = 25; end
 
         %Find the mismatched nts with respect to 1st seq of cluster only.
-        RefSeq = Tdata{1,RefSeqLoc};
+        RefSeq = Tdata{1,H.RefSeqLoc};
         XlocRef = RefSeq == 'X';
         ConsMissCt = zeros(size(RefSeq));
         for k = 1:size(Tdata,1)
-            Seq = Tdata{k,SeqLoc};
+            Seq = Tdata{k,H.SeqLoc};
             XlocSeq = Seq == 'X';
             MissLoc = ~(RefSeq == Seq | XlocSeq | XlocRef);
             ConsMissCt = ConsMissCt + MissLoc;
@@ -174,7 +174,7 @@ for y = 1:length(UnqGrpNum)
                 Vnt = RefSeq(1:sum(VMDNJnew(1:2)));
                 AllowedMiss = ceil(MissRate * length(Vnt));
 
-                CDR3start = Tdata{1,CDR3Loc(3)};
+                CDR3start = Tdata{1,H.CDR3Loc(3)};
                 if isempty(CDR3start); CDR3start = 0; end
                 Vmatch = findGeneMatch(Vnt,Vmap,'V',AllowedMiss,CDR3start); %Redo for all V's
                 
@@ -189,7 +189,7 @@ for y = 1:length(UnqGrpNum)
                 Jnt = RefSeq(sum(VMDNJnew(1:3))+1:end);
                 AllowedMiss = ceil(MissRate * length(Jnt));
 
-                CDR3end = Tdata{1,CDR3Loc(4)} - sum(VMDNJnew(1:3)); %need to adjust for Jnt being smaller than first Seq
+                CDR3end = Tdata{1,H.CDR3Loc(4)} - sum(VMDNJnew(1:3)); %need to adjust for Jnt being smaller than first Seq
                 if isempty(CDR3end); CDR3end = 0; end
                 Jmatch = findGeneMatch(Jnt,Jmap,'J',AllowedMiss,CDR3end); %Redo for all J's.
 
@@ -209,14 +209,14 @@ for y = 1:length(UnqGrpNum)
             end 
 
             VDDJdels = [(VdelCur+VnewDel)  Dmatch{1,3}(1,1)  Dmatch{1,3}(1,3)  (JdelCur+JnewDel)];
-            Tdata(:,DelLoc) = repmat(num2cell(VDDJdels),size(Tdata,1),1);
-            Tdata(:,LengthLoc) = repmat(num2cell(VMDNJnew),size(Tdata,1),1);
-            Tdata(:,FamNumLoc(1)) = {VmapNum};
-            Tdata(:,FamNumLoc(2)) = Dmatch(1,1);
-            Tdata(:,FamNumLoc(3)) = {JmapNum};
-            Tdata(:,FamLoc(1)) = {Vname};
-            Tdata(:,FamLoc(2)) = Dmatch(1,2);
-            Tdata(:,FamLoc(3)) = {Jname};
+            Tdata(:,H.DelLoc) = repmat(num2cell(VDDJdels),size(Tdata,1),1);
+            Tdata(:,H.LengthLoc) = repmat(num2cell(VMDNJnew),size(Tdata,1),1);
+            Tdata(:,H.FamNumLoc(1)) = {VmapNum};
+            Tdata(:,H.FamNumLoc(2)) = Dmatch(1,1);
+            Tdata(:,H.FamNumLoc(3)) = {JmapNum};
+            Tdata(:,H.FamLoc(1)) = {Vname};
+            Tdata(:,H.FamLoc(2)) = Dmatch(1,2);
+            Tdata(:,H.FamLoc(3)) = {Jname};
 
             VDJdata(IdxLoc,:) = Tdata;
 
@@ -228,5 +228,5 @@ for y = 1:length(UnqGrpNum)
 end
 
 %Update those that have changed
-VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),NewHeader,'germline','first'); %must do first seq of all cluster
-VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),NewHeader,varargin);
+VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),VDJheader,'germline','first'); %must do first seq of all cluster
+VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),VDJheader,varargin);

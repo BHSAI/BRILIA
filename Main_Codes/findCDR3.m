@@ -3,40 +3,40 @@
 %the 104C and 118W codons expected by the reference sequence annotations.
 %This must be run after finding VDJ annotations.
 %
-%  VDJdata = findCDR3(VDJdata, NewHeader)
+%  VDJdata = findCDR3(VDJdata, VDJheader)
 %
-%  VDJdata = findCDR3(VDJdata, NewHeader, Vmap, Dmap, Jmap)
+%  VDJdata = findCDR3(VDJdata, VDJheader, Vmap, Dmap, Jmap)
 %
-%  [VDJdata, BadIdx] = findCDR3(VDJdata, NewHeader)
+%  [VDJdata, BadIdx] = findCDR3(VDJdata, VDJheader)
 
-function [VDJdata,varargout] = findCDR3(VDJdata,NewHeader,varargin)
+function [VDJdata,varargout] = findCDR3(VDJdata,VDJheader,varargin)
 %Extract the VDJ database
 if length(varargin) >= 3
     [Vmap,Dmap,Jmap] = deal(varargin{1:3});
 else
     [Vmap,Dmap,Jmap] = getCurrentDatabase;
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 BadIdx = zeros(size(VDJdata,1),'logical');
 for j = 1:size(VDJdata,1)
     try
         %Get basic annotation information
-        Seq = VDJdata{j,SeqLoc};
-        VMDNJ = cell2mat(VDJdata(j,LengthLoc));
+        Seq = VDJdata{j,H.SeqLoc};
+        VMDNJ = cell2mat(VDJdata(j,H.LengthLoc));
         Vlen = VMDNJ(1);
-        Vdel = VDJdata{j,DelLoc(1)};
+        Vdel = VDJdata{j,H.DelLoc(1)};
         Jlen = VMDNJ(5);
-        Jdel = VDJdata{j,DelLoc(4)};
+        Jdel = VDJdata{j,H.DelLoc(4)};
         
         %Recalculate the CDR3start, 104C codon 1st nt
-        VmapNum = VDJdata{j,FamNumLoc(1)}(1);
+        VmapNum = VDJdata{j,H.FamNumLoc(1)}(1);
         VrefCDR3 = Vmap{VmapNum,10}; %Location of C from right end of V
         CDR3start = Vlen + Vdel - VrefCDR3 + 1;
         if CDR3start < 0; CDR3start = 0; end
         
         %Recalculate the CDR3end, 118W/F codon 3rd nt
-        JmapNum = VDJdata{j,FamNumLoc(end)}(1);
+        JmapNum = VDJdata{j,H.FamNumLoc(end)}(1);
         JrefCDR3 = Jmap{JmapNum,10}; %Location of F/W from left end of J
         CDR3end = length(Seq) - (Jlen + Jdel) + JrefCDR3 + 2;
         if CDR3end < 0; CDR3end = 0; end
@@ -57,11 +57,11 @@ for j = 1:size(VDJdata,1)
         end
         
         %Fill in the VDJdata
-        VDJdata(j,CDR3Loc) = {CDR3aa length(CDR3aa) CDR3start CDR3end};
+        VDJdata(j,H.CDR3Loc) = {CDR3aa length(CDR3aa) CDR3start CDR3end};
     catch
         ErrorMsg = sprintf('Errored at %s, sequence # %d',mfilename,j);
         disp(ErrorMsg);
-        VDJdata{j,MiscLoc} = ErrorMsg;
+        VDJdata{j,H.MiscLoc} = ErrorMsg;
         BadIdx(j) = 1;   
     end
 end

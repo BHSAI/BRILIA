@@ -10,7 +10,7 @@
 %3) For each root of each cluster, attempt to link to another cluster's
 %node or leaf.
 
-function [AncMapCell,varargout] = buildTreeLink(Tdata,NewHeader,varargin)
+function [AncMapCell,varargout] = buildTreeLink(Tdata,VDJheader,varargin)
 %Remember, pairwise distance from SHMHAM is doubled the hamming distance
 %because original SHMHAM dist uses 0.5 fraction, which is bad for memory
 %usage of matrices that could have used int16 format.
@@ -19,17 +19,17 @@ if isempty(varargin)
 else
     CutoffDist = varargin{1}*2;
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 %==========================================================================
 % %Ensure all sequence lengths are the same, aligned based on the CDR3endLoc.
-% Tdata = trimSeq(Tdata,NewHeader);
+% Tdata = trimSeq(Tdata,VDJheader);
 
 %Identify starting point clusters. Will do cluster-cluster linking later.
-[PairDist,~] = calcPairDist(Tdata(:,SeqLoc),'shmham'); %Parent is each rows, Child is each column. Note that SHMHAM distance is doubled by default, to ensure integer values.
+[PairDist,~] = calcPairDist(Tdata(:,H.SeqLoc),'shmham'); %Parent is each rows, Child is each column. Note that SHMHAM distance is doubled by default, to ensure integer values.
 AncMap = [[1:size(PairDist,1)]' zeros(size(PairDist,1),4)]; %[ChildNum ParNum SHMHAMdist Template ClusterNum]
-if TemplateLoc > 0
-    AncMap(:,4) = cell2mat(Tdata(:,TemplateLoc));
+if H.TemplateLoc > 0
+    AncMap(:,4) = cell2mat(Tdata(:,H.TemplateLoc));
     AncMap(isnan(AncMap(:,4)),4) = 1;
     AncMap(AncMap(:,4)==0,4) = 1;
 else
@@ -78,9 +78,9 @@ while max(AncCycle) > 0
                 VDJscore = zeros(length(RootLoc),5);
                 for g = 1:length(RootLoc)
                     %Extract data needed to calculate scores
-                    VMDNJ = cell2mat(Tdata(RootLoc(g),LengthLoc));
-                    CurSeq = Tdata{RootLoc(g),SeqLoc};
-                    RefSeq = Tdata{RootLoc(g),RefSeqLoc};
+                    VMDNJ = cell2mat(Tdata(RootLoc(g),H.LengthLoc));
+                    CurSeq = Tdata{RootLoc(g),H.SeqLoc};
+                    RefSeq = Tdata{RootLoc(g),H.RefSeqLoc};
                     SeqDiff = CurSeq == RefSeq;
                     TempCt = AncMap(RootLoc(g)==AncMap(:,1),4);
                     
@@ -160,14 +160,14 @@ for j= 1:size(AncMapCell,1)
     AncMapT = AncMap(AncMap(:,end)==j,:);
     AncMapT(:,3) = AncMapT(:,3)/2; %Remember, SHMHAM was doubled for algorithm purposes, so need to divide back by 2;
     AncMapCell{j,1} = AncMapT;
-    AncMapCell{j,2} = Tdata(AncMapT(:,1),CDR3Loc(1)); %Save the CDR3 info
+    AncMapCell{j,2} = Tdata(AncMapT(:,1),H.CDR3Loc(1)); %Save the CDR3 info
 end
 
 %Restructure Tdata according to ordering
 if nargout == 2   
     GrpNum = 1;
     S1 = 1; %Start index of TdataNew
-    TdataNew = cell(size(Tdata,1),length(NewHeader));
+    TdataNew = cell(size(Tdata,1),length(VDJheader));
     for k = 1:size(AncMapCell,1)
         
         %Extract the data for this cluster
@@ -185,9 +185,9 @@ if nargout == 2
         AncMapCell{k} = AncMapT;
         
         %If there is the TreeCountLoc, fill in the data here
-        if ChildCountLoc > 0
+        if H.ChildCountLoc > 0
             for w = 1:size(TdataT,1)
-                TdataT{w,ChildCountLoc} = length(findChild(AncMapT,AncMapT(w,1)));
+                TdataT{w,H.ChildCountLoc} = length(findChild(AncMapT,AncMapT(w,1)));
             end
         end
             
@@ -196,19 +196,19 @@ if nargout == 2
             CurLoc = AncMapT(h,2);
             if CurLoc > 0
                 ParLoc = AncMapT(:,1) == CurLoc;
-                TdataT(h,RefSeqLoc) = TdataT(ParLoc,SeqLoc);
+                TdataT(h,H.RefSeqLoc) = TdataT(ParLoc,H.SeqLoc);
             end
         end
         
         %Add the TdataNew entries, and update S1 and GrpNum counters
         S2 = S1 + size(AncMapCell{k,1},1)-1; %Final index of TdataNew
         TdataNew(S1:S2,1:size(TdataT,2)) = TdataT;
-        TdataNew(S1:S2,GrpNumLoc) = repmat({GrpNum},S2-S1+1,1);
+        TdataNew(S1:S2,H.GrpNumLoc) = repmat({GrpNum},S2-S1+1,1);
         S1 = S2 + 1;
         GrpNum = GrpNum + 1;
     end
     
-%     AncMapCell = calcAncMapCell(TdataNew,NewHeader);
+%     AncMapCell = calcAncMapCell(TdataNew,VDJheader);
 %     for k = 1:size(AncMapCell,1)
 %         NewAncMap = AncMapCell{k};
 %         TreeMapTemp= findTreeClust(NewAncMap);

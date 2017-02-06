@@ -20,23 +20,23 @@ if isempty(FullPath2)
 end
 
 %Select the annotated file
-[VDJdata1, NewHeader, FileName1, FilePath1] = openSeqData(FullPath1);
-getHeaderVar;
-SeqLoc1 = SeqLoc;
-SeqNumLoc1 = SeqNumLoc;
-GrpNumLoc1 = GrpNumLoc;
-RefSeqLoc1 = RefSeqLoc;
-FamLoc1 = FamLoc;
-FamNumLoc1 = FamNumLoc;
+[VDJdata1, VDJheader, FileName1, FilePath1] = openSeqData(FullPath1);
+H = getHeaderVar(VDJheader);
+SeqLoc1 = H.SeqLoc;
+SeqNumLoc1 = H.SeqNumLoc;
+GrpNumLoc1 = H.GrpNumLoc;
+RefSeqLoc1 = H.RefSeqLoc;
+FamLoc1 = H.FamLoc;
+FamNumLoc1 = H.FamNumLoc;
 
-[VDJdata2, NewHeader, FileName2, FilePath2] = openSeqData(FullPath2);
-getHeaderVar;
-SeqLoc2 = SeqLoc;
-SeqNumLoc2 = SeqNumLoc;
-GrpNumLoc2 = GrpNumLoc;
-RefSeqLoc2 = RefSeqLoc;
-FamLoc2 = FamLoc;
-FamNumLoc2 = FamNumLoc;
+[VDJdata2, VDJheader, FileName2, FilePath2] = openSeqData(FullPath2);
+H = getHeaderVar(VDJheader);
+SeqLoc2 = H.SeqLoc;
+SeqNumLoc2 = H.SeqNumLoc;
+GrpNumLoc2 = H.GrpNumLoc;
+RefSeqLoc2 = H.RefSeqLoc;
+FamLoc2 = H.FamLoc;
+FamNumLoc2 = H.FamNumLoc;
 
 VDJdata1 = removeNAN(VDJdata1);
 VDJdata2 = removeNAN(VDJdata2);
@@ -97,7 +97,7 @@ for j = 1:size(VDJdata1,1)
         MisMatchCt(j) = -1;
         continue
     end
-    if VDJdata1{j,FunctLoc} == 'N' || VDJdata2{j,FunctLoc} == 'N'
+    if VDJdata1{j,H.FunctLoc} == 'N' || VDJdata2{j,H.FunctLoc} == 'N'
         MisMatchCt(j) = -1;
         continue
     end

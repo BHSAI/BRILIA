@@ -130,9 +130,9 @@ for f = 1:length(FullFileNames)
     tic
 
     %Open file and extract nucleotide information, or directly use input NTseq
-    [VDJdata,NewHeader,FileName,FilePath] = convertInput2VDJdata(FullFileNames{f},'FileType',FileType,'Delimiter',Delimiter);
+    [VDJdata,VDJheader,FileName,FilePath] = convertInput2VDJdata(FullFileNames{f},'FileType',FileType,'Delimiter',Delimiter);
     BadVDJdata = {}; %For storing unprocessed sequences
-    getHeaderVar;
+    H = getHeaderVar(VDJheader);
     
     %==========================================================================
     %BRILIA processing begins here
@@ -148,7 +148,7 @@ for f = 1:length(FullFileNames)
 
     %Check input sequence for bad characters
     disp('Removing ambiguous nucletides and odd sequences.')
-    [VDJdata,BadIdx] = fixInputSeq(VDJdata,NewHeader);
+    [VDJdata,BadIdx] = fixInputSeq(VDJdata,VDJheader);
         BadVDJdata = [BadVDJdata; VDJdata(BadIdx,:)];
         VDJdata(BadIdx,:) = [];
         if isempty(VDJdata); continue; end %didn't open file right
@@ -157,71 +157,71 @@ for f = 1:length(FullFileNames)
     %alignment. Do this here, and not when doing VDJ alignment, because users
     %might have complement sequences which must be flipped.
     disp('Determining sequence direction and CDR3 areas.')
-    VDJdata = seedCDR3position(VDJdata,NewHeader,Vmap,'V',15,2,CheckSeqDir);
-    VDJdata = seedCDR3position(VDJdata,NewHeader,Jmap,'J',3,14,'n');
+    VDJdata = seedCDR3position(VDJdata,VDJheader,Vmap,'V',15,2,CheckSeqDir);
+    VDJdata = seedCDR3position(VDJdata,VDJheader,Jmap,'J',3,14,'n');
 
     %Search for initial VDJ alignment matches (no try = 4x faster)
     disp('Finding initial-guess VDJ annotations.')
-    [VDJdata,BadIdx] = findVDJmatch(VDJdata,NewHeader,Vmap,Dmap,Jmap,'update'); %Need to implement J's are not overrride from above
+    [VDJdata,BadIdx] = findVDJmatch(VDJdata,VDJheader,Vmap,Dmap,Jmap,'update'); %Need to implement J's are not overrride from above
         BadVDJdata = [BadVDJdata; VDJdata(BadIdx,:)];
         VDJdata(BadIdx,:) = [];
         if isempty(VDJdata); continue; end %didn't open file right
 
     %Fix insertion/deletion in V framework
     disp('Fixing indels within V segment.')
-    VDJdata = fixGeneIndel(VDJdata,NewHeader,Vmap,Dmap,Jmap);
-    checkVDJdata(VDJdata,NewHeader,'fixGeneIndel',DebugModeOn);
+    VDJdata = fixGeneIndel(VDJdata,VDJheader,Vmap,Dmap,Jmap);
+    checkVDJdata(VDJdata,VDJheader,'fixGeneIndel',DebugModeOn);
 
     %Remove pseudogenes from degenerate annotations containing functional ones.
     disp('Removing pseudo and ORF genes if functional genes are available.')
-    VDJdata = fixDegenVDJ(VDJdata,NewHeader,Vmap,Dmap,Jmap);
-    checkVDJdata(VDJdata,NewHeader,'fixDegenVDJ',DebugModeOn);
+    VDJdata = fixDegenVDJ(VDJdata,VDJheader,Vmap,Dmap,Jmap);
+    checkVDJdata(VDJdata,VDJheader,'fixDegenVDJ',DebugModeOn);
 
     %Insure that V and J segments cover the CDR3 region.
     disp('Checking if V and J segments includes 104C and 118W.')
-    VDJdata = constrainGeneVJ(VDJdata,NewHeader,Vmap,Dmap,Jmap);
-    checkVDJdata(VDJdata,NewHeader,'constrainGeneVJ',DebugModeOn);
+    VDJdata = constrainGeneVJ(VDJdata,VDJheader,Vmap,Dmap,Jmap);
+    checkVDJdata(VDJdata,VDJheader,'constrainGeneVJ',DebugModeOn);
 
     %Pad sequences CDR3 length also have same Seq Length (required for cluster)
-    [VDJdata, BadVDJdataT] = padtrimSeqGroup(VDJdata,NewHeader,'cdr3length','max','Seq');
+    [VDJdata, BadVDJdataT] = padtrimSeqGroup(VDJdata,VDJheader,'cdr3length','max','Seq');
         BadVDJdata = [BadVDJdata; BadVDJdataT];
         clear BadVDJdataT;
         if isempty(VDJdata); continue; end %didn't open file right
-    checkVDJdata(VDJdata,NewHeader,'padtrimSeqGroup',DebugModeOn);
+    checkVDJdata(VDJdata,VDJheader,'padtrimSeqGroup',DebugModeOn);
 
     %Remove duplicate VDJdata entries that can cause error in tree clustering
-    VDJdata = removeDupSeq(VDJdata,NewHeader);
-    checkVDJdata(VDJdata,NewHeader,'removeDupSeq',DebugModeOn);
+    VDJdata = removeDupSeq(VDJdata,VDJheader);
+    checkVDJdata(VDJdata,VDJheader,'removeDupSeq',DebugModeOn);
 
     %Cluster the data based variable region and hamming dist of DevPerc%.
     disp('Performing lineage tree clustering.')
-    VDJdata = clusterGene(VDJdata,NewHeader,DevPerc);
-    checkVDJdata(VDJdata,NewHeader,'clusterGene',DebugModeOn);
+    VDJdata = clusterGene(VDJdata,VDJheader,DevPerc);
+    checkVDJdata(VDJdata,VDJheader,'clusterGene',DebugModeOn);
 
     %Set all groups to have same annotation and VMDNJ lengths.
     disp('Conforming VDJ annotations within clusters.')
-    VDJdata = conformGeneGroup(VDJdata,NewHeader,Vmap,Dmap,Jmap);
-    checkVDJdata(VDJdata,NewHeader,'conformGeneGroup',DebugModeOn);
+    VDJdata = conformGeneGroup(VDJdata,VDJheader,Vmap,Dmap,Jmap);
+    checkVDJdata(VDJdata,VDJheader,'conformGeneGroup',DebugModeOn);
 
     %Get better D match based on location of consensus V J mismatches.
     disp('Refining D annotations within clusters')
-    VDJdata = findBetterD(VDJdata,NewHeader,Vmap,Dmap,Jmap);
-    checkVDJdata(VDJdata,NewHeader,'findBetterD',DebugModeOn);
+    VDJdata = findBetterD(VDJdata,VDJheader,Vmap,Dmap,Jmap);
+    checkVDJdata(VDJdata,VDJheader,'findBetterD',DebugModeOn);
 
     %Trim V, D, J edges and extract better N regions
     disp('Refining N regions within clusters by trimming VDJ')
-    VDJdata = trimGeneEdge(VDJdata,NewHeader);
-    checkVDJdata(VDJdata,NewHeader,'trimGeneEdge',DebugModeOn);
+    VDJdata = trimGeneEdge(VDJdata,VDJheader);
+    checkVDJdata(VDJdata,VDJheader,'trimGeneEdge',DebugModeOn);
 
     %Fix obviously incorrect trees.
     disp('Fixing obvious errors in lineage trees.')
-    VDJdata = fixTree(VDJdata,NewHeader);
-    checkVDJdata(VDJdata,NewHeader,'fixTree',DebugModeOn);
+    VDJdata = fixTree(VDJdata,VDJheader);
+    checkVDJdata(VDJdata,VDJheader,'fixTree',DebugModeOn);
 
     %Finalize VDJdata details
-    VDJdata = padtrimSeqGroup(VDJdata,NewHeader,'grpnum','trim','RefSeq'); %will only remove "x" before and after sequences if they all have it. 
-    VDJdata = buildRefSeq(VDJdata,NewHeader,'germline','first'); %must do first seq of all cluster only
-    VDJdata = updateVDJdata(VDJdata,NewHeader,Vmap,Dmap,Jmap);
+    VDJdata = padtrimSeqGroup(VDJdata,VDJheader,'grpnum','trim','RefSeq'); %will only remove "x" before and after sequences if they all have it. 
+    VDJdata = buildRefSeq(VDJdata,VDJheader,'germline','first'); %must do first seq of all cluster only
+    VDJdata = updateVDJdata(VDJdata,VDJheader,Vmap,Dmap,Jmap);
 
     %==========================================================================
     %Save the final annotation data
@@ -240,12 +240,12 @@ for f = 1:length(FullFileNames)
 
     %Save the annotated file
     SaveFullName = sprintf('%s%s.BRILIAv%s.%s',SavePath,FileName(1:DotLoc(end)-1),Version,'csv');
-    saveSeqData(SaveFullName,VDJdata,NewHeader,'Delimiter',SaveDelimiter);
+    saveSeqData(SaveFullName,VDJdata,VDJheader,'Delimiter',SaveDelimiter);
 
     %Save any unprocessed sequence
     if ~isempty(BadVDJdata)
         BadSaveFullName = sprintf('%s%s.BRILIAv%s.Err.%s',SavePath,FileName(1:DotLoc(end)-1),Version,'csv');
-        saveSeqData(BadSaveFullName,BadVDJdata,NewHeader,'Delimiter',SaveDelimiter);
+        saveSeqData(BadSaveFullName,BadVDJdata,VDJheader,'Delimiter',SaveDelimiter);
     end
 
     %Save the settings file

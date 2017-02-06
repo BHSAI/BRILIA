@@ -11,22 +11,22 @@
 
 function Output = findVvsCDR3mut(varargin)
 if isempty(varargin)
-    [VDJdata,NewHeader,FileName,FilePath] = openSeqData;
+    [VDJdata,VDJheader,FileName,FilePath] = openSeqData;
 else
     VDJdata = varargin{1};
-    NewHeader = varargin{2};
+    VDJheader = varargin{2};
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 Output = zeros(size(VDJdata,1),2);
 for y = 1:length(UnqGrpNum)
     IdxLoc = find(UnqGrpNum(y) == GrpNum);
-    RefSeq = VDJdata{IdxLoc(1),SeqLoc}; %Always with respect to root seq.
+    RefSeq = VDJdata{IdxLoc(1),H.SeqLoc}; %Always with respect to root seq.
     for j = 1:length(IdxLoc)
-        Seq = VDJdata{IdxLoc(j),SeqLoc};
-        CDR3loc = cell2mat(VDJdata(IdxLoc(j),CDR3Loc(3:4))) + [+3 -3];%Excludes the 104C and 118W
+        Seq = VDJdata{IdxLoc(j),H.SeqLoc};
+        CDR3loc = cell2mat(VDJdata(IdxLoc(j),H.CDR3Loc(3:4))) + [+3 -3];%Excludes the 104C and 118W
         if CDR3loc(2) > length(Seq);
             CDR3loc(2) = length(Seq);
         end
@@ -48,17 +48,17 @@ end
 % [Vmap,~,Jmap] = getCurrentDatabase;
 % 
 % %Extract the maximum mutations per clonal group in V_before104C and CDR3
-% GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+% GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 % UnqGrpNum = unique(GrpNum);
 % Vmut = zeros(length(UnqGrpNum),1);
 % CDR3mut = zeros(length(UnqGrpNum),1);
 % for y = 1:length(UnqGrpNum)
 %     GrpIdx = find(UnqGrpNum(y) == GrpNum);
 %     Tdata = VDJdata(GrpIdx,:);    
-%     RefSeq = Tdata{1,RefSeqLoc}; %Assumes first seq in group is root
+%     RefSeq = Tdata{1,H.RefSeqLoc}; %Assumes first seq in group is root
 %     
 %     %In case there's an issue with RefSeq determination
-%     if length(RefSeq) ~= length(VDJdata{GrpIdx(1),SeqLoc})
+%     if length(RefSeq) ~= length(VDJdata{GrpIdx(1),H.SeqLoc})
 %         continue
 %     end
 %     
@@ -66,19 +66,19 @@ end
 %     VmutT = zeros(size(Tdata,1),1);
 %     CDR3mutT = zeros(size(Tdata,1),1);
 %     for j = 1:size(Tdata,1)
-%         SamSeq = Tdata{j,SeqLoc};
-%         VMDNJ = cell2mat(Tdata(j,LengthLoc));
+%         SamSeq = Tdata{j,H.SeqLoc};
+%         VMDNJ = cell2mat(Tdata(j,H.LengthLoc));
 % 
 %         %Identify 104C location
-%         Vnum = Tdata{j,FamNumLoc(1)}(1);
+%         Vnum = Tdata{j,H.FamNumLoc(1)}(1);
 %         VlocC = Vmap{Vnum,end};
-%         Vdel = Tdata{j,DelLoc(1)};
+%         Vdel = Tdata{j,H.DelLoc(1)};
 %         Loc104C = VMDNJ(1) + Vdel - VlocC + 1;
 % 
 %         %Identify 118W location
-%         Jnum = Tdata{j,FamNumLoc(3)}(1);
+%         Jnum = Tdata{j,H.FamNumLoc(3)}(1);
 %         JlocW = Jmap{Jnum,end};
-%         Jdel = Tdata{j,DelLoc(end)};
+%         Jdel = Tdata{j,H.DelLoc(end)};
 %         Loc118W = sum(VMDNJ(1:4)) - Jdel + JlocW + 2;
 %         if Loc118W > sum(VMDNJ)
 %             Loc118W = sum(VMDNJ);

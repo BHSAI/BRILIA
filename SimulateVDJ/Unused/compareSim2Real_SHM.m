@@ -20,21 +20,21 @@ if isempty(FullPath2)
 end
 
 %Select the annotated file
-[VDJdata1, NewHeader, FileName1, FilePath1] = openSeqData(FullPath1);
-getHeaderVar;
+[VDJdata1, VDJheader, FileName1, FilePath1] = openSeqData(FullPath1);
+H = getHeaderVar(VDJheader);
 VDJdata1 = removeNAN(VDJdata1);
-SeqLoc1 = SeqLoc;
-SeqNumLoc1 = SeqNumLoc;
-GrpNumLoc1 = GrpNumLoc;
-RefSeqLoc1 = RefSeqLoc;
+SeqLoc1 = H.SeqLoc;
+SeqNumLoc1 = H.SeqNumLoc;
+GrpNumLoc1 = H.GrpNumLoc;
+RefSeqLoc1 = H.RefSeqLoc;
 
-[VDJdata2, NewHeader, FileName2, FilePath2] = openSeqData(FullPath2);
-getHeaderVar;
+[VDJdata2, VDJheader, FileName2, FilePath2] = openSeqData(FullPath2);
+H = getHeaderVar(VDJheader);
 VDJdata2 = removeNAN(VDJdata2);
-SeqLoc2 = SeqLoc;
-SeqNumLoc2 = SeqNumLoc;
-GrpNumLoc2 = GrpNumLoc;
-RefSeqLoc2 = RefSeqLoc;
+SeqLoc2 = H.SeqLoc;
+SeqNumLoc2 = H.SeqNumLoc;
+GrpNumLoc2 = H.GrpNumLoc;
+RefSeqLoc2 = H.RefSeqLoc;
 
 %For the 2nd dataset, you want to ensure all REFSEQ is set to the ROOT's
 %REFSEQ. That is because BRILIA returns parent-child seq, when we want to
@@ -66,8 +66,8 @@ UnqGrpNum1 = unique(GrpNum1);
 StatData = zeros(6,4);
 for y = 1:length(UnqGrpNum1)
     IdxLoc = find(UnqGrpNum1(y) == GrpNum1);
-    CDR3start = VDJdata1{IdxLoc(1),CDR3Loc(3)};
-    CDR3end = VDJdata1{IdxLoc(1),CDR3Loc(4)};
+    CDR3start = VDJdata1{IdxLoc(1),H.CDR3Loc(3)};
+    CDR3end = VDJdata1{IdxLoc(1),H.CDR3Loc(4)};
     for k = 1:length(IdxLoc)
         Seq1 = VDJdata1{IdxLoc(k),SeqLoc1};
         RefSeq1 = VDJdata1{IdxLoc(k),RefSeqLoc1};

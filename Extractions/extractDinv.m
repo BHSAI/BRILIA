@@ -4,14 +4,14 @@
 
 function extractDinv()
 
-[VDJdata, NewHeader, FileName, FilePath] = openSeqData();
+[VDJdata, VDJheader, FileName, FilePath] = openSeqData();
 
 %Locate necessary data columns
-FamNumLoc = findHeader(NewHeader,{'vMapNum','dMapNum','jMapNum'});
+H.FamNumLoc = findHeader(VDJheader,{'vMapNum','dMapNum','jMapNum'});
 
 KeepThis = zeros(size(VDJdata,1),1) > 0;
 for j = 1:size(VDJdata,1)
-    FamNum = VDJdata{j,FamNumLoc(2)};
+    FamNum = VDJdata{j,H.FamNumLoc(2)};
     for k = 1:length(FamNum)
         if mod(FamNum(k),2) == 0
             KeepThis(j) = 1;
@@ -31,12 +31,12 @@ SavePath = FilePath;
 VDJdataRaw = reformatAlignment(VDJdata,1);
 for d1 = 1:size(VDJdata,1)
     for d2 = 1:3
-        VDJdataRaw{d1,FamNumLoc(d2)} = mat2str(VDJdataRaw{d1,FamNumLoc(d2)});
+        VDJdataRaw{d1,H.FamNumLoc(d2)} = mat2str(VDJdataRaw{d1,H.FamNumLoc(d2)});
     end
 end
 
 if ispc
-    xlswrite([SavePath SaveNamePre '.Dinv.xlsx'],cat(1,NewHeader,VDJdataRaw));
+    xlswrite([SavePath SaveNamePre '.Dinv.xlsx'],cat(1,VDJheader,VDJdataRaw));
 else
-    writeDlmFile(cat(1,NewHeader,VDJdataRaw),[SavePath SaveNamePre '.Dinv.csv'],'\t');
+    writeDlmFile(cat(1,VDJheader,VDJdataRaw),[SavePath SaveNamePre '.Dinv.csv'],'\t');
 end

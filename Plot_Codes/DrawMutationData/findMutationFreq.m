@@ -5,11 +5,11 @@
 %
 %  MutData = getMutationData
 %
-%  Output = getMutationData(VDJdata,NewHeader)
+%  Output = getMutationData(VDJdata,VDJheader)
 %
 %  INPUT
 %    VDJdata: MxN cell of all VDJ annotaiton data
-%    NewHeader: 1xN cell of all header name for VDJdata
+%    VDJheader: 1xN cell of all header name for VDJdata
 %
 %  OUTPUT
 %    MutData: structure containing relevant SHM data such. Field are:
@@ -36,35 +36,35 @@ findMutationFreq will look for the nt mutations found between the sequence
 %  VDJlen tells the length of the V, D, J segments, cumulative, just in
 %  case you want to normalize.
 %
-%  [Vmat, Dmat, Jmat, VDJlen] = findMutationFreq(VDJdata,NewHeader,Option)
+%  [Vmat, Dmat, Jmat, VDJlen] = findMutationFreq(VDJdata,VDJheader,Option)
 %
 %  Option = 'single' will compare mut per sequence
 %  Option = 'group' will compare mut per sequence with respect to 1st seq's ref 
-function varargout = findMutationFreq(VDJdata,NewHeader,Option)
+function varargout = findMutationFreq(VDJdata,VDJheader,Option)
 %See if user gave VDJdata
 if isempty(varargin) || (~isempty(varargin) && isempty(varargin{1})) %Need to find file
-    [VDJdata,NewHeader] = openSeqData;
+    [VDJdata,VDJheader] = openSeqData;
 elseif ~isempty(varargin)
     if ischar(varargin{1}) %Filename was given
-        [VDJdata,NewHeader] = openSeqData(varargin{1});
-    elseif length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2}) %VDJdata and NewHeader was given
+        [VDJdata,VDJheader] = openSeqData(varargin{1});
+    elseif length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2}) %VDJdata and VDJheader was given
         VDJdata = varargin{1};
-        NewHeader = varargin{2};
+        VDJheader = varargin{2};
     end
 else
     error('getTreeData: Check the inputs');
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 %Extract sequence grouping information
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 
 
 
 
 
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 VDJmat = zeros(4,4,3);
 VDJlen = zeros(1,3);
@@ -78,7 +78,7 @@ JmutCt = zeros(size(VDJdata,1),1);
 if strcmpi(Option,'single')
     GrpNum = [1:size(VDJdata,1)]';
 else
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 end
 UnqGrpNum = unique(GrpNum);
 
@@ -87,8 +87,8 @@ for y = 1:length(UnqGrpNum)
     
     for j = 1:length(IdxLoc)
         %Obtain necessary informations
-        Seq = char(VDJdata{IdxLoc(j),SeqLoc});
-        RefSeq = char(VDJdata{IdxLoc(1),RefSeqLoc});    
+        Seq = char(VDJdata{IdxLoc(j),H.SeqLoc});
+        RefSeq = char(VDJdata{IdxLoc(1),H.RefSeqLoc});    
         if length(RefSeq) ~= length(Seq)
             continue
         end
@@ -101,7 +101,7 @@ for y = 1:length(UnqGrpNum)
         MissLoc = find(MismatchLoc == 1);
 
         %Determine the V, D, J locations
-        VMDNJ = cell2mat(VDJdata(IdxLoc(j),LengthLoc));
+        VMDNJ = cell2mat(VDJdata(IdxLoc(j),H.LengthLoc));
         if sum(VMDNJ) ~= length(Seq)
             continue
         elseif isempty(VMDNJ)

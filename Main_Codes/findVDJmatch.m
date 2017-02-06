@@ -2,11 +2,11 @@
 %following order: find V preserving nts for DJ, find J perserving nts for
 %D, find D. This is good for getting an initial guess VDJ annotation.
 %
-%  VDJdata = findVDJmatch(VDJdata,NewHeader)
+%  VDJdata = findVDJmatch(VDJdata,VDJheader)
 %
-%  VDJdata = findVDJmatch(VDJdata,NewHeader,Vmap,Dmap,Jmap)
+%  VDJdata = findVDJmatch(VDJdata,VDJheader,Vmap,Dmap,Jmap)
 %
-%  VDJdata = findVDJmatch(VDJdata,NewHeader,Vmap,Dmap,Jmap,'update')
+%  VDJdata = findVDJmatch(VDJdata,VDJheader,Vmap,Dmap,Jmap,'update')
 %
 %  [VDJdata,BadIdx] = findVDJmatch(...)
 %
@@ -33,7 +33,7 @@
 %    conserved 118W. Otherwise, it either uses the seed from
 %    seedCDR3positoin or a full J alignment to determine the J segment.
 %
-function [VDJdata,varargout] = findVDJmatch(VDJdata,NewHeader,varargin)
+function [VDJdata,varargout] = findVDJmatch(VDJdata,VDJheader,varargin)
 %Look if update was specified first
 UpdateLoc = findCell(varargin,'update','MatchCase','any');
 if UpdateLoc(1) ~= 0 %There is an update input
@@ -63,22 +63,22 @@ if isempty(Vmap) || isempty(Dmap) || isempty(Jmap)
     [Vmap, Dmap, Jmap] = filterRefGene(Vmap,Dmap,Jmap);
 end
 
-%Bring some getHeaderVar variables out, since parfor can't handle it.
-SeqLoc = findCell(NewHeader,{'nucleotide','Seq'});
-LengthLoc = findCell(NewHeader,{'Length_V','Length_Nvd','Length_D','Length_Ndj','Length_J'});
-DelLoc = findCell(NewHeader,{'V_Deletion3','D_Deletion5','D_Deletion3','J_Deletion5'});
-FamNumLoc = findCell(NewHeader,{'V_MapNum','D_MapNum','J_MapNum'});
-FamLoc = findCell(NewHeader,{'V_GeneName','D_GeneName','J_GeneName'});
-MiscLoc = findCell(NewHeader,{'Misc'});
-CDR3startLoc = findCell(NewHeader,{'CDR3_Start'});
-CDR3endLoc = findCell(NewHeader,{'CDR3_End'});
+%Bring some H = getHeaderVar(VDJheader); variables out, since parfor can't handle it.
+H.SeqLoc = findCell(VDJheader,{'nucleotide','Seq'});
+H.LengthLoc = findCell(VDJheader,{'Length_V','Length_Nvd','Length_D','Length_Ndj','Length_J'});
+H.DelLoc = findCell(VDJheader,{'V_Deletion3','D_Deletion5','D_Deletion3','J_Deletion5'});
+H.FamNumLoc = findCell(VDJheader,{'V_MapNum','D_MapNum','J_MapNum'});
+H.FamLoc = findCell(VDJheader,{'V_GeneName','D_GeneName','J_GeneName'});
+H.MiscLoc = findCell(VDJheader,{'Misc'});
+CDR3startLoc = findCell(VDJheader,{'CDR3_Start'});
+CDR3endLoc = findCell(VDJheader,{'CDR3_End'});
 
 %Begin finding the VDJ genes   
 BadIdx = zeros(size(VDJdata,1),1,'logical');
 parfor j = 1:size(VDJdata,1)
     %Extract info from sliced VDJdata variable
     Tdata = VDJdata(j,:);
-    Seq = Tdata{1,SeqLoc};
+    Seq = Tdata{1,H.SeqLoc};
     CDR3start = Tdata{1,CDR3startLoc};
     if isempty(CDR3start); CDR3start = 0; end
     CDR3end = Tdata{1,CDR3endLoc};
@@ -143,18 +143,18 @@ parfor j = 1:size(VDJdata,1)
     Jlmr = cell2mat(Jmatch(1,4)); %D left mid right segment
     Dlmr = cell2mat(Dmatch(1,4)); %J left mid right segment
     VMDNJ = [sum(Vlmr(1:2)) Dlmr sum(Jlmr(2:3))]; %V, Nvd, D, Ndj, J lengths
-    Tdata(1,LengthLoc) = num2cell(VMDNJ);
+    Tdata(1,H.LengthLoc) = num2cell(VMDNJ);
 
     %Extract germline deletion info
     Vdel = Vmatch{1,3}(3);
     D5del = Dmatch{1,3}(1);
     D3del = Dmatch{1,3}(3);
     Jdel = Jmatch{1,3}(1);
-    Tdata(1,DelLoc) = num2cell([Vdel D5del D3del Jdel]);
+    Tdata(1,H.DelLoc) = num2cell([Vdel D5del D3del Jdel]);
 
     %Extract the gene family map number and family resolution
-    Tdata(1,FamNumLoc) = [Vmatch(1,1) Dmatch(1,1) Jmatch(1,1)];
-    Tdata(1,FamLoc) = [Vmatch(1,2) Dmatch(1,2) Jmatch(1,2)];
+    Tdata(1,H.FamNumLoc) = [Vmatch(1,1) Dmatch(1,1) Jmatch(1,1)];
+    Tdata(1,H.FamLoc) = [Vmatch(1,2) Dmatch(1,2) Jmatch(1,2)];
 
     VDJdata(j,:) = Tdata;
 end
@@ -164,14 +164,14 @@ BadLoc = find(BadIdx == 1);
 for b = 1:length(BadLoc)
     ErrorMsg = sprintf('Errored at %s, sequence # %d',mfilename,BadLoc(b));
     disp(ErrorMsg);
-    VDJdata{BadLoc(b),MiscLoc} = ErrorMsg;
+    VDJdata{BadLoc(b),H.MiscLoc} = ErrorMsg;
 end
 
 %Update VDJdata 
 if Update == 'y'
     UpdateIdx = ~BadIdx;
-    VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),NewHeader,'germline','single');
-    VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),NewHeader,Vmap,Dmap,Jmap);    
+    VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),VDJheader,'germline','single');
+    VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),VDJheader,Vmap,Dmap,Jmap);    
 end
 
 if nargout >=2

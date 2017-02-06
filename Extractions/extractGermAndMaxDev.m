@@ -11,16 +11,16 @@ if ischar(FileNames)
 end
 
 for f = 1:length(FileNames)
-    [VDJdata,NewHeader,FileName,FilePath] = openSeqData([FilePath FileNames{f}]);
-    getHeaderVar;
+    [VDJdata,VDJheader,FileName,FilePath] = openSeqData([FilePath FileNames{f}]);
+    H = getHeaderVar(VDJheader);
     
     %Removing the non-functional sequences, that has stop codon or
     %out-of-frame junctions. Pseudogenes?
-    DelThis = char(VDJdata(:,FunctLoc)) == 'N';
+    DelThis = char(VDJdata(:,H.FunctLoc)) == 'N';
     VDJdata(DelThis,:) = [];
     
     %Identify clonal groups and extract germSeq, maxHamDistSeq.
-    GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
     UnqGrpNum = unique(GrpNum);
     GermData = cell(length(UnqGrpNum),size(VDJdata,2)); %Stores the germline sequence
     DevData = cell(length(UnqGrpNum),size(VDJdata,2)); %Stores the maximum hamming distance one, tied broken with template count
@@ -30,14 +30,14 @@ for f = 1:length(FileNames)
         IdxLoc = find(UnqGrpNum(y) == GrpNum);
         RootLoc = IdxLoc(1);
         GermData(y,:) = VDJdata(RootLoc,:);
-        GermData(y,SeqLoc) = GermData(y,RefSeqLoc); %need to make sure Seq is the RefSeq;
+        GermData(y,H.SeqLoc) = GermData(y,H.RefSeqLoc); %need to make sure Seq is the RefSeq;
         
         %Find the maximum distance seq
-        RefSeq = GermData{y,SeqLoc};
+        RefSeq = GermData{y,H.SeqLoc};
         DistTrack = zeros(length(IdxLoc),3); %[HamDist TempCount IdxLoc]
         for k = 1:length(IdxLoc)
-            CurSeq = VDJdata{IdxLoc(k),SeqLoc};
-            TempCt = VDJdata{IdxLoc(k),TemplateLoc};
+            CurSeq = VDJdata{IdxLoc(k),H.SeqLoc};
+            TempCt = VDJdata{IdxLoc(k),H.TemplateLoc};
             HamDist = sum(CurSeq ~= RefSeq);
             DistTrack(k,:) = [HamDist TempCt IdxLoc(k)];
         end
@@ -47,10 +47,10 @@ for f = 1:length(FileNames)
     end
     
     %Rebuild SHM mutations and classifiers for the GermData
-    GermData = appendMutCt(GermData,NewHeader);
-    GermData = makeClassifier(GermData,NewHeader);
-    GermData = buildRefSeq(GermData,NewHeader,'single');
-    GermData = buildVDJalignment(GermData,NewHeader);
+    GermData = appendMutCt(GermData,VDJheader);
+    GermData = makeClassifier(GermData,VDJheader);
+    GermData = buildRefSeq(GermData,VDJheader,'single');
+    GermData = buildVDJalignment(GermData,VDJheader);
     
     %Select output file name
     DotLoc = find(FileName == '.');
@@ -66,18 +66,18 @@ for f = 1:length(FileNames)
     %Converting matrix to text for excel writing
     for q = 1:size(GermData,1)
         for w = 1:3
-            GermData{q,FamNumLoc(w)} = mat2str(GermData{q,FamNumLoc(w)});
-            DevData{q,FamNumLoc(w)} = mat2str(DevData{q,FamNumLoc(w)});
+            GermData{q,H.FamNumLoc(w)} = mat2str(GermData{q,H.FamNumLoc(w)});
+            DevData{q,H.FamNumLoc(w)} = mat2str(DevData{q,H.FamNumLoc(w)});
         end
     end
 
     %Save to excel or csv file, depending on OS
     if ispc
-        xlswrite([FilePath FileName1],cat(1,NewHeader,GermData));
-        xlswrite([FilePath FileName2],cat(1,NewHeader,DevData));
+        xlswrite([FilePath FileName1],cat(1,VDJheader,GermData));
+        xlswrite([FilePath FileName2],cat(1,VDJheader,DevData));
     else
-        writeDlmFile(cat(1,NewHeader,GermData),[FilePath FileName1],'\t');
-        writeDlmFile(cat(1,NewHeader,DevData),[FilePath FileName2],'\t');
+        writeDlmFile(cat(1,VDJheader,GermData),[FilePath FileName1],'\t');
+        writeDlmFile(cat(1,VDJheader,DevData),[FilePath FileName2],'\t');
     end
     
     %Convert to AdapFile, but remove the header

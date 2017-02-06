@@ -14,24 +14,24 @@
 
 function Output = findMutationCorr(varargin)
 if isempty(varargin)
-    [VDJdata, NewHeader, ~, ~] = openSeqData;
+    [VDJdata, VDJheader, ~, ~] = openSeqData;
 else
     VDJdata = varargin{1};
-    NewHeader = varargin{2};
+    VDJheader = varargin{2};
 end
-getHeaderVar;
+H = getHeaderVar(VDJheader);
 
 Output = zeros(size(VDJdata,1),8);
 for j = 1:size(VDJdata,1)
-    %GroupLen = sum((VDJdata{j,GrpNumLoc} == GrpNum));
-    SamSeq = VDJdata{j,SeqLoc}; 
-    RefSeq = VDJdata{j,RefSeqLoc};    
+    %GroupLen = sum((VDJdata{j,H.GrpNumLoc} == GrpNum));
+    SamSeq = VDJdata{j,H.SeqLoc}; 
+    RefSeq = VDJdata{j,H.RefSeqLoc};    
     if length(RefSeq) ~= length(SamSeq) %Something is wrong, skip
         continue
     end
     
     %Extract only the VDJ nts
-    VMDNJ = cell2mat(VDJdata(j,LengthLoc));
+    VMDNJ = cell2mat(VDJdata(j,H.LengthLoc));
     VDJloc = [1:VMDNJ(1) sum(VMDNJ(1:2))+1:sum(VMDNJ(1:3)) sum(VMDNJ(1:4))+1:sum(VMDNJ)];
     SamVDJ = SamSeq(VDJloc);
     RefVDJ = RefSeq(VDJloc);

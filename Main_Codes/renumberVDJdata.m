@@ -1,7 +1,7 @@
 %renumberVDJdata will renumber AND reorder the sequence numbers in VDJdata
 %to go chronologically in order per each grp num.
 %
-%  VDJdata = renumberVDJdata(VDJdata,NewHeader,Option1,Option2)
+%  VDJdata = renumberVDJdata(VDJdata,VDJheader,Option1,Option2)
 %
 %  INPUT
 %    Option1 ['seq']: Renumber sequence numbers
@@ -18,9 +18,9 @@
 %  
 %  EXAMPLES
 %    VDJdata = num2cell([[1 3 4 7 2 8 13]' [1 1 1 3 1 3 3]']);
-%    NewHeader = {'SeqNum','GroupNum'};
+%    VDJheader = {'SeqNum','GroupNum'};
 %
-%    VDJdata = renumberVDJdata(VDJdata,NewHeader,'seq')
+%    VDJdata = renumberVDJdata(VDJdata,VDJheader,'seq')
 %    SeqNum    GrpNum  -->   SeqNum    GrpNum
 %    1         1             1         1
 %    3         1             2         1
@@ -30,7 +30,7 @@
 %    8         3             6         3
 %    13        3             7         3
 %
-%    VDJdata = renumberVDJdata(VDJdata,NewHeader,'grp')
+%    VDJdata = renumberVDJdata(VDJdata,VDJheader,'grp')
 %    SeqNum    GrpNum  -->   SeqNum    GrpNum
 %    1         1             1         1
 %    3         1             3         1
@@ -40,7 +40,7 @@
 %    8         3             8         2
 %    13        3             13        2
 %
-%    VDJdata = renumberVDJdata(VDJdata,NewHeader,'seq','grp')
+%    VDJdata = renumberVDJdata(VDJdata,VDJheader,'seq','grp')
 %    SeqNum    GrpNum  -->   SeqNum    GrpNum
 %    1         1             1         1
 %    3         1             2         1
@@ -50,8 +50,8 @@
 %    8         3             6         2
 %    13        3             7         2
 
-function VDJdata = renumberVDJdata(VDJdata,NewHeader,varargin)
-getHeaderVar;
+function VDJdata = renumberVDJdata(VDJdata,VDJheader,varargin)
+H = getHeaderVar(VDJheader);
 
 %Determine which options were given
 SeqOption = 0; %Default, renumber sequences. Logical value.
@@ -64,7 +64,7 @@ if max(findCell(varargin,'grp','MatchCase','any')) > 0
 end
 
 %Begin grp sorting, preserving relative sequence number
-GrpNum = cell2mat(VDJdata(:,GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 GrpMap = [GrpNum [1:length(GrpNum)]'];
 [GrpMap,GrpSortIdx] = sortrows(GrpMap,[1 2]); %Sort by group, then temp seq order number
 GrpNum = GrpMap(:,1);
@@ -81,10 +81,10 @@ if GrpOption == 1
         end
         GrpNum(j) = GrpCt;
     end   
-    VDJdata(:,GrpNumLoc) = num2cell(GrpNum);
+    VDJdata(:,H.GrpNumLoc) = num2cell(GrpNum);
 end
 
 %Renubmer to sequence numbers
 if SeqOption == 1 
-    VDJdata(:,SeqNumLoc) = num2cell(1:size(VDJdata,1));
+    VDJdata(:,H.SeqNumLoc) = num2cell(1:size(VDJdata,1));
 end

@@ -11,22 +11,22 @@ end
 
 for j = 1:length(FileNames)
     FileName = FileNames{j};
-    [VDJdata,NewHeader] = openSeqData([FilePath FileName]);    
-    getHeaderVar;
+    [VDJdata,VDJheader] = openSeqData([FilePath FileName]);    
+    H = getHeaderVar(VDJheader);
     
     %Assign seq header name if none is inputted
     if isempty(varargin)
-        if SeqLoc == 0
+        if H.SeqLoc == 0
             error('Error: Could not find the nucleotide column');
         else
-            Seq = VDJdata(:,SeqLoc);
+            Seq = VDJdata(:,H.SeqLoc);
         end
 
-        if SeqNumLoc == 0
+        if H.SeqNumLoc == 0
             disp('Warning: Could not find the SeqNum column - making own numbering');
             SeqNum = num2cell([1:size(VDJdata,1)]');
         else
-            SeqNum = VDJdata(:,SeqNumLoc);
+            SeqNum = VDJdata(:,H.SeqNumLoc);
         end
 
         Header = cell(size(VDJdata,1),1);
@@ -35,8 +35,8 @@ for j = 1:length(FileNames)
         end
     else
         HeaderLoc = varargin{1};
-        SeqLoc = varargin{2};
-        Seq = VDJdata(:,SeqLoc);
+        H.SeqLoc = varargin{2};
+        Seq = VDJdata(:,H.SeqLoc);
         Header = VDJdata(:,HeaderLoc);
     end
     
@@ -46,5 +46,5 @@ for j = 1:length(FileNames)
     SaveName = [FileName(1:DotLoc(end)-1) '.fa'];
     fastawrite([FilePath SaveName],DataStruct)  
     
-    clear DataStruct VDJdata NewHeader SeqNum Header Seq
+    clear DataStruct VDJdata VDJheader SeqNum Header Seq
 end

@@ -3,8 +3,8 @@
 
 function filterNonprodVDJ(varargin)
 %Open file.
-[VDJdata, NewHeader, FileName, FilePath] = openSeqData([],'false');
-AACol = findHeader(NewHeader,'aminoacid');
+[VDJdata, VDJheader, FileName, FilePath] = openSeqData([],'false');
+AACol = findHeader(VDJheader,'aminoacid');
 AAseq = VDJdata(:,AACol);
 
 %Remove any CDR3's with *, or is empty, or lacks the conserved C or F/W. 
@@ -30,7 +30,7 @@ DotLoc = find(FileName == '.');
 OutputFilePre = FileName(1:DotLoc(end));
 
 %Fix the group number for productive, if it exist.
-GrpCol = findHeader(NewHeader,'GroupNum'); %Column where group number is often stored
+GrpCol = findHeader(VDJheader,'GroupNum'); %Column where group number is often stored
 if ~isempty(ProdData) && GrpCol ~= 0
     if ~isempty(ProdData{1,GrpCol})
         OldGroupNum = cell2mat(ProdData(:,GrpCol));
@@ -41,9 +41,9 @@ if ~isempty(ProdData) && GrpCol ~= 0
     end
     
     if ispc %Write to Excel if it's a pc
-        xlswrite([FilePath OutputFilePre 'prod.xlsx'],cat(1,NewHeader,ProdData));
+        xlswrite([FilePath OutputFilePre 'prod.xlsx'],cat(1,VDJheader,ProdData));
     else %Write to csv, tab-delimited file
-        writeDlmFile(cat(1,NewHeader,ProdData),[FilePath OutputFilePre 'prod.csv'],'\t');
+        writeDlmFile(cat(1,VDJheader,ProdData),[FilePath OutputFilePre 'prod.csv'],'\t');
     end 
 end
 
@@ -58,8 +58,8 @@ if ~isempty(NonprodData) && GrpCol ~= 0
     end
     
     if ispc %Write to Excel if it's a pc
-        xlswrite([FilePath OutputFilePre 'nonprod.xlsx'],cat(1,NewHeader,NonprodData));
+        xlswrite([FilePath OutputFilePre 'nonprod.xlsx'],cat(1,VDJheader,NonprodData));
     else %Write to csv, tab-delimited file
-        writeDlmFile(cat(1,NewHeader,NonprodData),[FilePath OutputFilePre 'nonprod.csv'],'\t');
+        writeDlmFile(cat(1,VDJheader,NonprodData),[FilePath OutputFilePre 'nonprod.csv'],'\t');
     end
 end
