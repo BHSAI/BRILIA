@@ -27,7 +27,7 @@
 %      GpwMut
 %      TpwMut
 %      
-findMutationFreq will look for the nt mutations found between the sequence
+% findMutationFreq will look for the nt mutations found between the sequence
 %and the germline or predicted sequence. The output is a 4x4 matrix with
 %original nt along each column, and mutated nt along each row.
 %
