@@ -1,47 +1,145 @@
-%Takes the Vmat, Dmat, Jmat from findMutationFreq, and then plots the
-%dinucleotide probability for the V and the DJ segments as 12 points. A
-%linear line will suggest propper annotation results. 
-
-%Option = 'NormCol' will take the column of the 4x4 mutation matrix, and
-%normalize such that each column adds to 1.
-%Option = 'NormAll' will take the entire 4x4 mutation matrix, and
-%normalize such that everything adds to 1.
-
-function varargout = plotMutRateCorr(Vmat,Dmat,Jmat,varargin)
-%Parse the input
-P = inputParser;
-addOptional(P,'Option','normcol',@ischar);
-addParameter(P,'Legend','on',@ischar);
-addParameter(P,'Xtitle','on',@ischar);
-addParameter(P,'Ytitle','on',@ischar);
-addParameter(P,'Xlabel','on',@ischar);
-addParameter(P,'Ylabel','on',@ischar);
-addParameter(P,'FitFontSize',18,@isnumeric);
-addParameter(P,'MarkerSize',250,@isnumeric);
-
-parse(P,varargin{:});
-Option = P.Results.Option;
-AddLegend = P.Results.Legend;
-AddXtitle = P.Results.Xtitle;
-AddYtitle = P.Results.Ytitle;
-AddXlabel = P.Results.Xlabel;
-AddYlabel = P.Results.Ylabel;
-FitFontSize = P.Results.FitFontSize;
-MarkerSize = P.Results.MarkerSize;
-
-%Normalize the mutations
-switch Option
-    case 'normcol'
-        %Normalize with respect to germline A,C,G,T
-        Vmat = Vmat./repmat(sum(Vmat,1),4,1);
-        DJmat = Dmat+Jmat;
-        DJmat = DJmat./repmat(sum(DJmat,1),4,1);
-    case 'normall'
-        %Normalize with respect to ALL mutation pairs
-        Vmat = Vmat/sum(Vmat(:));
-        DJmat = Dmat+Jmat;
-        DJmat = DJmat/sum(DJmat(:));
+%plotMutationData will plot the X0 -> X1 mutation frequencies as determined per
+%segment of the full VDJ gene. For instance, it will compare A -> G
+%mutation in the V gene segment versus the D and J gene segments. This is
+%used mainly to discern how well the annotation results yielded consisted
+%SHMs accross the VDJ segments. Returns the slope and Pearson correlation
+%value for a 12-point scatter plot, where each point is a unique X0 -> X1
+%mutation.
+%
+%  [Gx, Ax] = plotMutRateCorr
+%
+%  [Gx, Ax] = plotMutRateCorr(MutData)
+%
+%  [Gx, Ax] = plotMutRateCorr(VDJdata,VDJheader)
+%
+%  [Gx, Ax] = plotMutRateCorr(...,Param,Value,...)
+% 
+%  [Gx, Ax] = plotMutRateCorr(...,P)
+%
+%  P = plotTreeData('getinput)
+%
+%  INPUT
+%    MutData: structured data of pairwise mutations, returned by getMutData
+%    VDJdata: MxN cell of all VDJ annotaiton data
+%    VDJheader: 1xN cell of all header name for VDJdata
+%    P: a structure containing P.(Param) = Value information. This input
+%       option might be easier for adjusting plot parameters. You can also
+%       use the direct param, cell pair input listed below. To make a
+%       default P structure, use P = plotMutRateCorr('GetInput');
+%
+%    Some plot features can be set using the following Param-Value pairs:
+%      Param           Value       Description
+%      --------------  ----------  --------------------------------------
+%      PairWith        'parent'    Uses SHM data between child and parent
+%                      'germline'  Uses SHM data between child and germline
+%      AddLegend       'y' 'n'     Show legend
+%      AddXtitle       'y' 'n'     Show x axis label
+%      AddXlabel       'y' 'n'     Show x axis value
+%      AddYtitle       'y' 'n'     Show y axis label
+%      AddYlabel       'y' 'n'     Show y axis label
+%      FontName        Arial       Font name of X and Y axes
+%      FontSize        10          Font size of X and Y axes
+%      FigHeight       inches      Height of the whole figure
+%      FigWidth        inches      Width of the whole figure
+%      LegendFontSize  12          Set the font size of the legend
+%      MarkerSize      250         Set the size of the scatter plot dots
+%
+%    *If you want to save, use these param-value paris:
+%      Parmaeter Name  Value       Description
+%      --------------- ---------   ----------------------------------------
+%      Save            'n','y'     To save or not to save. Default 'n'.
+%      SaveName        String      The file name to save everything. The
+%                                    file name will append the GrpNum to
+%                                    it. EX: if SaveName is 'A', then the
+%                                    files will be saved as A.Grp1.tif. If
+%                                    empty and Save = 'y', will ask user to
+%                                    select folder and file name.
+%      Format          'tif','png' Image format type to save the figure as.
+%                      'jpg','fig'   Default is 'tif'.
+%      DPI             N           Dots per square inch. Default is 300.
+%
+%  OUTPUT
+%    Gx: figure handle
+%    Ax: axes handle
+%
+%  See also getMutData
+    
+function varargout = plotMutationData(varargin)
+%The special case check for extracting input to plotTreeData
+JustGettingInput = 0;
+if nargin == 1 && ischar(varargin{1})
+    if strcmpi(varargin{1},'getinput')
+        JustGettingInput = 1;
+        varargin = {}; %Want to get defaults.
+    end
 end
+
+if JustGettingInput == 0
+    %See if user gave VDJdata and NewHeader, or MutData, or nothing
+    if isempty(varargin) %Need to find file
+        MutData = getMutationData;
+    elseif ~isempty(varargin)
+        if isempty(varargin{1})
+            MutData = getMutationData;
+            varargin(1) = [];
+        elseif ischar(varargin{1}) %Filename was given
+            MutData = getMutationData(varargin{1});
+            varargin(1) = [];
+        elseif length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2}) %VDJdata and VDJheader was given
+            MutData = getMutationData(varargin{1:2});
+            varargin(1:2) = [];
+        elseif isstruct(varargin{1})
+            MutData = varargin{1};
+            varargin(1) = [];
+        end
+    else
+        error('getMutationData: Check the inputs');
+    end
+end
+
+%Parse the inputs
+P = inputParser;
+addParameter(P,'PairWith','parent',@(x) any(validatestring(lower(x),{'parent','germline'})));
+%Plotting parameters
+addParameter(P,'AddLegend','y',@(x) any(validatestring(lower(x),{'y','n'})));
+addParameter(P,'AddXlabel','y',@(x) any(validatestring(lower(x),{'y','n'})));
+addParameter(P,'AddXtitle','y',@(x) any(validatestring(lower(x),{'y','n'})));
+addParameter(P,'AddYlabel','y',@(x) any(validatestring(lower(x),{'y','n'})));
+addParameter(P,'AddYtitle','y',@(x) any(validatestring(lower(x),{'y','n'})));
+addParameter(P,'FontName','Arial',@ischar);
+addParameter(P,'FontSize',10,@isnumeric);
+addParameter(P,'FigHeight',3.3,@isnumeric);
+addParameter(P,'FigWidth',3.3,@isnumeric);
+addParameter(P,'LegendFontSize',10,@isnumeric)
+addParameter(P,'MarkerSize',250,@isnumeric);
+%Saving parameters
+addParameter(P,'Save','n',@(x) any(validatestring(lower(x),{'y','n'})));
+addParameter(P,'SaveName','',@ischar);
+addParameter(P,'Format','tif',@(x) any(validatestring(lower(x),{'tif','jpg','png','fig'})));
+addParameter(P,'DPI',300,@isnumeric);
+parse(P,varargin{:});
+P = P.Results;
+
+if JustGettingInput == 1
+    varargout{1} = P;
+    return;
+end
+
+%Extract the appropriate parameters
+if strcmpi(P.PairWith,'parent')
+    Vmat = MutData.VmutPar;
+    Dmat = MutData.DmutPar;
+    Jmat = MutData.JmutPar;
+else
+    Vmat = MutData.VmutGerm;
+    Dmat = MutData.DmutGerm;
+    Jmat = MutData.JmutGerm;
+end
+
+%Normalize the mutations per ACGT bp that was mutated (or per each col)
+Vmat = Vmat./repmat(sum(Vmat,1),4,1);
+DJmat = Dmat+Jmat;
+DJmat = DJmat./repmat(sum(DJmat,1),4,1);
 
 %Linearize and get rid of the 0 diagonal ones
 Vx = Vmat(:);
@@ -71,100 +169,136 @@ Germ2MutIdx = [...
                 3 4]; %Left col is mutant, right side is germline.
 
 %Set the figure size
-GX = figure;
-set(GX,'units','pixel');
-set(GX,'position',[50 50 600 600]);
+Gx = figure;
+set(Gx,'units','pixel');
+set(Gx,'position',[50 50 600 600]);
 
 %Setup the plot axes properties
-AX = gca;
-xlim(AX,[0 1]);
-ylim(AX,[0 1]);
-set(AX,'XTick',[0:0.2:1],'YTick',[0:0.2:1]);
-set(AX,'Box','on','TickDir','out','XGrid','on','Ygrid','on','FontSize',16) %Fix grid and other properties
-set(AX,'Position',[0.13 0.17 0.8 0.8]);
+Ax = gca;
+xlim(Ax,[0 1]);
+ylim(Ax,[0 1]);
+set(Ax,'XTick',[0:0.2:1],'YTick',[0:0.2:1]);
+set(Ax,'Box','on','TickDir','out','XGrid','on','Ygrid','on','FontSize',16) %Fix grid and other properties
+set(Ax,'Position',[0.13 0.17 0.8 0.8]);
 
-if strcmpi(AddXtitle,'on')
-    HX = xlabel(AX,'Mut. Freq. of V');
+if strcmpi(P.AddXtitle,'y')
+    HX = xlabel(Ax,'Mut. Freq. of V');
     set(HX,'FontSize',24,'FontName','Arial')
 end
 
-if strcmpi(AddYtitle,'on')
-    HY = ylabel(AX,'Mut. Freq. of DJ');
+if strcmpi(P.AddYtitle,'y')
+    HY = ylabel(Ax,'Mut. Freq. of DJ');
     set(HY,'FontSize',24,'FontName','Arial')
 end
 
 %Fix the label units
-if strcmpi(AddXlabel,'on')
-    Xticks = get(AX,'XTickLabels');
+if strcmpi(P.AddXlabel,'y')
+    Xticks = get(Ax,'XTickLabels');
     for k = 1:length(Xticks)
         Xticks{k} = sprintf('%0.1f',eval(Xticks{k}));
     end
-    set(AX,'XTickLabels',Xticks);
+    set(Ax,'XTickLabels',Xticks);
 else
-    set(AX,'XTickLabels',[]);
+    set(Ax,'XTickLabels',[]);
 end
 
-if strcmpi(AddYlabel,'on')
-    Yticks = get(AX,'YTickLabels');
+if strcmpi(P.AddYlabel,'y')
+    Yticks = get(Ax,'YTickLabels');
     for k = 1:length(Yticks)
         Yticks{k} = sprintf('%0.1f',eval(Yticks{k}));
     end
-    set(AX,'YTickLabels',Yticks);
+    set(Ax,'YTickLabels',Yticks);
 else
-    set(AX,'YTickLabels',[]);
+    set(Ax,'YTickLabels',[]);
 end
 
 %Extend the plots to fill space
-set(AX,'OuterPosition',[0 0 1 1]);
-TightInsets = get(AX,'TightInset');
+set(Ax,'OuterPosition',[0 0 1 1]);
+TightInsets = get(Ax,'TightInset');
 Positions = [TightInsets(1) TightInsets(2) 1-TightInsets(3)-TightInsets(1) 1-TightInsets(4)-TightInsets(2)];
-set(AX,'Position',Positions)
+set(Ax,'Position',Positions)
 
 %Plot the data
 for j = 12:-1:1
-    hold(AX,'on')
+    hold(Ax,'on')
     LX = scatter(Vx(j),DJy(j),'fill');
-    hold(AX,'off')
+    hold(Ax,'off')
     Mstyle = MarkerStyles{Germ2MutIdx(j,1)};
     Mcolor = MarkerColors{Germ2MutIdx(j,2)};
-    set(LX,'Marker',Mstyle,'MarkerFaceColor',Mcolor,'SizeData',MarkerSize,'MarkerEdgeColor',[1 1 1],'LineWidth',0.3)
+    set(LX,'Marker',Mstyle,'MarkerFaceColor',Mcolor,'SizeData',P.MarkerSize,'MarkerEdgeColor',[1 1 1],'LineWidth',0.3)
 end
 
 %Calculate Rsq
 x = Vx2;
 y = DJy2;
-[P,~] = polyfit(x,y,1);
-Slope = P(1); %Difference in slope
+[Pval,~] = polyfit(x,y,1);
+Slope = Pval(1); %Difference in slope
 xval = [0:0.1:1];
-yval = polyval(P,xval);
-hold(AX,'on')
-plot(AX,[0 1],[0 1],'--','color',[0.6 0.6 0.6])
-plot(AX,xval,yval,'-k')
+yval = polyval(Pval,xval);
+hold(Ax,'on')
+plot(Ax,[0 1],[0 1],'--','color',[0.6 0.6 0.6])
+plot(Ax,xval,yval,'-k')
 
 %Calculate the R pearson correlation
 R = corr(x,y);
-text(0.95,0.2,sprintf('R_{corr} =  %0.2f',R),'FontName','Arial','FontSize',FitFontSize,'HorizontalAlignment','right');
-text(0.95,0.1,sprintf('Slope =  %0.2f',Slope),'FontName','Arial','FontSize',FitFontSize,'HorizontalAlignment','right');
+text(0.95,0.2,sprintf('R_{corr} =  %0.2f',R),'FontName','Arial','FontSize',P.LegendFontSize,'HorizontalAlignment','right');
+text(0.95,0.1,sprintf('Slope =  %0.2f',Slope),'FontName','Arial','FontSize',P.LegendFontSize,'HorizontalAlignment','right');
 
 %Draw the legend
-if strcmpi(AddLegend,'on')
+if strcmpi(P.AddLegend,'y')
     LegXcoor1 = [0.1 0.1 0.1 0.1];
     LegXcoor2 = LegXcoor1 + 0.15;
     LegYcoor = [0.9 0.83 0.76 0.69];
     LegText1 = {'A_{0}','C_{0}','G_{0}','T_{0}'};
     LegText2 = {'A_{1}','C_{1}','G_{1}','T_{1}'};
-    hold(AX,'on')
+    hold(Ax,'on')
     for k = 1:4
         text(LegXcoor1(k)+0.03,LegYcoor(k),LegText1{k},'FontName','Arial','FontSize',16,'FontWeight','bold','VerticalAlignment','middle','Color',MarkerColors{k});
-        scatter(AX,LegXcoor2(k),LegYcoor(k),'SizeData',250,'Marker',MarkerStyles{k},'MarkerEdgeColor','k','LineWidth',1);
+        scatter(Ax,LegXcoor2(k),LegYcoor(k),'SizeData',250,'Marker',MarkerStyles{k},'MarkerEdgeColor','k','LineWidth',1);
         text(LegXcoor2(k)+0.03,LegYcoor(k),LegText2{k},'FontName','Arial','FontSize',16,'VerticalAlignment','middle');
     end
-    hold(AX,'off')
+    hold(Ax,'off')
 end
 
+%Save the figure, if the user wants
+SaveNamePre = ''; %Prefix for the file name to save. Initialized with ''.
+if strcmpi(P.Save,'y')
+    if isempty(SaveNamePre) %Need to establish the prefix, save path, file ext here.
+        if isempty(P.SaveName) %Need to ask users to select file name
+            [SaveFile, SavePath] = uiputfile('*.tif;*.png;*.jpg;*.fig');
+            [SavePath, SaveFile, SaveExt] = parseFileName([SavePath SaveFile]);
+        else
+            [SavePath, SaveFile, SaveExt] = parseFileName(P.SaveName);
+            if isempty(SaveExt)
+                SaveExt = ['.' P.Format]; %Use the format option specified in the input. P.Format cannot be empty.
+                if SaveExt(2) == '.'; SaveExt(2) = []; end %Prevents ..jpg file format nuissances
+            end
+        end
+        DotLoc = find(SaveFile == '.');
+        if isempty(DotLoc)
+            SaveNamePre = SaveFile;
+        else
+            SaveNamePre = SaveFile(1:DotLoc(end)-1);
+        end
+    end
+
+    %Assemble the full save name, and save depending on file ext
+    FullSaveName = sprintf('%s%s.d%s',SavePath,SaveNamePre,SaveExt);
+    switch SaveExt
+        case '.tif'
+            print(Gx,FullSaveName,'-dtiff',['-r' num2str(P.DPI)]);
+        case '.jpg'
+            print(Gx,FullSaveName,'-djpeg',['-r' num2str(P.DPI)]);
+        case '.png'
+            print(Gx,FullSaveName,'-dpng',['-r' num2str(P.DPI)]);                
+        case '.fig'
+            saveas(Gx,FullSaveName);
+    end
+end  
+
 if nargout >= 1
-    varargout{1} = GX;
+    varargout{1} = Gx;
     if nargout >= 2
-        varargout{2} = AX;
+        varargout{2} = Ax;
     end
 end

@@ -58,7 +58,7 @@
 %                                    jet colormap.
 %      Legend          'y','n'     Will draw a color-coded CDR3 legend.
 %                                    Default is y.
-%      LendFontSize    10          Font size of the Legend
+%      LegendFontSize  10          Font size of the Legend
 %      Sort            'y','n'     Will sort the tree to cluster related
 %                                    branches together.
 %      TreeStyle       'triangle'  Draw trees with triangle edges. Default.

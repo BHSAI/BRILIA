@@ -5,7 +5,7 @@
 %
 %  MutData = getMutationData
 %
-%  Output = getMutationData(VDJdata,VDJheader)
+%  MutData = getMutationData(VDJdata,VDJheader)
 %
 %  INPUT
 %    VDJdata: MxN cell of all VDJ annotaiton data
@@ -13,34 +13,32 @@
 %
 %  OUTPUT
 %    MutData: structure containing relevant SHM data such. Field are:
-%      VmutPar:  
-%      DmutPar:  
-%      JmutPar:  
-%      VmutGerm: 
-%      DmutGerm: 
-%      JmutGerm: 
-%      VtotNT:   
-%      DtotNT:   
-%      JtotNT:   
+%      VmutPar:  V gene 4x4 matrix of X0(child,col) to X1(parent,row)
+%      DmutPar:  D gene 4x4 matrix of X0(child,col) to X1(parent,row)
+%      JmutPar:  J gene 4x4 matrix of X0(child,col) to X1(parent,row)
+%      CDR3mutPar:  CDR3 4x4 matrix of X0(child,col) to X1(parent,row)
+%      VmutGerm: V gene 4x4 matrix of X0(child,col) to X1(germline,row)
+%      DmutGerm: D gene 4x4 matrix of X0(child,col) to X1(germline,row)
+%      JmutGerm: J gene 4x4 matrix of X0(child,col) to X1(germline,row)
+%      CDR3mutGerm:  CDR3 4x4 matrix of X0(child,col) to X1(germline,row)
+%
+%  NOTE
+%    This will calculated SHM for ALL sequences in the VDJdata file, except
+%    those with unresolved parent sequences. If you want to do this only
+%    for productive sequence, filter VDJdata prior to running this
+%    function.
+%
+%    The 4x4 matrix contains the following data for X0 -> X1 mutations,
+%    where N is the total count of each mutation occurence. Divide N by the
+%    approriate totNT variable to normalize to mutation rate (e.g. mutation
+%    chance of A->C per bp). 
+%       A0  C0  G0  T0
+%    A1  0   N   N   N
+%    C1  N   0   N   N
+%    G1  N   N   0   N
+%    T1  N   N   N   0
 
-%      CpwMut
-%      GpwMut
-%      TpwMut
-%      
-% findMutationFreq will look for the nt mutations found between the sequence
-%and the germline or predicted sequence. The output is a 4x4 matrix with
-%original nt along each column, and mutated nt along each row.
-%
-%  Hints: Use buildTree before this, if you want parent-child relation.
-%  Otherwise, you only calculate difference from germline-child sequence.
-%  VDJlen tells the length of the V, D, J segments, cumulative, just in
-%  case you want to normalize.
-%
-%  [Vmat, Dmat, Jmat, VDJlen] = findMutationFreq(VDJdata,VDJheader,Option)
-%
-%  Option = 'single' will compare mut per sequence
-%  Option = 'group' will compare mut per sequence with respect to 1st seq's ref 
-function varargout = findMutationFreq(VDJdata,VDJheader,Option)
+function MutData = findMutationFreq(varargin)
 %See if user gave VDJdata
 if isempty(varargin) || (~isempty(varargin) && isempty(varargin{1})) %Need to find file
     [VDJdata,VDJheader] = openSeqData;
@@ -52,90 +50,92 @@ elseif ~isempty(varargin)
         VDJheader = varargin{2};
     end
 else
-    error('getTreeData: Check the inputs');
+    error('getMutationData: Check the inputs');
 end
 H = getHeaderVar(VDJheader);
+
+%Initialize the temporary 3D matrix for storing N number of pairwise muts
+ParMutMat = zeros(4,4,5);
+GermMutMat = zeros(4,4,5);
 
 %Extract sequence grouping information
 GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
-
-
-
-
-
-H = getHeaderVar(VDJheader);
-
-VDJmat = zeros(4,4,3);
-VDJlen = zeros(1,3);
-
-VmutCt = zeros(size(VDJdata,1),1);
-MmutCt = zeros(size(VDJdata,1),1);
-DmutCt = zeros(size(VDJdata,1),1);
-NmutCt = zeros(size(VDJdata,1),1);
-JmutCt = zeros(size(VDJdata,1),1);
-
-if strcmpi(Option,'single')
-    GrpNum = [1:size(VDJdata,1)]';
-else
-    GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
-end
-UnqGrpNum = unique(GrpNum);
-
 for y = 1:length(UnqGrpNum)
     IdxLoc = find(UnqGrpNum(y) == GrpNum);
+    GermSeq = VDJdata{IdxLoc(1),H.RefSeqLoc};
+    DelIdx3 = regexpi(GermSeq,'[^ACGTU]');
+    VMDNJ = cell2mat(VDJdata(IdxLoc(1),H.LengthLoc));
     
-    for j = 1:length(IdxLoc)
-        %Obtain necessary informations
-        Seq = char(VDJdata{IdxLoc(j),H.SeqLoc});
-        RefSeq = char(VDJdata{IdxLoc(1),H.RefSeqLoc});    
-        if length(RefSeq) ~= length(Seq)
-            continue
-        end
+    for k = 1:2     %evaluate to ref seq then germ seq
+        for j = 1:length(IdxLoc)    %Process each seq in group
+            Seq = VDJdata{IdxLoc(j),H.SeqLoc};           
+            DelIdx1 = regexpi(Seq,'[^ACGTU]');
+            if sum(VMDNJ) ~= length(Seq) %Another bug...
+                warning('VMDNJ lengths do not match with seq length in GrpNum %d',UnqGrpNum(y));
+                continue 
+            elseif isempty(VMDNJ) %Incomplete annotation
+                warning('VMDNJ lengths are not resolved in GrpNum %d',UnqGrpNum(y));
+                continue
+            end
 
-        %Look for those non-nucleotide char, like X or N
-        MismatchLoc = Seq ~= RefSeq;
-        DelIdx1 = regexpi(Seq,'[^ACGTU]');
-        DelIdx2 = regexpi(RefSeq,'[^ACGTU]');
-        MismatchLoc([DelIdx1 DelIdx2]) = 0; %Get rid of ambiguous sequences;
-        MissLoc = find(MismatchLoc == 1);
+            if k == 1
+                RefSeq = VDJdata{IdxLoc(j),H.RefSeqLoc}; %Immediate parent seq
+                DelIdx2 = regexpi(RefSeq,'[^ACGTU]');
+            else
+                RefSeq = GermSeq; %Germ seq
+                DelIdx2 = DelIdx3;
+            end
+            if length(RefSeq) ~= length(Seq)%Just in case there's a bug
+                warning('Ref seq length mismatch error in GrpNum %d',UnqGrpNum(y));
+                continue
+            end
 
-        %Determine the V, D, J locations
-        VMDNJ = cell2mat(VDJdata(IdxLoc(j),H.LengthLoc));
-        if sum(VMDNJ) ~= length(Seq)
-            continue
-        elseif isempty(VMDNJ)
-            continue
-        end
-        VDJlen = VDJlen + VMDNJ(1:2:5); %Add up the V,D,J gene lengths
+            %Get rid of ambiguous sequences mismatches
+            MissIdxb = Seq ~= RefSeq; %binary index of mismatched nt
+            MissIdxb([DelIdx1 DelIdx2]) = 0; 
+            MissIdx = find(MissIdxb == 1);
+            if isempty(MissIdx); continue; end
 
-        %Determine the mutation for the various segments
-        VDJmissLoc = cell(1,3);
-        VDJmissLoc{1} = MissLoc(MissLoc <= VMDNJ(1));
-        VDJmissLoc{2} = MissLoc(MissLoc > sum(VMDNJ(1:2)) & MissLoc <= sum(VMDNJ(1:3)));
-        VDJmissLoc{3} = MissLoc(MissLoc > sum(VMDNJ(1:4)));
-        MmissLoc = MissLoc(MissLoc > VMDNJ(1) & MissLoc <= sum(VMDNJ(1:2)));
-        NmissLoc = MissLoc(MissLoc > sum(VMDNJ(1:3)) & MissLoc <= sum(VMDNJ(1:4)));
-        for k = 1:3
-            if ~isempty(VDJmissLoc{k})
-                SeqNT = nt2int(Seq(:,VDJmissLoc{k}));
-                RefNT = nt2int(RefSeq(:,VDJmissLoc{k}));
-                for q = 1:length(SeqNT)
-                    VDJmat(SeqNT(q),RefNT(q),k) = VDJmat(SeqNT(q),RefNT(q),k) + 1;
+            %Determine the mutation for the various segments
+            VDJmat = zeros(4,4,5); %4x4 matrix for the 5 VMDNJ lengths
+            for t = 1:size(VDJmat,3)
+                if VMDNJ(t) == 0; continue; end
+                if t == 1
+                    S1 = 1;
+                    S2 = VMDNJ(1);
+                else
+                    S1 = sum(VMDNJ(1:t-1)) + 1;
+                    S2 = sum(VMDNJ(1:t));
+                end
+                EvalMissIdx = MissIdx(MissIdx>=S1 & MissIdx <= S2);
+                
+                if ~isempty(EvalMissIdx)
+                    X0 = nt2int(Seq(:,EvalMissIdx)); %Tells column locations
+                    X1 = nt2int(RefSeq(:,EvalMissIdx)); %Tells row location
+                    for q = 1:length(X0)
+                        VDJmat(X1(q),X0(q),t) = VDJmat(X1(q),X0(q),t) + 1;
+                    end
                 end
             end
+            
+            if k == 1 %Update the structures for child to parent comparison
+                ParMutMat = ParMutMat + VDJmat;
+            else %Update structures for child to germline comparison
+                GermMutMat = GermMutMat + VDJmat;
+            end
         end
-
-        %Sum up the total mutations be VMDNJ segment
-        VmutCt(IdxLoc(j)) = length(VDJmissLoc{1});
-        MmutCt(IdxLoc(j)) = length(MmissLoc);
-        DmutCt(IdxLoc(j)) = length(VDJmissLoc{2});
-        NmutCt(IdxLoc(j)) = length(NmissLoc);
-        JmutCt(IdxLoc(j)) = length(VDJmissLoc{3});    
     end
 end
-varargout{1} = VDJmat(:,:,1);
-varargout{2} = VDJmat(:,:,2);
-varargout{3} = VDJmat(:,:,3);
-varargout{4} = VDJlen;
-varargout{5} = [VmutCt MmutCt DmutCt NmutCt JmutCt];
+
+%Initialize the output structure
+MutData.VmutPar = ParMutMat(:,1);
+MutData.MmutPar = ParMutMat(:,2);
+MutData.DmutPar = ParMutMat(:,3);
+MutData.NmutPar = ParMutMat(:,4);
+MutData.JmutPar = ParMutMat(:,5);
+MutData.VmutGerm = GermMutMat(:,1);
+MutData.MmutGerm = GermMutMat(:,2);
+MutData.DmutGerm = GermMutMat(:,3);
+MutData.NmutGerm = GermMutMat(:,4);
+MutData.JmutGerm = GermMutMat(:,5);

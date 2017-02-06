@@ -1,10 +1,24 @@
-function Gx = plotMutationCorr(Output,varargin)
-P = inputParser;
-addRequired(P,'Output',@isnumeric);
-addOptional(P,'CapValue',[],@isnumeric);
-parse(P,Output,varargin{:});
+function Gx = plotMutationCorr(varargin)
+%See if user gave VDJdata and NewHeader, or MutData, or nothing
+if isempty(varargin) || (~isempty(varargin) && isempty(varargin{1})) %Need to find file
+    MutData = getMutationData;
+elseif ~isempty(varargin)
+    if ischar(varargin{1}) %Filename was given
+        MutData = getMutationData(varargin{1});
+        varargin(1) = [];
+    elseif length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2}) %VDJdata and VDJheader was given
+        MutData = getMutationData(varargin{1:2});
+        varargin(1:2) = [];
+    end
+else
+    error('getMutationData: Check the inputs');
+end
+H = getHeaderVar(VDJheader);
 
-Output = P.Results.Output;
+%What remain of varargin, extract setting
+P = inputParser;
+addOptional(P,'CapValue',[],@isnumeric);
+parse(P,varargin{:});
 CapValue = P.Results.CapValue;
 
 %Calculating the mutation frequencies
