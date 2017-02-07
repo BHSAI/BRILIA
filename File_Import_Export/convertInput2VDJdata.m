@@ -32,7 +32,7 @@ Delimiter = P.Results.Delimiter;
 
 %Determine the file type here
 if isempty(FullFileName)
-    [InFileName, InFilePath] = uigetfile('*.fa;*.fastq;*.xls*;*.csv','Select the input sequence file','MultiSelect','off');
+    [InFileName, InFilePath] = uigetfile('*.fa*;*.xls*;*.csv','Select the input sequence file','MultiSelect','off');
     if isempty(InFileName);
         return
     end
@@ -42,13 +42,13 @@ end
 
 %Check to see if there is a file type override
 if isempty(FileType)
-    if ~isempty(regexpi(InFileExt,'.fa'))
+    if strcmpi(InFileExt,'.fa') || strcmpi(InFileExt,'.fasta')
         FileType = 'fasta';
-    elseif ~isempty(regexpi(InFileExt,'.fastq'))
+    elseif strcmpi(InFileExt,'.fastq')
         FileType = 'fastq';
-    elseif ~isempty(regexpi(InFileExt,'.xls|.xlsx'))
+    elseif strcmpi(InFileExt(1:4),'.xls')
         FileType = 'excel';
-    elseif ~isempty(regexpi(InFileExt,'.csv|.tsv'))
+    elseif strcmpi(InFileExt,'.csv') || strcmpi(InFileExt,'.tsv')
         FileType = 'delimited';
     else
         error('FileType cannot be determined. Make sure file ext is correct');

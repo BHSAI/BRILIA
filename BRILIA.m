@@ -72,23 +72,52 @@ end
 %--------------------------------------------------------------------------
 %Parse the inputs
 
-P = inputParser;
-addOptional(P,'FullFileNames',[],@(x) ischar(x) || iscell(x) || isempty(x));
-addParameter(P,'Species','',@(x) ischar(x) && ismember(lower(x),{'human','mouse',''})); %Note, anything empty for DB filter will prompt user input.
-addParameter(P,'Strain','',@ischar);
-addParameter(P,'Ddirection','all',@(x) ischar(x) && ismember(lower(x),{'all','fwd','inv',''}));
-addParameter(P,'Vfunction','all',@(x) ischar(x) && min(ismember(regexpi(lower(x),',','split'),{'all','f','p','orf',''}))==1);
-addParameter(P,'DevPerc',5,@(x) isnumeric(x) && (x>=0) && (x<=100)); %For clustering purposes. Set empty to force user to input it later.
-addParameter(P,'FileType','',@ischar); %Will make input reader determine file type
-addParameter(P,'Delimiter',';',@(x) ischar(x) && ismember(x,{';' ',' '\t' ''}));
-addParameter(P,'CheckSeqDir','n',@ischar);
-addParameter(P,'SettingFile','',@ischar);
-parse(P,varargin{:});
-P = P.Results; %For readability and for readSettingFile, remove the middle Results field.
-if ~isempty(P.SettingFile)
-    P = readSettingFile(P.SettingFile,P); %You input P here to have the txt file override values in P.
+%The special case check for extracting input fields
+JustGettingInput = 0;
+if nargin == 1 && ischar(varargin{1})
+    if strcmpi(varargin{1},'getinput')
+        JustGettingInput = 1;
+        varargin = {}; %Want to get defaults.
+    end
 end
 
+%Check and see if there is a structure as an input. Bypass parsing then.
+HasStructInput = 0;
+for j = 1:length(varargin)
+    if isstruct(varargin{j})
+        HasStructInput = 1;
+        P = varargin{j};
+        break
+    end
+end
+if HasStructInput == 0
+    P = inputParser;
+    addOptional(P,'FullFileNames',[],@(x) ischar(x) || iscell(x) || isempty(x));
+    addParameter(P,'Species','',@(x) ischar(x) && ismember(lower(x),{'human','mouse',''})); %Note, anything empty for DB filter will prompt user input.
+    addParameter(P,'Strain','',@ischar);
+    addParameter(P,'Ddirection','all',@(x) ischar(x) && ismember(lower(x),{'all','fwd','inv',''}));
+    addParameter(P,'Vfunction','all',@(x) ischar(x) && min(ismember(regexpi(lower(x),',','split'),{'all','f','p','orf',''}))==1);
+    addParameter(P,'DevPerc',5,@(x) isnumeric(x) && (x>=0) && (x<=100)); %For clustering purposes. Set empty to force user to input it later.
+    addParameter(P,'FileType','',@ischar); %Will make input reader determine file type
+    addParameter(P,'Delimiter',';',@(x) ischar(x) && ismember(x,{';' ',' '\t' ''}));
+    addParameter(P,'CheckSeqDir','n',@ischar);
+    addParameter(P,'SettingFile','',@ischar);
+    parse(P,varargin{:});
+    P = P.Results; %For readability and for readSettingFile, remove the middle Results field.
+    
+    %Return inputs and stop here
+    if JustGettingInput == 1
+        varargout{1} = P;
+        return
+    end
+    
+    %Override defaults with what is in the SettingFile
+    if ~isempty(P.SettingFile)
+        P = readSettingFile(P.SettingFile,P); %You input P here to have the txt file override values in P.
+    end
+end
+
+%Distribute input names now
 FullFileNames = P.FullFileNames;
 DevPerc = P.DevPerc;
 Vfunction = P.Vfunction;
@@ -114,7 +143,7 @@ if isempty(FullFileNames)
         FullFileNames{f} = [FilePath, FileNames{f}];
     end
 elseif ischar(FullFileNames)
-    FullFileNames = {FullFileNames};    
+    FullFileNames = {FullFileNames};
 end
 
 RunTime = zeros(length(FullFileNames),1);
