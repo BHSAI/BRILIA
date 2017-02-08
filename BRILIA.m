@@ -55,7 +55,9 @@
 function varargout = BRILIA(varargin)
 Version = '2.0.6'; %Version Number
 
+%--------------------------------------------------------------------------
 %Make sure BRILIA paths are added correctly
+
 CurPaths = regexp(path,';','split')';
 MainPath = mfilename('fullpath');
 SlashLoc = regexp(MainPath,'\\|\/');
@@ -123,6 +125,9 @@ if HasStructInput == 0
     end
 end
 
+%--------------------------------------------------------------------------
+%Prepare file names and VDJ databases
+
 %Load databases and filter reference genese according to specifications
 [Vmap, Dmap, Jmap] = getCurrentDatabase('change',P.Species);
 [Vmap, Dmap, Jmap] = filterRefGene(Vmap,Dmap,Jmap,'Strain',P.Strain,'Ddirection',P.Ddirection,'Vfunction',P.Vfunction,'KeepThis','yes');
@@ -141,31 +146,37 @@ elseif ischar(P.FullFileNames)
     P.FullFileNames = {P.FullFileNames};
 end
 
+%--------------------------------------------------------------------------
 %Setup parallel computing now
+
+%Determine current status, desired status, and adjust accordingly.
 showStatus('Setting up parallel computing',P.StatusHandle);
 if ~isempty(P.NumProc) %Changes this ONLY if user sets it.
-    if ischar(P.NumProc)
+    %Ensuring the user input for NumProc is valid and in numbers
+    if ischar(P.NumProc) %If user input 'max', set NumProc to max.
         if strcmpi(P.NumProc,'max')
             P.NumProc = feature('numCores');
         else
             P.NumProc = 1;
         end
-    else %Just ensure it's a reasonable value
+    else %If user input a number, ensure it's a reasonable value
         P.NumProc = round(P.NumProc); %Must be integer
-        if P.NumProc < 1; P.NumProc = 1; end
-        if P.NumProc > feature('numCores'); P.NumProc = feature('numCores'); end
+        if P.NumProc < 1; P.NumProc = 1; end %Can't be less than 1
+        if P.NumProc > feature('numCores'); P.NumProc = feature('numCores'); end %Can't be more than Max
     end
+    
+    %Decide what to do about processing
     ps = parallel.Settings;
     ps.Pool.AutoCreate = false; %Ensure that parfor is not automatically run.
     PoolName = gcp('nocreate');
-    if isempty(PoolName)
+    if isempty(PoolName) %No current pool, so open if needed
         if P.NumProc > 1
             parpool(P.NumProc);
         end
-    else
-        if PoolName.NumWorkers ~= P.NumProc
+    else %Has a pool. check if NumProc differs from NumWorkers
+        if PoolName.NumWorkers ~= P.NumProc %Need to reconfigure
             delete(gcp('nocreate'));
-            if P.NumProc > 1
+            if P.NumProc > 1 %If parallel processing desired, open it.
                 parpool(P.NumProc);
             end
         end
@@ -179,6 +190,9 @@ DebugModeOn = 0; %Turn on(1) or off(0) debug mode in checkVDJdata
 % return
 %>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+%==========================================================================
+%BRILIA processing begins here (GUI option cannot do multiple files yet).
+
 RunTime = zeros(length(P.FullFileNames),1); %How long it takes per file
 SeqCount = zeros(length(P.FullFileNames),1); %How many sequences per file
 for f = 1:length(P.FullFileNames)
@@ -187,9 +201,6 @@ for f = 1:length(P.FullFileNames)
     %Open file and extract nucleotide information, or directly use input NTseq
     [VDJdata,VDJheader,FileName,FilePath] = convertInput2VDJdata(P.FullFileNames{f},'FileType',P.FileType,'Delimiter',P.Delimiter);
     BadVDJdata = {}; %For storing unprocessed sequences
-    
-    %==========================================================================
-    %BRILIA processing begins here
 
     %Check input sequence for bad characters
     showStatus('Removing ambiguous nucletides and odd sequences.',P.StatusHandle);
