@@ -275,7 +275,8 @@ for f = 1:length(P.FullFileNames)
     checkVDJdata(VDJdata,VDJheader,'fixTree',DebugModeOn);
 
     %Finalize VDJdata details
-    VDJdata = padtrimSeqGroup(VDJdata,VDJheader,'grpnum','trim','RefSeq'); %will only remove "x" before and after sequences if they all have it. 
+    VDJdata = padtrimSeqGroup(VDJdata,VDJheader,'grpnum','trim','RefSeq'); %will only remove "x" before and after RefSeq. In case input seq is longer than ref seq.
+    VDJdata = padtrimSeqGroup(VDJdata,VDJheader,'grpnum','trim','Seq'); %will only remove "x" before and after Seq if they all have it. 
     VDJdata = buildRefSeq(VDJdata,VDJheader,'germline','first'); %must do first seq of all cluster only
     VDJdata = updateVDJdata(VDJdata,VDJheader,Vmap,Dmap,Jmap);
 
