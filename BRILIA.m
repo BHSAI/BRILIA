@@ -30,6 +30,10 @@
 %                                                   excel file formats)
 %         CheckSeqDir     'y' 'n'                 Whether or not to check 
 %                                                   for complement seq
+%         NumProc         'max' or N              Number of processors to
+%                                                   use. Default 'max'.
+%         StatusHandle    text handle obj         Handle from GUI used to 
+%                                                   update status text.
 %
 %  OUTPUT
 %    RunTime: the time, in seconds, for completing the annotation
@@ -102,6 +106,8 @@ if HasStructInput == 0
     addParameter(P,'Delimiter',';',@(x) ischar(x) && ismember(x,{';' ',' '\t' ''}));
     addParameter(P,'CheckSeqDir','n',@ischar);
     addParameter(P,'SettingFile','',@ischar);
+    addParameter(P,'NumProc',[],@(x) ischar(x) || isnumeric(x));
+    addParameter(P,'StatusHandle',[],@(x) ischar(x) || isnumeric(x));
     parse(P,varargin{:});
     P = P.Results; %For readability and for readSettingFile, remove the middle Results field.
     
@@ -127,6 +133,8 @@ Strain = P.Strain;
 FileType = P.FileType;
 Delimiter = P.Delimiter;
 CheckSeqDir = P.CheckSeqDir;
+NumProc = P.NumProc;
+StatusHandle = P.StatusHandle;
 
 %Load databases and filter reference genese according to specifications
 [Vmap, Dmap, Jmap] = getCurrentDatabase('change',Species);
@@ -146,8 +154,36 @@ elseif ischar(FullFileNames)
     FullFileNames = {FullFileNames};
 end
 
-RunTime = zeros(length(FullFileNames),1);
-SeqCount = zeros(length(FullFileNames),1);
+%Setup parallel computing now
+showStatus('Setting up parallel computing',StatusHandle);
+if ~isempty(NumProc) %Changes this ONLY if user sets it.
+    if ischar(NumProc)
+        if strcmpi(NumProc,'max')
+            NumProc = feature('numCores');
+        else
+            NumProc = 1;
+        end
+    else %Just ensure it's a reasonable value
+        NumProc = round(NumProc); %Must be integer
+        if NumProc < 1; NumProc = 1; end
+        if NumProc > feature('numCores'); NumProc = feature('numCores'); end
+    end
+    ps = parallel.Settings;
+    ps.Pool.AutoCreate = false; %Ensure that parfor is not automatically run.
+    PoolName = gcp('nocreate');
+    if isempty(PoolName)
+        if NumProc > 1
+            parpool(NumProc);
+        end
+    else
+        if PoolName.NumWorkers ~= NumProc
+            delete(gcp('nocreate'));
+            if NumProc > 1
+                parpool(NumProc);
+            end
+        end
+    end
+end
 
 %For debugging only. Save current variables so you can run each code,
 %line by line.
@@ -155,28 +191,20 @@ DebugModeOn = 0; %Turn on(1) or off(0) debug mode in checkVDJdata
 % save('temp.mat')
 % return
 
+RunTime = zeros(length(FullFileNames),1); %How long it takes per file
+SeqCount = zeros(length(FullFileNames),1); %How many sequences per file
 for f = 1:length(FullFileNames)
     tic
 
     %Open file and extract nucleotide information, or directly use input NTseq
     [VDJdata,VDJheader,FileName,FilePath] = convertInput2VDJdata(FullFileNames{f},'FileType',FileType,'Delimiter',Delimiter);
     BadVDJdata = {}; %For storing unprocessed sequences
-    H = getHeaderVar(VDJheader);
     
     %==========================================================================
     %BRILIA processing begins here
 
-    %Configure the parallel processing feature for larger datasets
-    ps = parallel.Settings;
-    ps.Pool.AutoCreate = false; %Ensure that parfor is not automatically run.
-    PoolName = gcp('nocreate');
-    if size(VDJdata,1) > 200 && isempty(PoolName) == 1
-        CoreNum = feature('numCores');
-        parpool(CoreNum);
-    end
-
     %Check input sequence for bad characters
-    disp('Removing ambiguous nucletides and odd sequences.')
+    showStatus('Removing ambiguous nucletides and odd sequences.',StatusHandle);
     [VDJdata,BadIdx] = fixInputSeq(VDJdata,VDJheader);
         BadVDJdata = [BadVDJdata; VDJdata(BadIdx,:)];
         VDJdata(BadIdx,:) = [];
@@ -185,29 +213,29 @@ for f = 1:length(FullFileNames)
     %Find potential CDR3 start and end locations using V and J gene seed
     %alignment. Do this here, and not when doing VDJ alignment, because users
     %might have complement sequences which must be flipped.
-    disp('Determining sequence direction and CDR3 areas.')
+    showStatus('Determining sequence direction and CDR3 areas.',StatusHandle)
     VDJdata = seedCDR3position(VDJdata,VDJheader,Vmap,'V',15,2,CheckSeqDir);
     VDJdata = seedCDR3position(VDJdata,VDJheader,Jmap,'J',3,14,'n');
 
     %Search for initial VDJ alignment matches (no try = 4x faster)
-    disp('Finding initial-guess VDJ annotations.')
+    showStatus('Finding initial-guess VDJ annotations.',StatusHandle)
     [VDJdata,BadIdx] = findVDJmatch(VDJdata,VDJheader,Vmap,Dmap,Jmap,'update'); %Need to implement J's are not overrride from above
         BadVDJdata = [BadVDJdata; VDJdata(BadIdx,:)];
         VDJdata(BadIdx,:) = [];
         if isempty(VDJdata); continue; end %didn't open file right
 
     %Fix insertion/deletion in V framework
-    disp('Fixing indels within V segment.')
+    showStatus('Fixing indels within V segment.',StatusHandle)
     VDJdata = fixGeneIndel(VDJdata,VDJheader,Vmap,Dmap,Jmap);
     checkVDJdata(VDJdata,VDJheader,'fixGeneIndel',DebugModeOn);
 
     %Remove pseudogenes from degenerate annotations containing functional ones.
-    disp('Removing pseudo and ORF genes if functional genes are available.')
+    showStatus('Removing pseudo and ORF genes if functional genes are available.',StatusHandle)
     VDJdata = fixDegenVDJ(VDJdata,VDJheader,Vmap,Dmap,Jmap);
     checkVDJdata(VDJdata,VDJheader,'fixDegenVDJ',DebugModeOn);
 
     %Insure that V and J segments cover the CDR3 region.
-    disp('Checking if V and J segments includes 104C and 118W.')
+    showStatus('Checking if V and J segments includes 104C and 118W.',StatusHandle)
     VDJdata = constrainGeneVJ(VDJdata,VDJheader,Vmap,Dmap,Jmap);
     checkVDJdata(VDJdata,VDJheader,'constrainGeneVJ',DebugModeOn);
 
@@ -223,27 +251,27 @@ for f = 1:length(FullFileNames)
     checkVDJdata(VDJdata,VDJheader,'removeDupSeq',DebugModeOn);
 
     %Cluster the data based variable region and hamming dist of DevPerc%.
-    disp('Performing lineage tree clustering.')
+    showStatus('Performing lineage tree clustering.',StatusHandle)
     VDJdata = clusterGene(VDJdata,VDJheader,DevPerc);
     checkVDJdata(VDJdata,VDJheader,'clusterGene',DebugModeOn);
 
     %Set all groups to have same annotation and VMDNJ lengths.
-    disp('Conforming VDJ annotations within clusters.')
+    showStatus('Conforming VDJ annotations within clusters.',StatusHandle)
     VDJdata = conformGeneGroup(VDJdata,VDJheader,Vmap,Dmap,Jmap);
     checkVDJdata(VDJdata,VDJheader,'conformGeneGroup',DebugModeOn);
 
     %Get better D match based on location of consensus V J mismatches.
-    disp('Refining D annotations within clusters')
+    showStatus('Refining D annotations within clusters',StatusHandle)
     VDJdata = findBetterD(VDJdata,VDJheader,Vmap,Dmap,Jmap);
     checkVDJdata(VDJdata,VDJheader,'findBetterD',DebugModeOn);
 
     %Trim V, D, J edges and extract better N regions
-    disp('Refining N regions within clusters by trimming VDJ')
+    showStatus('Refining N regions within clusters by trimming VDJ',StatusHandle)
     VDJdata = trimGeneEdge(VDJdata,VDJheader);
     checkVDJdata(VDJdata,VDJheader,'trimGeneEdge',DebugModeOn);
 
     %Fix obviously incorrect trees.
-    disp('Fixing obvious errors in lineage trees.')
+    showStatus('Fixing obvious errors in lineage trees.',StatusHandle)
     VDJdata = fixTree(VDJdata,VDJheader);
     checkVDJdata(VDJdata,VDJheader,'fixTree',DebugModeOn);
 
@@ -296,4 +324,12 @@ if nargout >= 1
     if nargout >= 2
         varargout{2} = SeqCount;
     end
+end
+
+%Simple function for showing status of BRILIA if there is a GUI or not.
+function showStatus(Msg,TextHandle)
+if isempty(TextHandle)
+    disp(Msg);
+else
+    set(TextHandle,'String',Msg);
 end
