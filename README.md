@@ -30,6 +30,7 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/m
 3. Download the BRILIA exectuable file. [BRILIAv2.0.6.zip](https://github.com/BHSAI/BRILIA/files/762174/BRILIAv2.0.6.zip)
 4. Unzip the exe file and run the BRILIA.exe. It may ask for permission to read/write files.
 5. Follow the top-down flow of the GUI to setup the parameters, process sequence files, and draw lineage trees. The GUI itself has help popup texts if you hover your cursor over the setting name and buttons.
+6. To see lineage trees, use "Tree Tool". You can also use Tree Tool directly if you have other BRILIA-processed files.
 
 ## Running BRILIA in MATLAB (requires bioinformatics toolbox):
 
