@@ -24,7 +24,14 @@ Returns a semicolon-delimited CSV file listing the annotation results and phylog
 
 See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/master/Support_Files/DataHeaderInfo.csv).
 
-## MATLAB BASIC USAGE (requires bioinformatics toolbox):
+## Running BRILIA without MATLAB
+1. Download the MATLAB runtime library 9.0.1 (specifically this version) from the MathWorks website [https://www.mathworks.com/products/compiler/mcr.html].
+2. Install the MRC library on your computer.
+3. Download BRILIA.exe in the XXX folder.
+4. Run the BRILIA.exe. It may need permission to read/write files.
+5. Follow the top-down flow of the GUI to setup the parameters, process sequence files, and draw lineage trees. The GUI itself has help popup texts if you hover your cursor over the setting name and buttons.
+
+## Running BRILIA in MATLAB (requires bioinformatics toolbox):
 
 1. Copy all codes into a folder called BRILIA (Delete older BRILIA files as this could cause code conflicts).
 2. Open MATLAB and set the working directory to the BRILIA folder.

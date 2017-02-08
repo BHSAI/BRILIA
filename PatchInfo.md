@@ -1,8 +1,12 @@
 ---------------------------------------------------------------------------
 ##Patch notice for version 2.0.6
+
 Generage changes
+- made a simple GUI for running BRILIA and drawing lineage tree per cluster (BRILIA/GUI/BRILIAgui.m). Still in early stages of GUI, so more features will be added.
+- made changes to BRILIA.m to allow for GUI operation and to allow user to set the processor numbers while computing.
 - renamed many coding variables into structure, for future proofing code developments.
 - removed many matlab scripts that either were temporarily made for the BRILIA paper, or will no longer work with Version 2 of BRILIA. These codes are being reworked.
+- moved some folders around for organizational purposes. 
 
 ---------------------------------------------------------------------------
 ##Patch notice for version 2.0.5

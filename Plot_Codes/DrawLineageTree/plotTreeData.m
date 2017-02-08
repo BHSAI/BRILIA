@@ -218,7 +218,7 @@ for y = 1:length(UnqGrpNum)
 end
 
 %Determine if you need to find top 10, or specified range
-if isempty(P.GetSizeRange) && isempty(P.GetGrpNum) && isempty(P.GetSeqNum) %Find Top 10
+if isempty(P.GetSizeRange) && isempty(P.GetGrpNum) && isempty(P.GetSeqNum) && isempty(P.GetCDR3seq) %Find Top 10
     UnqGrpSize = sort(unique(GrpSize),'descend'); %Max size is 1st
     if length(UnqGrpSize) > 10
         MinGrpSize = UnqGrpSize(10);
@@ -279,6 +279,10 @@ EvalGrpNum = unique(GrpNum(KeepThese));
 if isempty(EvalGrpNum); 
     disp('No trees fit the filter criteria.');
     return
+elseif isempty(P.GetSizeRange) && isempty(P.GetGrpNum) && isempty(P.GetSeqNum) && isempty(P.GetCDR3seq) %Just check to see you aren't drawing everything if input is empty
+    if length(EvalGrpNum) > 10
+        EvalGrpNum = EvalGrpNum(1:10);
+    end
 end
 
 %End of filtering
