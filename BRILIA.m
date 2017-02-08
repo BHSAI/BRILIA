@@ -123,88 +123,76 @@ if HasStructInput == 0
     end
 end
 
-%Distribute input names now
-FullFileNames = P.FullFileNames;
-DevPerc = P.DevPerc;
-Vfunction = P.Vfunction;
-Ddirection = P.Ddirection;
-Species = P.Species;
-Strain = P.Strain;
-FileType = P.FileType;
-Delimiter = P.Delimiter;
-CheckSeqDir = P.CheckSeqDir;
-NumProc = P.NumProc;
-StatusHandle = P.StatusHandle;
-
 %Load databases and filter reference genese according to specifications
-[Vmap, Dmap, Jmap] = getCurrentDatabase('change',Species);
-[Vmap, Dmap, Jmap] = filterRefGene(Vmap,Dmap,Jmap,'Strain',Strain,'Ddirection',Ddirection,'Vfunction',Vfunction,'KeepThis','yes');
+[Vmap, Dmap, Jmap] = getCurrentDatabase('change',P.Species);
+[Vmap, Dmap, Jmap] = filterRefGene(Vmap,Dmap,Jmap,'Strain',P.Strain,'Ddirection',P.Ddirection,'Vfunction',P.Vfunction,'KeepThis','yes');
 
 %Get the file names
-if isempty(FullFileNames)
+if isempty(P.FullFileNames)
     [FileNames,FilePath] = uigetfile('*.fa*;*.xls*;*.csv;*.tsv','Select the input sequence files','multiselect','on');
     if ischar(FileNames)
         FileNames = {FileNames};
     end
-    FullFileNames = cell(length(FileNames),1);
+    P.FullFileNames = cell(length(FileNames),1);
     for f = 1:length(FileNames)
-        FullFileNames{f} = [FilePath, FileNames{f}];
+        P.FullFileNames{f} = [FilePath, FileNames{f}];
     end
-elseif ischar(FullFileNames)
-    FullFileNames = {FullFileNames};
+elseif ischar(P.FullFileNames)
+    P.FullFileNames = {P.FullFileNames};
 end
 
 %Setup parallel computing now
-showStatus('Setting up parallel computing',StatusHandle);
-if ~isempty(NumProc) %Changes this ONLY if user sets it.
-    if ischar(NumProc)
-        if strcmpi(NumProc,'max')
-            NumProc = feature('numCores');
+showStatus('Setting up parallel computing',P.StatusHandle);
+if ~isempty(P.NumProc) %Changes this ONLY if user sets it.
+    if ischar(P.NumProc)
+        if strcmpi(P.NumProc,'max')
+            P.NumProc = feature('numCores');
         else
-            NumProc = 1;
+            P.NumProc = 1;
         end
     else %Just ensure it's a reasonable value
-        NumProc = round(NumProc); %Must be integer
-        if NumProc < 1; NumProc = 1; end
-        if NumProc > feature('numCores'); NumProc = feature('numCores'); end
+        P.NumProc = round(P.NumProc); %Must be integer
+        if P.NumProc < 1; P.NumProc = 1; end
+        if P.NumProc > feature('numCores'); P.NumProc = feature('numCores'); end
     end
     ps = parallel.Settings;
     ps.Pool.AutoCreate = false; %Ensure that parfor is not automatically run.
     PoolName = gcp('nocreate');
     if isempty(PoolName)
-        if NumProc > 1
-            parpool(NumProc);
+        if P.NumProc > 1
+            parpool(P.NumProc);
         end
     else
-        if PoolName.NumWorkers ~= NumProc
+        if PoolName.NumWorkers ~= P.NumProc
             delete(gcp('nocreate'));
-            if NumProc > 1
-                parpool(NumProc);
+            if P.NumProc > 1
+                parpool(P.NumProc);
             end
         end
     end
 end
 
-%For debugging only. Save current variables so you can run each code,
-%line by line.
+%>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+%For debugging only. Save current variables and then run line-by-line
 DebugModeOn = 0; %Turn on(1) or off(0) debug mode in checkVDJdata
 % save('temp.mat')
 % return
+%>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-RunTime = zeros(length(FullFileNames),1); %How long it takes per file
-SeqCount = zeros(length(FullFileNames),1); %How many sequences per file
-for f = 1:length(FullFileNames)
+RunTime = zeros(length(P.FullFileNames),1); %How long it takes per file
+SeqCount = zeros(length(P.FullFileNames),1); %How many sequences per file
+for f = 1:length(P.FullFileNames)
     tic
 
     %Open file and extract nucleotide information, or directly use input NTseq
-    [VDJdata,VDJheader,FileName,FilePath] = convertInput2VDJdata(FullFileNames{f},'FileType',FileType,'Delimiter',Delimiter);
+    [VDJdata,VDJheader,FileName,FilePath] = convertInput2VDJdata(P.FullFileNames{f},'FileType',P.FileType,'Delimiter',P.Delimiter);
     BadVDJdata = {}; %For storing unprocessed sequences
     
     %==========================================================================
     %BRILIA processing begins here
 
     %Check input sequence for bad characters
-    showStatus('Removing ambiguous nucletides and odd sequences.',StatusHandle);
+    showStatus('Removing ambiguous nucletides and odd sequences.',P.StatusHandle);
     [VDJdata,BadIdx] = fixInputSeq(VDJdata,VDJheader);
         BadVDJdata = [BadVDJdata; VDJdata(BadIdx,:)];
         VDJdata(BadIdx,:) = [];
@@ -213,29 +201,29 @@ for f = 1:length(FullFileNames)
     %Find potential CDR3 start and end locations using V and J gene seed
     %alignment. Do this here, and not when doing VDJ alignment, because users
     %might have complement sequences which must be flipped.
-    showStatus('Determining sequence direction and CDR3 areas.',StatusHandle)
-    VDJdata = seedCDR3position(VDJdata,VDJheader,Vmap,'V',15,2,CheckSeqDir);
+    showStatus('Determining sequence direction and CDR3 areas.',P.StatusHandle)
+    VDJdata = seedCDR3position(VDJdata,VDJheader,Vmap,'V',15,2,P.CheckSeqDir);
     VDJdata = seedCDR3position(VDJdata,VDJheader,Jmap,'J',3,14,'n');
 
     %Search for initial VDJ alignment matches (no try = 4x faster)
-    showStatus('Finding initial-guess VDJ annotations.',StatusHandle)
+    showStatus('Finding initial-guess VDJ annotations.',P.StatusHandle)
     [VDJdata,BadIdx] = findVDJmatch(VDJdata,VDJheader,Vmap,Dmap,Jmap,'update'); %Need to implement J's are not overrride from above
         BadVDJdata = [BadVDJdata; VDJdata(BadIdx,:)];
         VDJdata(BadIdx,:) = [];
         if isempty(VDJdata); continue; end %didn't open file right
 
     %Fix insertion/deletion in V framework
-    showStatus('Fixing indels within V segment.',StatusHandle)
+    showStatus('Fixing indels within V segment.',P.StatusHandle)
     VDJdata = fixGeneIndel(VDJdata,VDJheader,Vmap,Dmap,Jmap);
     checkVDJdata(VDJdata,VDJheader,'fixGeneIndel',DebugModeOn);
 
     %Remove pseudogenes from degenerate annotations containing functional ones.
-    showStatus('Removing pseudo and ORF genes if functional genes are available.',StatusHandle)
+    showStatus('Removing pseudo and ORF genes if functional genes are available.',P.StatusHandle)
     VDJdata = fixDegenVDJ(VDJdata,VDJheader,Vmap,Dmap,Jmap);
     checkVDJdata(VDJdata,VDJheader,'fixDegenVDJ',DebugModeOn);
 
     %Insure that V and J segments cover the CDR3 region.
-    showStatus('Checking if V and J segments includes 104C and 118W.',StatusHandle)
+    showStatus('Checking if V and J segments includes 104C and 118W.',P.StatusHandle)
     VDJdata = constrainGeneVJ(VDJdata,VDJheader,Vmap,Dmap,Jmap);
     checkVDJdata(VDJdata,VDJheader,'constrainGeneVJ',DebugModeOn);
 
@@ -250,28 +238,28 @@ for f = 1:length(FullFileNames)
     VDJdata = removeDupSeq(VDJdata,VDJheader);
     checkVDJdata(VDJdata,VDJheader,'removeDupSeq',DebugModeOn);
 
-    %Cluster the data based variable region and hamming dist of DevPerc%.
-    showStatus('Performing lineage tree clustering.',StatusHandle)
-    VDJdata = clusterGene(VDJdata,VDJheader,DevPerc);
+    %Cluster the data based variable region and hamming dist of P.DevPerc%.
+    showStatus('Performing lineage tree clustering.',P.StatusHandle)
+    VDJdata = clusterGene(VDJdata,VDJheader,P.DevPerc);
     checkVDJdata(VDJdata,VDJheader,'clusterGene',DebugModeOn);
 
     %Set all groups to have same annotation and VMDNJ lengths.
-    showStatus('Conforming VDJ annotations within clusters.',StatusHandle)
+    showStatus('Conforming VDJ annotations within clusters.',P.StatusHandle)
     VDJdata = conformGeneGroup(VDJdata,VDJheader,Vmap,Dmap,Jmap);
     checkVDJdata(VDJdata,VDJheader,'conformGeneGroup',DebugModeOn);
 
     %Get better D match based on location of consensus V J mismatches.
-    showStatus('Refining D annotations within clusters',StatusHandle)
+    showStatus('Refining D annotations within clusters',P.StatusHandle)
     VDJdata = findBetterD(VDJdata,VDJheader,Vmap,Dmap,Jmap);
     checkVDJdata(VDJdata,VDJheader,'findBetterD',DebugModeOn);
 
     %Trim V, D, J edges and extract better N regions
-    showStatus('Refining N regions within clusters by trimming VDJ',StatusHandle)
+    showStatus('Refining N regions within clusters by trimming VDJ',P.StatusHandle)
     VDJdata = trimGeneEdge(VDJdata,VDJheader);
     checkVDJdata(VDJdata,VDJheader,'trimGeneEdge',DebugModeOn);
 
     %Fix obviously incorrect trees.
-    showStatus('Fixing obvious errors in lineage trees.',StatusHandle)
+    showStatus('Fixing obvious errors in lineage trees.',P.StatusHandle)
     VDJdata = fixTree(VDJdata,VDJheader);
     checkVDJdata(VDJdata,VDJheader,'fixTree',DebugModeOn);
 
@@ -305,11 +293,11 @@ for f = 1:length(FullFileNames)
         saveSeqData(BadSaveFullName,BadVDJdata,VDJheader,'Delimiter',SaveDelimiter);
     end
 
-    %Save the settings file
-    SaveFullName = sprintf('%s%s.SettingFile.%s',SavePath,FileName(1:DotLoc(end)-1),'txt');
-    Psave = P; %Create new structure to prevent overriding P.FullFileNames
-    Psave.FullFileNames = FullFileNames{f}; %Select only fth name since makeSettingFile is made per file
-    makeSettingFile(SaveFullName,Psave);
+%     %Save the settings file
+%     SaveFullName = sprintf('%s%s.SettingFile.%s',SavePath,FileName(1:DotLoc(end)-1),'txt');
+%     Psave = P; %Create new structure to prevent overriding P.FullFileNames
+%     Psave.FullFileNames = P.FullFileNames{f}; %Select only fth name since makeSettingFile is made per file
+%     makeSettingFile(SaveFullName,Psave);
 
     RunTime(f) = toc;
     SeqCount(f) = size(VDJdata,1) + size(BadVDJdata,1);
@@ -332,4 +320,5 @@ if isempty(TextHandle)
     disp(Msg);
 else
     set(TextHandle,'String',Msg);
+    pause(0.01); %Required short pause to update gui. Otherwise, will appear frozen.
 end
