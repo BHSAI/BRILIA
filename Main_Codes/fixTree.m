@@ -1,7 +1,9 @@
 %fixTree will look through VDJdata tree structures, and flip the root seq
 %with first seq IF it doesn't make sense. One way to figure this out is to
 %see if the 1st seq has MORE shm than another seq. Do this at the way end,
-%after D and N region fixes.
+%after D and N regions are fixed.
+%
+%  VDJdata = fixTree(VDJdata,VDJheader)
 
 function VDJdata = fixTree(VDJdata,VDJheader)
 H = getHeaderVar(VDJheader);
@@ -56,7 +58,3 @@ for y = 1:length(UnqGrpNum)
         disp(WarningMsg);
     end
 end
-
-
-
-
