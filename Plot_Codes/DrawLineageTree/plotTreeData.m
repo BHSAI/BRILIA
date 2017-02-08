@@ -262,12 +262,18 @@ if isempty(P.GetCDR3seq)
     ValidCDR3seq = zeros(size(TreeData,1),1,'logical');
 else
     ValidCDR3seq = zeros(size(CDR3seq),'logical');
+    Xloc = (P.GetCDR3seq == 'X');
     for y = 1:length(UnqGrpNum)
         GrpIdx = UnqGrpNum(y) == GrpNum;
         UnqGrpCDR3seq = unique(CDR3seq(GrpIdx));
-        HaveCDR3seq = findCell(UnqGrpCDR3seq,P.GetCDR3seq);
-        if max(HaveCDR3seq) > 0
-            ValidCDR3seq(GrpIdx) = 1;
+        for j = 1:length(UnqGrpCDR3seq)
+            if length(UnqGrpCDR3seq{j}) == length(P.GetCDR3seq)
+                MatchLoc = (UnqGrpCDR3seq{j} == P.GetCDR3seq) | Xloc;
+                if sum(MatchLoc) == length(P.GetCDR3seq)
+                    ValidCDR3seq(GrpIdx) = 1;
+                    break
+                end
+            end
         end
     end
 end
