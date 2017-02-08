@@ -130,7 +130,8 @@ if strcmpi(Option,'inner')
     set(Ax,'Position',NewAxPos);
 
     %Now determine the new plot positions based on tight inset
-    GxPos = [0 0 FigW FigH];
+    GxPos = get(get(Ax,'parent'),'Position');
+    GxPos(3:4) = [FigW FigH];
     %reset the paper size if it's off
     PaperSize = get(Gx,'PaperSize');
     if FigW+GxPos(1) > PaperSize(1)
@@ -158,7 +159,8 @@ else
     end
     
     %Now determine the new plot positions based on tight inset
-    GxPos = [0 0 FigW FigH];
+    GxPos = get(get(Ax,'parent'),'Position');
+    GxPos(3:4) = [FigW FigH];
     %reset the paper size if it's off
     PaperSize = get(Gx,'PaperSize');
     if FigW+GxPos(1) > PaperSize(1)

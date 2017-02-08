@@ -195,6 +195,7 @@ DebugModeOn = 0; %Turn on(1) or off(0) debug mode in checkVDJdata
 
 RunTime = zeros(length(P.FullFileNames),1); %How long it takes per file
 SeqCount = zeros(length(P.FullFileNames),1); %How many sequences per file
+SaveFileNames = cell(length(P.FullFileNames),1); %The output file locations
 for f = 1:length(P.FullFileNames)
     tic
 
@@ -298,6 +299,7 @@ for f = 1:length(P.FullFileNames)
     %Save the annotated file
     SaveFullName = sprintf('%s%s.BRILIAv%s.%s',SavePath,FileName(1:DotLoc(end)-1),Version,'csv');
     saveSeqData(SaveFullName,VDJdata,VDJheader,'Delimiter',SaveDelimiter);
+    SaveFileNames{f} = SaveFullName;
 
     %Save any unprocessed sequence
     if ~isempty(BadVDJdata)
@@ -323,6 +325,9 @@ if nargout >= 1
     varargout{1} = RunTime;
     if nargout >= 2
         varargout{2} = SeqCount;
+        if nargout >= 3
+            varargout{3} = SaveFileNames;
+        end
     end
 end
 
