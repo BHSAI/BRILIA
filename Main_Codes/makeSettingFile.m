@@ -41,15 +41,7 @@ end
 
 %Setting up default structure
 if isempty(P)
-    P.FullFileNames = '';
-    P.Species = '';
-    P.Strain = '';
-    P.Ddirection = 'all';
-    P.Vfunction = 'all';
-    P.DevPerc = 5;
-    P.FileType = '';
-    P.Delimiter = ';';
-    P.CheckSeqDir = 'n';
+    P = BRILIA('getinput');
 end
 
 %Extract the setting that exists
@@ -64,15 +56,18 @@ fprintf(FID,'%s = ''%s'';\r\n','Date',date);
 for j = 1:length(SettingNames)
     Name = SettingNames{j};
     Value = P.(Name);
-    if isnumeric(Value);
+    
+    if ~isnumeric(Value) && ~ischar(Value)
+        continue; %Probably some handle object
+    elseif isnumeric(Value); %Convert to string if its a matrix or number
         if length(Value) > 1
-            Value = mat2str(Value);
+           Value = mat2str(Value);
         else
            Value = num2str(Value);
         end
     end
-
     fprintf(FID,'%s = ''%s'';\r\n',Name,Value);
+
 end
 
 fclose(FID);

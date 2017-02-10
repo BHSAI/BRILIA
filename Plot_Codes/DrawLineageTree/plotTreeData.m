@@ -101,13 +101,13 @@
 %    Seq 12 is or isn't within Grp 10.
 %
 %  EXAMPLE 
-%    Go to the folder BRILIA/Examples_Files/BRILIA/ and try the following:
-%      FileName = 'Ex4_SimMouseBCR_FullLength.BRILIAv2.0.4.csv';
+%    Open up a BRILIA-processed file
+%      [FileName,FilePath] = uigetfile('*.csv','Open BRILIA output file');
 %      P = plotTreeData('getinput');   %Get the default input struct only
 %      P.GetGrpNum = 1;                %Plot tree for Group #1
 %      P.TreeStyle = 'square';         %Draw tree with 90 degree lines
 %      P.DotColorMap = jet/2;          %Use dark, jet colormap scheme
-%      [Gxs,Axs] = plotTreeData(FileName,P); %Plots the tree using input P
+%      [Gxs,Axs] = plotTreeData([FilePath FileName],P); %Plots tree
 %
 %    To save the plots as they are made, modify P as such:
 %      P.Save = 'y';                   %Yes, save the file.

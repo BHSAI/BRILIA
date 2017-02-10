@@ -109,10 +109,14 @@ VDJdata(:,H.GrpNumLoc) = num2cell(1:size(InputData,1)); %Always assign a unique 
 %Fill in the information that you have
 VDJdata(:,H.SeqNameLoc) = InputData(:,InSeqNameLoc);
 VDJdata(:,H.SeqLoc) = InputData(:,InSeqLoc);
-if InTemplateLoc > 0
+if InTemplateLoc > 0 %Update template loc if possible.
     for j = 1:size(VDJdata,1)
-        if max(isstrprop(InputData{j,InTemplateLoc},'digit')) == 1;
+        if isnumeric(InputData{j,InTemplateLoc})
             VDJdata(j,H.TemplateLoc) = InputData(j,InTemplateLoc);
+        elseif ischar(InputData{j,InTemplateLoc}) %Check if it is a number
+            if min(isstrprop(InputData{j,InTemplateLoc},'digit')) == 1
+                VDJdata{j,H.TemplateLoc} = eval(InputData{j,InTemplateLoc});
+            end
         end
     end
 end

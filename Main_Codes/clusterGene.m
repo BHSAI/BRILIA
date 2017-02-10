@@ -54,11 +54,11 @@ ClustMap(:,1) = 1:size(VDJdata,1); %Renumber
 
 %For each coarse cluster, find subclusters using Tree clustering and SHM
 %distance cutoff
-MaxDev = ceil(length(VDJdata{1,H.SeqLoc})*DevPerc/100); %Cutoff SHM distance
 GrpNumCt = 0; %buildTreeLink will provide a group number clust from 1 to N
 for j = 1:max(CrudeClustIdx)
     try
         ClustIdx = ClustMap(CrudeClustIdx == j,1);
+        MaxDev = ceil(length(VDJdata{ClustIdx(1),H.SeqLoc})*DevPerc/100); %Cutoff SHM distance
         Tdata = VDJdata(ClustIdx,:);       
         [~,Tdata] = buildTreeLink(Tdata,VDJheader,MaxDev);
 

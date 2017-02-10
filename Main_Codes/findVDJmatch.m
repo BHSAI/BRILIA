@@ -64,12 +64,12 @@ if isempty(Vmap) || isempty(Dmap) || isempty(Jmap)
 end
 
 %Bring some H = getHeaderVar(VDJheader); variables out, since parfor can't handle it.
-H.SeqLoc = findCell(VDJheader,{'nucleotide','Seq'});
-H.LengthLoc = findCell(VDJheader,{'Length_V','Length_Nvd','Length_D','Length_Ndj','Length_J'});
-H.DelLoc = findCell(VDJheader,{'V_Deletion3','D_Deletion5','D_Deletion3','J_Deletion5'});
-H.FamNumLoc = findCell(VDJheader,{'V_MapNum','D_MapNum','J_MapNum'});
-H.FamLoc = findCell(VDJheader,{'V_GeneName','D_GeneName','J_GeneName'});
-H.MiscLoc = findCell(VDJheader,{'Misc'});
+SeqLoc = findCell(VDJheader,{'nucleotide','Seq'});
+LengthLoc = findCell(VDJheader,{'Length_V','Length_Nvd','Length_D','Length_Ndj','Length_J'});
+DelLoc = findCell(VDJheader,{'V_Deletion3','D_Deletion5','D_Deletion3','J_Deletion5'});
+FamNumLoc = findCell(VDJheader,{'V_MapNum','D_MapNum','J_MapNum'});
+FamLoc = findCell(VDJheader,{'V_GeneName','D_GeneName','J_GeneName'});
+MiscLoc = findCell(VDJheader,{'Misc'});
 CDR3startLoc = findCell(VDJheader,{'CDR3_Start'});
 CDR3endLoc = findCell(VDJheader,{'CDR3_End'});
 
@@ -78,7 +78,7 @@ BadIdx = zeros(size(VDJdata,1),1,'logical');
 parfor j = 1:size(VDJdata,1)
     %Extract info from sliced VDJdata variable
     Tdata = VDJdata(j,:);
-    Seq = Tdata{1,H.SeqLoc};
+    Seq = Tdata{1,SeqLoc};
     CDR3start = Tdata{1,CDR3startLoc};
     if isempty(CDR3start); CDR3start = 0; end
     CDR3end = Tdata{1,CDR3endLoc};
@@ -118,7 +118,7 @@ parfor j = 1:size(VDJdata,1)
         InframeLoc = (mod(CDR3end-CDR3start-2,3) == 0) & CDR3end > CDR3start;
         if max(InframeLoc) > 0
             CDR3end = CDR3end(InframeLoc);
-            ForceAnchor = 'forceanchor'; %Ensure once of the anchor matches.
+            ForceAnchor = 'forceanchor'; %Ensure once of the anchor matches, UNLESS you get 0 matches.
         end
     end
     %End of ForceAnchor setting----------------------------------------
@@ -143,18 +143,18 @@ parfor j = 1:size(VDJdata,1)
     Jlmr = cell2mat(Jmatch(1,4)); %D left mid right segment
     Dlmr = cell2mat(Dmatch(1,4)); %J left mid right segment
     VMDNJ = [sum(Vlmr(1:2)) Dlmr sum(Jlmr(2:3))]; %V, Nvd, D, Ndj, J lengths
-    Tdata(1,H.LengthLoc) = num2cell(VMDNJ);
+    Tdata(1,LengthLoc) = num2cell(VMDNJ);
 
     %Extract germline deletion info
     Vdel = Vmatch{1,3}(3);
     D5del = Dmatch{1,3}(1);
     D3del = Dmatch{1,3}(3);
     Jdel = Jmatch{1,3}(1);
-    Tdata(1,H.DelLoc) = num2cell([Vdel D5del D3del Jdel]);
+    Tdata(1,DelLoc) = num2cell([Vdel D5del D3del Jdel]);
 
     %Extract the gene family map number and family resolution
-    Tdata(1,H.FamNumLoc) = [Vmatch(1,1) Dmatch(1,1) Jmatch(1,1)];
-    Tdata(1,H.FamLoc) = [Vmatch(1,2) Dmatch(1,2) Jmatch(1,2)];
+    Tdata(1,FamNumLoc) = [Vmatch(1,1) Dmatch(1,1) Jmatch(1,1)];
+    Tdata(1,FamLoc) = [Vmatch(1,2) Dmatch(1,2) Jmatch(1,2)];
 
     VDJdata(j,:) = Tdata;
 end
@@ -164,7 +164,7 @@ BadLoc = find(BadIdx == 1);
 for b = 1:length(BadLoc)
     ErrorMsg = sprintf('Errored at %s, sequence # %d',mfilename,BadLoc(b));
     disp(ErrorMsg);
-    VDJdata{BadLoc(b),H.MiscLoc} = ErrorMsg;
+    VDJdata{BadLoc(b),MiscLoc} = ErrorMsg;
 end
 
 %Update VDJdata 

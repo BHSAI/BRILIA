@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------
+##Patch notice for version 2.0.7
+
+General changes
+- Fixed an issue where template counts in CSV files were not being converted to double values correctly.
+- Fixed logic issues in findVDJmatch.m and findGeneMatch.m in which the best gene match was incorrect if there were no match. 
+- Cleaned up the example files to make it easier to see what input format BRILIA will take. 
+
+---------------------------------------------------------------------------
 ##Patch notice for version 2.0.6
 
 Generage changes

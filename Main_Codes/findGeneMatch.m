@@ -99,8 +99,8 @@ end
 %If CDR3 anchors are provided, try to use this first to find gene match.
 if P.ExactMatch(1) == 'y'
     %Determine best fit ref gene number via NT matching
-    FitScore1 = zeros(length(CDR3anchor),size(Xmap,1)); %Match/mismatch
-    FitScore2 = zeros(length(CDR3anchor),size(Xmap,1)); %Align Score
+    FitScore1 = -Inf*ones(length(CDR3anchor),size(Xmap,1)); %Match/mismatch
+    FitScore2 = -Inf*ones(length(CDR3anchor),size(Xmap,1)); %Align Score
     InvalidMap = zeros(1,size(Xmap,1),'logical');
     for x = 1:size(Xmap,1)
         %Determine if Xmap entry and anchor are viable
@@ -122,7 +122,7 @@ if P.ExactMatch(1) == 'y'
         %Determine alignment score for Xmap and anchor points
         for q = 1:length(CDR3anchor)
             [SeqA, SeqB] = padtrimSeq(Seq,Xmap{x,1},CDR3anchor(q),Xanchor,'min','min');
-            [ScoreT,A,StartAt,MatchAt] = convolveSeq(SeqA,SeqB,P);
+            [ScoreT,~,StartAt,MatchAt] = convolveSeq(SeqA,SeqB,P); 
             %Adjust Score1 based on where SeqA start/ends for V/J gene
             if StartAt(2) < 0
                 SeqAstart = abs(StartAt(2)) + 1;
@@ -164,7 +164,7 @@ if P.ExactMatch(1) == 'y'
 
     %In case you have to abandon a bad seed, just do full match
     BestIdentity = max(FitScore1(BestRow,BestXmapNum));
-    if BestIdentity < 0.70 && ForceAnchor == 0
+    if (BestIdentity < 0.70 && ForceAnchor == 0) || BestIdentity == 0
         P.ExactMatch = 'no';
     end
 end
@@ -186,7 +186,7 @@ if P.ExactMatch(1) == 'n'
     P.DiagIdx = repmat([-length(Seq)+2:1],Tlen,1) + repmat([0:Tlen-1]',1,length(Seq)); %Determine the index for Seq2  %SLOWEST    
 
     %Determine best fit ref gene number via NT matching
-    FitScore = zeros(1,size(Xmap,1));
+    FitScore = -Inf*ones(1,size(Xmap,1));
     for x = 1:size(Xmap,1)
         if isempty(Xmap{x,1}); continue; end
         ScoreT = convolveSeq(Seq,Xmap{x,1},P);

@@ -35,19 +35,10 @@
 
 function P = readSettingFile(FileName,varargin)
 %Setting up default structure
-P = [];
-if length(varargin) >= 1 
+if ~isempty(varargin) && isstruct(varargin{1}) 
     P = varargin{1};
-end
-if isempty(P)
-    P.Species = '';
-    P.Strain = '';
-    P.Ddirection = 'all';
-    P.Vfunction = 'all';
-    P.DevPerc = 3;
-    P.FileType = '';
-    P.Delimiter = ';';
-    P.CheckSeqDir = 'n';
+else
+    P = BRILIA('getinput');
 end
 
 %Extract the setting that exists
@@ -79,7 +70,14 @@ while feof(FID) == 0
 end
 fclose(FID);
 
-%Convert field to numerical value
-if ischar(P.DevPerc)
-    P.DevPerc = eval(P.DevPerc);
+%Convert field value of numbers to numbers
+for j = 1:length(SettingNames)
+    Value = P.(SettingNames{j});
+    if ischar(Value) && ~isempty(Value)
+        %Look for non-integer numbers
+        NotNumLoc = regexpi(Value,'[^\d]');
+        if isempty(NotNumLoc)
+            P.(SettingNames{j}) = eval(Value);
+        end
+    end
 end
