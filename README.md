@@ -41,7 +41,7 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/m
 4. To run BRILIA GUI, run the BRILIAgui in the command line:  
    > BRILIAgui
 
-OR
+   OR
 
    To run BRILIA by code, use either of the following example commands (type help BRILIA to learn more):
 
