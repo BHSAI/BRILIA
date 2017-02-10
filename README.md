@@ -38,12 +38,12 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/m
 2. Open MATLAB and set the working directory to the BRILIA folder.
 3. In the command line, invoke the addAllPaths function to add all BRILIA folders into the matlab path.  
    > addAllPaths
-4. To run BRILIA GUI, run the BRILIAgui in the command line:
+4. To run BRILIA GUI, run the BRILIAgui in the command line:  
    > BRILIAgui
 
 OR
 
-4. To run BRILIA by code, use either of the following example commands (type help BRILIA to learn more):
+   To run BRILIA by code, use either of the following example commands (type help BRILIA to learn more):
 
    EX1) Will ask user to select the input sequence file, host species, and host strain.
    > BRILIA  
@@ -55,7 +55,7 @@ OR
    > BRILIA( 'Seqfile.fasta' , 'Species' , 'human' , ParamName , Value, ... )  
 
    HINT) Try processing the example input files in the Example_Files folder.
-   > BRILIA( 'ExMouseSeq_Semicolon.csv', 'SettingFile' , 'ExMouseSeq_SettingFile.txt' );
+   > BRILIA( 'ExMouseSeq_Semicolon.csv', 'SettingFile' , 'ExMouseSeq_SettingFile.txt' );  
    > BRILIA( 'ExMouseSeq_Tabulated.csv', 'Delimiter', '\t', 'Species', 'Mouse', 'Strain', 'C57BL');
 
 NOTE: BRILIA should create a new folder called BRILIA and save the output results in that folder.
