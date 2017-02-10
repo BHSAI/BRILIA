@@ -174,8 +174,8 @@ addParameter(P,'GetSizeRange',[],@(x) isempty(x) || isnumeric(x));
 addParameter(P,'GetCDR3seq',[],@(x) isempty(x) || ischar(x) || iscell(x));
 %Display parameters (that directly affects tree)
 addParameter(P,'DistanceUnit','shm',@(x) any(validatestring(lower(x),{'shm','ham'})));
-addParameter(P,'DotMaxSize',800,@(x) isnumeric(x) && x >= 1);
-addParameter(P,'DotScalor',30,@(x) isnumeric(x) && x >= 1);
+addParameter(P,'DotMaxSize',300,@(x) isnumeric(x) && x >= 1);
+addParameter(P,'DotScalor',5,@(x) isnumeric(x) && x >= 1);
 addParameter(P,'DotColorMap',[],@(x) isempty(x) || (isnumeric(x) && size(x,2) == 3));
 addParameter(P,'Legend','y',@(x) any(validatestring(lower(x),{'y','n'})));
 addParameter(P,'LegendFontSize',10,@isnumeric)

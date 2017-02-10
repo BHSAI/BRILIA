@@ -43,14 +43,21 @@
 %    The output annotation file will be saved automatically in the folder
 %    where the sequence input files are, in a new folder called BRILIA.
 %
-%  VERSION 2.0.7
-%    Version numbering is X.Y.Z, where
-%      X increments for changes that affect version compatibility
-%      Y increments for added/removed features, algorithm changes
-%      Z increments for bug fixes and code cleaning updates
-%      
+%  EXAMPLE
+%    Running BRILIA using a setting file
+%      BRILIA([],'SettingFile','ExMouseSeq_SettingFile.txt');
+%
+%    Running BRILIA by setting things manually
+%      P = BRILIA('getinput');  %Gets inputs that BRILIA can use
+%      P.Species = 'Mouse';     %Select the mosue database
+%      P.Strain = 'C57BL';      %Select genes for C57BL mouse strain
+%      P.DevPerc = 5;           %Select clustering percentage
+%      P.Delimiter = ','        %Specify delimiter, if using CSV file input
+%      BRILIA(P);               %Open a comma delimited sequence file
+%
 %  Written by Donald Lee, dlee@bhsai.org
-%  Last updated on Jan 2017
+%
+%  See also BRILIAgui
 
 function varargout = BRILIA(varargin)
 Version = '2.0.7'; %Version Number

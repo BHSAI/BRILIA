@@ -36,8 +36,14 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/m
 
 1. Copy all codes into a folder called BRILIA (Delete older BRILIA files as this could cause code conflicts).
 2. Open MATLAB and set the working directory to the BRILIA folder.
-3. In the command line, type "help BRILIA" to look at how it handles inputs and outputs.
-4. To run BRILIA, use either of the following example commands:
+3. In the command line, invoke the addAllPaths function to add all BRILIA folders into the matlab path.  
+   > addAllPaths
+4. To run BRILIA GUI, run the BRILIAgui in the command line:
+   > BRILIAgui
+
+OR
+
+4. To run BRILIA by code, use either of the following example commands (type help BRILIA to learn more):
 
    EX1) Will ask user to select the input sequence file, host species, and host strain.
    > BRILIA  
@@ -49,10 +55,10 @@ See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/m
    > BRILIA( 'Seqfile.fasta' , 'Species' , 'human' , ParamName , Value, ... )  
 
    HINT) Try processing the example input files in the Example_Files folder.
-   > BRILIA( 'Ex4_SimMouseBCR_FullLength.fa' , 'SettingFile' , 'Ex4_SettingFile.txt' );    
-   > BRILIA( 'Ex5_SimHumanBCR_FullLength.fa' , 'SettingFile' , 'Ex5_SettingFile.txt' );    
+   > BRILIA( 'ExMouseSeq_Semicolon.csv', 'SettingFile' , 'ExMouseSeq_SettingFile.txt' );
+   > BRILIA( 'ExMouseSeq_Tabulated.csv', 'Delimiter', '\t', 'Species', 'Mouse', 'Strain', 'C57BL');
 
-5. BRILIA should create a new folder called BRILIA and save the output results in that folder.
+NOTE: BRILIA should create a new folder called BRILIA and save the output results in that folder.
 
 The program is distributed under the [GNU General Public License] (http://www.gnu.org/licenses/gpl.html).  
 

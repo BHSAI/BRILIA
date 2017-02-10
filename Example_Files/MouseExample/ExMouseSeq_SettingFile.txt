@@ -7,3 +7,4 @@ DevPerc = 3;
 FileType = '';
 Delimiter = ';';
 CheckSeqDir = 'n';
+NumProc = '4';
