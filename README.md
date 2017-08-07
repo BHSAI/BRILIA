@@ -64,8 +64,15 @@ The program is distributed under the [GNU General Public License] (http://www.gn
 
 See BRILIA patch info at [here] (https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md).  
 
-## UPCOMING UPDATES (Proposed on 2017-01-24)
-  *  Will update the data plotting functions. The Data_Plotting folder is being all reworked, as there's unused / temporary scripts there. New codes will be placed in Plot_Codes folder.
-  *  Will add CDR1 and CDR2 into the outputs
-  *  Will enforce quality control to ensure nonsense CDR3 or VDJ annotations are removed and placed into [FileName]Err.csv
-  *  Will replace try/catch with validation codes, since former method is generally slower.
+## UPCOMING UPDATES (2017-08-07)
+  The next version of BRILIA (v3) is on its way with some MAJOR changes!
+  *  More error handling of non-VDJ sequences
+  *  Heavy and Light chain annotations
+  *  CDR1, 2, and 3 annotations according to IMGT definitions
+  *  Segments annotation jobs by CDR3 lengths to reduce memory overload
+  *  Binary files for using BRILIA in a command-line interface
+  *  Data plotting tools for making publication-quality figures in Matlab
+  *  Analysis plots to show repertoire properties such as SHMs, etc.
+  *  Cleaner codes and folder names
+  *  Cleaner annotation files with alignment information
+  
