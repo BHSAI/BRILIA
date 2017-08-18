@@ -12,7 +12,7 @@
 
 BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning information about CDR regions, phylogeny relationships, and somatic hypermutations. More information about BRILIA can be found [here.](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full)
   
-## INPUT FILES [(See example input files)](): 
+## INPUT FILES (See [example input files](https://github.com/BHSAI/BRILIA/tree/master/Examples/MouseH)): 
  
   * Accepted sequence file formats: 
     * fasta (.fa or .fasta)
@@ -32,20 +32,20 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
   * Delimiter symbols cannot be used in places where they are not delimiters.
   * NOTE: BRILIA will auto-detect the delimiter and heavy/light chain if formatted properly.
 
-## OUTPUT FILES [(See example output files)](): 
+## OUTPUT FILES (See [example output files](https://github.com/BHSAI/BRILIA/tree/master/Examples/MouseH/MouseH_Fasta)): 
 
   * Returns 3 delimited csv file:
     * [output_file_name].BRILIAvX.csv : stores final annotation and phylogeny data of productive V(D)J sequences
     * [output_file_name].BRILIAvX.Raw.csv : stores initial annotation of V(D)J sequences without lineage-base annotation correction. This is used as a save point for reclustering sequences. 
     * [output_file_name].BRILIAvX.Err.csv : stores non-productive VDJ sequences and any sequences that could not be annotated fully.
   * If the output file is not specified, results will be stored in a subfolder with the same name as the input file. 
-  * See output file header details [here](https://github.com/BHSAI/BRILIA/blob/master/Support_Files/DataHeaderInfo.csv).
+  * See output file header details [here](https://github.com/BHSAI/BRILIA/blob/master/Tables/DataHeaderInfo.csv).
 
 ## Running BRILIA without MATLAB
 ### General preparations and downloads
-1. Download the MATLAB Runtime Version R2017a (9.2) from the [MathWorks website] (https://www.mathworks.com/products/compiler/mcr.html).
+1. Download the MATLAB Runtime Version R2017a (9.2) from the [MathWorks website](https://www.mathworks.com/products/compiler/mcr.html).
 2. Install the MRC library on your computer.
-3. Download the BRILIA exectuable files for your OS. [BRILIAv2.0.7.zip](https://github.com/BHSAI/BRILIA/files/767682/BRILIAv2.0.7.zip)
+3. Download the folder containing your operating system's [BRILIA exectuable files](https://github.com/BHSAI/BRILIA/tree/master/Bin).
 4. Unzip the executable files into a folder called BRILIA.
 
 ### For WINDOWS
@@ -111,9 +111,9 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in Matlab to check.
 ```
 
 
-The program is distributed under the [GNU General Public License] (http://www.gnu.org/licenses/gpl.html).  
+The program is distributed under the [GNU General Public License](http://www.gnu.org/licenses/gpl.html).  
 
-See BRILIA patch info at [here] (https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md).  
+See BRILIA patch info at [here](https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md).  
 
 ## UPCOMING UPDATES (Proposed on 2017-01-24)
   *  Will update the data plotting functions. The Data_Plotting folder is being all reworked, as there's unused / temporary scripts there. New codes will be placed in Plot_Codes folder.
