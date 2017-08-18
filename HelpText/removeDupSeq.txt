@@ -1,0 +1,9 @@
+removeDupSeq will look for duplicate sequences, combine them, and remove
+the extra entries. Duplicate sequences can arise after Indel correction or
+after padding/trimming sequences of variable lengths.
+
+  VDJdata = removeDupSeq(VDJdata, VDJheader)
+
+  INPUT
+    VDJdata: main BRILIA data cell
+    VDJheader: main BRILIA header cell

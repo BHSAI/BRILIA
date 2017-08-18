@@ -1,0 +1,54 @@
+padtrimSeq will either pad or trim sequences so that SeqA and SeqB are the
+same length, and centered about an anchoring letter. Uses 'X' for padding.
+
+  NewSeqA = padtrimSeq(SeqA,AnchorA,LeftOpt,RightOpt)
+
+  [NewSeqA, NewSeqB] = padtrimSeq(SeqA,SeqB,AnchorA,AnchorB,LeftOpt,RightOpt)
+
+  [NewSeqA, NewSeqB, Aadj, Badj] = padtrimSeq(SeqA,SeqB,AnchorA,AnchorB,LeftOpt,RightOpt)
+
+  INPUT
+    SeqA/B: Sequences that you want to match with each other
+    AnchorA/B: Integer position # where you want SeqA/B to be same
+    LeftOpt/RightOpt: Option to set left and right lengths
+      'Min'    set to same min length with respect to anchor point
+      'Max'    set to same max length with respect to anchor point
+      'A'      set to same length with repsect to SeqA and anchor point
+      'B'      set to same length with repsect to SeqB and anchor point
+      # int    set to same N number of letters left/right of anchor point
+
+  OUTPUT
+    SeqA/B: new sequences that have the same-length sequences after
+      padding and/or trimming
+    Aadj/Badj: 1x2 matrix showing how many letters were removed (- number)
+      or added (+ number)
+  
+  EXAMPLE
+    SeqA = 'ACGTGCGTA'
+    SeqB = 'CGAGTGCATGTG'
+    AnchorA = 4;
+    AnchorB = 5;
+
+    [NewSeqA, Aadj] = padtrimSeq(SeqA,AnchorA,2,7)
+    NewSeqA = 
+       CGTGCGTAXX
+    Aadj = 
+       -1    2
+
+    [NewSeqA, NewSeqB] = padtrimSeq(SeqA,SeqB,AnchorA,AnchorB,'min','max')
+    NewSeqA = 
+       ACGTGCGTAXX
+    NewSeqB = 
+       GAGTGCATGTG
+
+    [NewSeqA, NewSeqB, Aadj, Badj] = padtrimSeq(SeqA,SeqB,AnchorA,AnchorB,2,9)
+    NewSeqA = 
+       CGTGCGTAXXXX
+    NewSeqB = 
+       AGTGCATGTGXX
+    Aadj =
+       -1    4 
+    Badj =
+       -2    2
+
+  See also findVDJmatch, alignSeq, findGeneMatch, getGeneSeed

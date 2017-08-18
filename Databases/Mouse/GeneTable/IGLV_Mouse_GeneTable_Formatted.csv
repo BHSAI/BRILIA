@@ -1,0 +1,19 @@
+MGT subgroup;;IMGT gene name;;IMGT allele name;Fct;Chromosomal localization;R;T;Pr;Positions in the locus;Strain;Clone names;;Accession numbers;;;;Positions in the sequence (V-REGION);Secondary accession numbers;Strain;Clone names;;Accession numbers;;;Positions in the sequence (V-REGION)
+IGLV1;;IGLV1;;IGLV1*01;F;16 (13.0 cM);+;+;;;BALB/c;V1;MAP;J00590;[2];;;;;BALB/c;A1-13/eVl1;MAP;X58409;[3];;
+;;;;;;;;+;;;;;;;;;;;;;;;V00811;[5];;
+;;;;IGLV1*02;F;16 (13.0 cM);;+;;;BALB/c;M315/eVl1;MAP;X58417;[3];;;;;;;;;;;
+;;IGLV2;;IGLV2*01;F;16 (13.0 cM);;+;;;;V2;MAP;J00599;[1];;;;;;;;V00815;[1];;
+;;;;IGLV2*02;F;16 (13.0 cM);;+;;;BALB/c;J558/eVl2;MAP;X58412;[3];;;;;BALB/c;;;X58418;[3];;
+;;;;;;;;+;;;;;;;;;;;;;M315e/Vl2;MAP;X58423;[3];;
+;;;;;;;;+;;;;;;;;;;;;;;;X58424;[3];;
+IGLV2;;IGLV3;-1;IGLV3*01;F;16 (13.0 cM);;+;;;BALB/c;Lg1;MAP;M34597;[4];;;;;BALB/c;Y31 (lambdax);;M34598;[8];#c;
+;;;;;;;;+;;;;;;;;;;;;;Vlx (Vlambda x);MAP;D38129;[4];;
+IGLV3;-2;IGLV4;;IGLV4*01;[F];16 (13.0 cM);+;+;;;MBK;MBK2;;AF357985;[6];-3;°;;;;SD26;;M94349;[7];#c;
+;;IGLV5;;IGLV5*01;[F];16 (13.0 cM);+;+;;;PWK;PWK1;;AF357981;[6];-3;°;;;;CZ81;;M94351;[7];#c;
+;;IGLV6;;IGLV6*01;[F];16 (13.0 cM);;+;;;PWK;PWK3;;AF357979;[6];-3;°;;;;;;;;;
+;;;;IGLV6*02;[F];16 (13.0 cM);;+;;;MAI;MAI2;;AF357983;[6];-3;°;;;;;;;;;
+;;;;IGLV6*03;[F];16 (13.0 cM);;+;;;MBK;MBK4;;AF357987;[6];-3;°;;;;;;;;;
+;;IGLV7;;IGLV7*01;[F];16 (13.0 cM);;+;;;PWK;PWK2;;AF357980;[6];-3;°;;;;;;;;;
+;;;;IGLV7*02;[F];16 (13.0 cM);;+;;;MBK;MBK1;;AF357984;[6];-3;°;;;;;;;;;
+;;IGLV8;;IGLV8*01;[F];16 (13.0 cM);;+;;;MAI;MAI1;;AF357982;[6];-3;°;;;;;;;;;
+;;;;IGLV8*02;[F];16 (13.0 cM);;+;;;MBK;MBK3;;AF357986;[6];-3;°;;;;;;;;;

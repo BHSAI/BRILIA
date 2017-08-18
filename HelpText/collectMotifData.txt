@@ -1,0 +1,4 @@
+collectMotifData will collect from VDJdata all the mutations that is
+occuring around the various 2- or 3- nucleotid motifs, storing also the
+relative mutation frequencies from X -> Y. This is computed per
+parent-child relationship.

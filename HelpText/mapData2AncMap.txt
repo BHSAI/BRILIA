@@ -1,0 +1,22 @@
+mapData2AncMap will take Tdata (subset of VDJdata for same clonotype) and
+it corresponding AncMap, and then fill in RefSeq as the parent sequence of
+each child sequence.
+
+  Tdata = mapData2AncMap(Tdata, VDJheader, AncMap)
+
+  INPUT
+    Tdata: main BRILIA data cell, but selecting for only sequences that
+      belong in the same crude cluster (see clusterGene.m) and have the
+      same sequence lengths (padtrimSeqGroup.m).
+    VDJheader: main BRILIA header cell
+    AncMap: Ancestrap map matrix (calcAncMap.m or calcRootedAncMap.m)
+
+  OUTPUT
+    Tdata: modified Tdata where the RefSeq is the parent sequence of each
+      child sequence. 
+
+  NOTE
+    The RefSeq in INPUT Tdata for the 1st row should be germline RefSeqs.
+    
+    The RefSeq of the 1st row of Tdata is not touched, along with any
+      AncMap(j, 2) = 0, which is the germline parent 0.

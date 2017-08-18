@@ -1,0 +1,12 @@
+findHotSpots will classify the mutation and the surrounding BPs to
+identify if there are any hotspots associated with a point mutation.
+
+  WRCY
+  RGYW 
+  W = A or T
+  R = A or G
+  Y = T or C
+This will look for a NT, then look +- 2 nts afrom the nucleotide and build
+a compositional matrix. It will also produce an 2nd matrix to find
+compositional variation for any C, which is used to determine the degree
+of extra selection power for a hot spot.

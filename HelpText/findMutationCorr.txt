@@ -1,0 +1,12 @@
+findMutationCorr will plot the AT mutation% vs GC mutation% to see if
+there is a linear correlation. This would indicate ADAR and AID act same
+time. If you see a vertical / horizontal instead, that would indicate they
+do not act same time. Y axis is ADAR mutation, whereas X axis is AID
+mutation.
+
+We do NOT consider N regions, as there are highly biased towards C/G, and
+thus normalization would be ruined. We thus focus ONLY onlg annotated
+V,D,J regions.
+Output is [AmutCt CmutCt GmutCt Tmutct TotA TotC TotG TotT
+  XmutCt = number of X that were mutated in the RefSeq
+  TotX = number of X that exists in the RefSeq

@@ -1,0 +1,147 @@
+filterVDJdata will search through VDJdata for certain information,
+returning a filtered VDJdata cell matrix of all clusters that have at
+least one member that matched the filter criteria. This function will also
+return a binary index of size(VDJdata,1)x1 that can be used for more
+complicated AND + OR filtering of VDJdata.
+
+  FiltVDJdata = filterVDJdata(HeaderName,Value,...)
+
+  FiltVDJdata = filterVDJdata(HeaderLoc,Value,...)
+
+  FiltVDJdata = filterVDJdata(VDJdata,VDJheader,...)
+
+  FiltVDJdata = filterVDJdata(FileName,...)
+
+  FiltVDJdata = filterVDJdata(...,Logic)
+
+  [FiltVDJdata, GrpBinIdx] = filterVDJdata(...)
+
+  [FiltVDJdata, GrpBinIdx, SeqBinIdx] = filterVDJdata(...)
+
+  INPUT
+    HeaderName: is the name of the VDJdata data column of VDJdata. Can
+      also use column index instead (see next)
+    HeaderLoc: is the nth column of VDJdata to search. It's related to
+      HeaderName by HeaderName = VDJheader{HeaderLoc}. Can also use name
+      instead.
+    Value: is either a string, list {n1,n2}, range [min max], or number N
+      that is being sought in a data column of VDJdata.
+    Logic ['AND','OR']: uses either the AND or OR logic for all the filter
+      parameters. Can be specified anywhere in the input, though try to
+      make it before the HeaderName-Value pairs.
+
+    Below is the list of HeaderName that can be used. Value is either
+      numeric or character that is being sought. Certain rules apply to
+      different value types as listed below.
+        alphanum: can match any case, including partial matches
+        num: list is inputted as a cell like {N1,N2,N3}
+             range is inputted as a matrix like [min,max]
+             single number is just an integer value like N
+        seq: does a same-length string comparison, but X is a wildcard
+        prop: similar to seq, but uses AA property codes which are
+          different from AA letter. AA with similar properties gets a
+          single letter code. See the AminoAcidProp.csv file. Unrecognized
+          property code letters are wildcard.
+
+      HeaderName         Value type    Special Rules
+      ---------------    ------------  -----------------------------------
+      SeqName            alphanum      -
+      SeqNum             num           -
+      GroupNum           num           -
+      TemplateCount      num           -
+      TreeChildCount     num           -
+
+   *  H-CDR3_Property    prop          will look for CDR3 data, translate
+                                       them to AA property codes, and then
+                                       search with query property code.
+      H-CDR3_AminoAcid   seq           -
+      H-CDR3_Length      num           -
+      H-Seq              seq           -
+      H-RefSeq           seq           -
+      H-Functional       alphanum      can be 'y','n','m'
+      H-V_GeneName       alphanum      -
+      H-V_MapNum         num           -
+      H-V_Deletion3      num           -
+      H-D_GeneName       alphanum      -
+      H-D_MapNum         num           -
+      H-D_Deletion5      num           -
+      H-D_Deletion3      num           -
+      H-J_GeneName       alphanum      -
+      H-J_MapNum         num           -
+      H-J_Deletion5      num           -
+      H-Length_V         num           -
+      H-Length_Nvd       num           -
+      H-Length_D         num           -
+      H-Length_Ndj       num           -
+      H-Length_J         num           -
+      H-SHM_V            num           -
+      H-SHM_Nvd          num           -
+      H-SHM_D            num           -
+      H-SHM_Ndj          num           -
+      H-SHM_J            num           -
+
+   *  L-CDR3_Property    prop          will look for CDR3 data, translate
+                                       them to AA property codes, and then
+                                       search with query property code.
+      L-CDR3_AminoAcid   seq           -
+      L-CDR3_Length      num           -
+      L-Seq              seq           -
+      L-RefSeq           seq           -
+      L-Functional       alphanum      can be 'y','n','m'
+      L-V_GeneName       alphanum      -
+      L-V_MapNum         num           -
+      L-V_Deletion3      num           -
+      L-J_GeneName       alphanum      -
+      L-J_MapNum         num           -
+      L-J_Deletion5      num           -
+      L-Length_V         num           -
+      L-Length_N         num           -
+      L-Length_J         num           -
+      L-SHM_V            num           -
+      L-SHM_N            num           -
+      L-SHM_J            num           -
+
+  OUTPUT
+    FiltVDJdata: filtered VDJdata containing groups that have matched the
+      Header-Value pair by at least one group member.
+    GrpBinIdx: Binary index of size size(VDJdata,1)x1 of VDJdata groups
+      that were extracted.
+    SeqBinIdx: Binary index of size size(VDJdata,1)x1 of VDJdata sequences
+      that triggered match.
+
+  NOTE
+    If nothing matches, will return an empty cell and all BinIdx outputs
+    will be zeros(size(VDJdata,1),1,'logical');
+
+    This uses the AND logic by default. To combine AND and OR, must use
+    filterVDJdata multiple times to get the desired results, and then
+    properly use the binary index outputs to get the right results.
+
+    Range values are always inclusive, and placed in brackets. Example: To
+    find a range within 0 to 100, set filter value to [0,100]. To get
+    greater than 100, set filter value to [100.01,inf].
+
+    List values are always in a cells. Example: To get item number 1,2,4,
+    you set the filter Value to {1,2,3}.
+
+  EXAMPLE
+    Finding groups with
+    TemplateCount >= 10 AND CDR3seq = 'CARXSYW'
+
+      [VDJdata,VDJheader] = openSeqData; %Opens the BRILIA seq file.
+      H = getHeaderVar(VDJheader); %Gets structure of main column
+      [filtVDJdata,GrpBinIdx,SeqBinIdx] =
+        filterVDJdata(VDJdata,VDJheader,'AND',VDJheader{H.TemplateLoc},[10
+        Inf],'CDR3_AminoAcid','CARXSYW')
+
+    Finding Sequences with:
+    TemplateCount >= 10 AND (CDR3seq = 'CARXSYW' OR CDR3seq = 'CSRFXYW')
+
+      [~,~,SeqBinIdx1] = 
+        filterVDJdata(VDJdata,VDJheader,'TemplateCount',[10,Inf]);
+      [~,~,SeqBinIdx2] = 
+        filterVDJdata(VDJdata,VDJheader,'CDR3_AminoAcid','CARXSYW');
+      [~,~,SeqBinIdx3] = 
+        filterVDJdata(VDJdata,VDJheader,'CDR3_AminoAcid','CSRFXYW');
+      SeqBinIdx = SeqBinIdx1 & (SeqBinIdx2 | SeqBinIdx3);
+      filterVDJdata = VDJdata(SeqBinIdx,:);

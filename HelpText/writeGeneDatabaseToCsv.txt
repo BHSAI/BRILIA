@@ -1,0 +1,18 @@
+writeGeneDatabaseToCsv will write a gene database to a csv file. The csv
+file is used mainly for debugging purposes to see if BRILIA is processing
+IMGT fasta files correctly and identifying the correct locations of CDR
+and FWR regions.
+
+  writeGeneDatabaseToCsv(DB, OutputFile)
+
+  writeGeneDatabaseToCsv(Species, OutputFile)
+
+  INPUT
+    DB: structured database output from processIMGTfasta
+    Species: folder name or species name of the database to print
+    OutputFile: full file name to write the csv file to
+  
+  OUTPUT
+    A csv file storing all no-gapped gene sequences used by BRILIA
+    processing.
+

@@ -1,0 +1,6 @@
+modifyPlotLabels will modify a series of X or Y axis labels, Title,
+Legends. Note that this will only overwrite. Empty values are skipped.
+This could also be used to modify fontsize only, by setting all other
+parameters fixed.
+FontSize = [10 10 14 10] will apply font size to X,Y,Title,Legend,
+respectively.

@@ -1,0 +1,1 @@
+findChild will return the numbers for the parent of sequence.

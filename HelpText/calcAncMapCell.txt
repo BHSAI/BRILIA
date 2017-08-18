@@ -1,0 +1,5 @@
+calcAncMapCell will take VDJdata that has already the parent=child
+location made up, and return the AncMapCell variable required to make the
+phylogenetic trees.
+
+  AncMapCell = calcAncMapCell(VDJdata,VDJheader)

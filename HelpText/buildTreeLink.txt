@@ -1,0 +1,43 @@
+buildTreeLink will take a crude cluster of VDJdata (Tdata) and then use
+lineage trees to determine the fine clusters based on the SHM distance.
+This will return a rearranged Tdata cell matrix based on the new
+clustering, where the 1st member is always the sequence closest to the
+germline sequence.
+
+Procedure are as follows:
+1) Cluster based on distance first, cyclic dependencies allowed
+
+2) For each cluster, identify the "root sequence". This is the sequences
+that gives you the smallest total SHM distance to all other sequences.
+
+3) For each root of each cluster, attempt to link to another cluster's
+node or leaf. Repeat until clusters do not change.
+
+  [AncMapCell,Tdata] = buildTreeLink(Tdata,VDJheader,DevPerc)
+
+  AncMapCell = buildTreeLink(Tdata,VDJheader,DevPerc)
+
+  INPUT
+    Tdata: main BRILIA data cell, but selecting for only sequences that
+      belong in the same crude cluster (see clusterGene.m) and have the
+      same sequence lengths (padtrimSeqGroup.m);
+    VDJheader: main BRILIA header cell
+    DevPerc: Ranges 0 to 100, indicating % of sequence length to use as
+      the cutoff SHM distance. 
+    S: special header structure containing locations of important data
+      columns. This is used to speed up the repetitive header search. Can
+      get this using S = buildTreeLink('getHeaderVar',VDJheader);
+        S.TemplateLoc
+        S.TreeChildLoc 
+        S.HSeqLoc
+        S.LSeqLoc 
+        S.HRefSeqLoc 
+        S.LRefSeqLoc 
+
+  OUTPUT
+    AncMapCell: a Mx1 cell, where each cell contain an ancestry map matrix
+      (AncMap) that containing the following information:
+        [ChildSeqNum  ParentSeqNum  HAMdist  SHMdist]
+    Tdata: rearranged Tdata such that the clusters are grouped together,
+      with the 1st sequence of each cluster being closest to the germline
+      seq.

@@ -1,0 +1,37 @@
+getLightHeaderVar is used to return the column number associated with the
+data type of VDJdata via a short naming system and ending with "Loc". It
+is NOT an enumeration class because newer version of VDJdata can have
+different headers, hence once must alway compute the new column locations.
+
+  L = getLightHeaderVar(VDJheader)
+
+  [L, N] = getLightHeaderVar(VDJheader)
+
+  [L, N, C] = getLightHeaderVar(VDJheader)
+  INPUT
+    VDJheader: main BRILIA header cell
+
+  OUTPUT
+    L: standardized header name variable
+      L.SeqNameLoc
+      L.SeqNumLoc
+      L.GrpNumLoc
+      L.TemplateLoc
+      L.ChildCountLoc
+      L.SeqLoc
+      L.RefSeqLoc
+      L.FunctLoc
+      L.CDR1Loc
+      L.CDR2Loc
+      L.CDR3Loc
+      L.VJmapLoc
+      L.VJnameLoc
+      L.LengthLoc
+      L.DelLoc
+      L.VmutLoc
+      L.NmutLoc
+      L.JmutLoc
+    N: Matrix of data column indices holding numerical values
+    C: Matrix of data column indices holding character values
+
+  See also getHeavyHeaderVar, getAllHeaderVar

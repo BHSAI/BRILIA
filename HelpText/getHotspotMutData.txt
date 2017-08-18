@@ -1,0 +1,17 @@
+getHotspoutMutData will count the number of hotspot in the CDR3 and FWR3,
+and the observed hotspot mutations in the CDR3 and FWR3, all at the
+nucleotide level.
+
+Hotspot for AID: WRC / GYW
+
+[Hcdr, Hfwr, Ncdr, Nfwr] = getHotspoutMutData(VDJdata, VDJheader)
+
+  INPUT
+
+  OUTPUT
+    Hcdr: number of C/G hotspots in the CDR
+    Hfwr: number of C/G hotspots in the FWR
+    Ncdr: number of mutated hotspot C/G's in the CDR
+    Nfwr: number of mutated hotspot C/G's in the FWR
+
+  See also countHotspotAAMut

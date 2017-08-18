@@ -1,0 +1,6 @@
+collectMutFreqFromCDR3 will collect the SHM frequencies as determined from
+the start and end of the CDR3 nuceleotide. Distance N for V side means 1
+nt away from the 1st nt of the 105th residues codon. Distance M for J
+side means 1 nt away from the last nt of the 117th residue codon. Distance
+are computed PER each unique V and J gene.
+

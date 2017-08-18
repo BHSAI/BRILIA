@@ -1,0 +1,11 @@
+formatSeq takes a Seq and Classifier, and adds spaces between each class,
+lower case mismatches, upper case matches.
+
+  FormattedSeq = formatSeq(Seq,Classifier)
+
+  EXAMPLE 
+    Seq = 'ACGTTGTGCACGTGTTTATAT';
+    Classifier = 'VVVvVVMMMDdDDNNJJjJJj';
+    FormattedSeq = formatSeq(Seq,Classifier);
+    FormattedSeq = 
+           ACGtTG tgc AcGT gt TTaTAt

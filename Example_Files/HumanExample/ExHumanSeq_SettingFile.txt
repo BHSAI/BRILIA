@@ -1,9 +1,0 @@
-Date = 01-Jan-2017;
-Species = 'human';
-Strain = 'all';
-Ddirection = 'all';
-Vfunction = 'all';
-DevPerc = 5;
-FileType = '';
-Delimiter = ';';
-CheckSeqDir = 'n';

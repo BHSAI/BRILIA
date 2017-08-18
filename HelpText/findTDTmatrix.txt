@@ -1,0 +1,17 @@
+findTDTmatrix will look at the N1 and N2 compositions, and then extract
+the 4x4 adjacency matrix of the nucleotide. Each entry tells what is the
+probability C is next A,C,G,T. 
+
+  [TDTmatrix, TDTcomp] = findTDTmatrix(VDJdata,VDJheader) will return the
+  matrix revealing the likelihood X nt is next to Y nt. TDTmatrix is a
+  normalized, diagonally symmetric matrix. TDTcomp reveals frequency count
+  of a each nt.
+
+  findTDTmatrix(VDJdata,VDJheader,'divide') does the same thing as above,
+  but will attempt to divide the N regions into a 5' and 3' side, and then
+  find the stats using 5' and complement 3' strand N region. This is
+  because TDT could add to complement strand G and A's which translates to
+  C and T's on the coding strand. 
+ 
+  Note: Avoids P nucleotides by default, and will attempt to find
+  consensus N regions for each group of sequence.

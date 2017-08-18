@@ -1,0 +1,53 @@
+calcMutBias will compute the expected and actual mutations observed in the
+FWR and CDR regions to investigate bias in number of SHMs accumulating in
+a region.
+Index = round(linspace(min(CDR3Len), size(ColorMap, 1), max(CDR3Len)-min(CDR3Len)+1));
+Index = round(linspace(min(CDR3Len), size(ColorMap, 1), max(CDR3Len)-min(CDR3Len)+1));
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Bin = [0:0.02:0.2];
+ N = histc(Real_Rcdr./Exp_Rcdr, Bin);
+ bar(N, 'histc')
+ 
+ 
+ 
+ 
+ 
+ 
+ Xbin = 0:0.005:0.25;
+ Ybin = 0:0.005:0.25;
+ Z = zeros(length(Xbin), length(Ybin));
+ Xpt = Real_Rcdr./Exp_Rcdr;
+ Ypt = Real_Rfwr./Exp_Rfwr;
+ for j = 1:length(Xpt)
+     Xidx = find(Xpt(j) < Xbin);
+     Xidx = Xidx(1);
+     Yidx = find(Ypt(j) < Ybin);
+     Yidx = Yidx(1);
+     Z(Xidx, Yidx) = Z(Xidx, Yidx) + 1;
+ end
+ contour(Xbin, Ybin, Z)
+ 
+ 
+ 
+ 
+ scatter(Real_Rcdr./Exp_Rcdr, Real_Rfwr./Exp_Rfwr , 'x');
+ xlim([0 .2]);
+ ylim([0 .2]);
+ 
+ % 
+ % subplot(2, 1, 1)
+ % %scatter(Exp_Rcdr./Exp_Rfwr, Real_Rcdr./Real_Rfwr)
+ % xlim([0 .2]);
+ % ylim([0 .2]);
+ % subplot(2, 1, 2)
+ % scatter(Real_Rcdr./Exp_Rcdr, Real_Rfwr./Exp_Rfwr);
+ % %scatter(Exp_Scdr./Exp_Sfwr, Real_Scdr./Real_Sfwr)
+ % xlim([0 7]);
+ % ylim([0 7]);

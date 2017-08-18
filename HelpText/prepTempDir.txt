@@ -1,0 +1,15 @@
+prepTempDir will prepare a Temp dir for a particular BRILIA run to
+ensure that the TempDir exists and that no Raw.csv and Final.csv exists.
+This is the preferred method of preparing the Temp dir, just in case the
+user stores files into the Temp folder or has a same name Temp folder, in
+which BRILIA should NOT delete all contents inside the Temp dir and cause
+headaches.
+
+  prepTempDir(TempDir)
+
+  prepTempDir(TempDir, 'delete')
+
+  INPUT
+    TempDir: the path where files will be temporarily stored when BRILIA
+      is running.
+    'delete': will delete the TempDir ONLY if it is empty

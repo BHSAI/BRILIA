@@ -1,0 +1,2 @@
+compileBRILIA will compile BRILIA and generate binary files appropriate
+for the OS (Windows or Linux) being used.

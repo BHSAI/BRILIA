@@ -1,0 +1,13 @@
+loadMutabilityMap will return the mutability map as an Java object. Each
+key is a tri-nucleotide, and the value is a 1x3 mutability index for the
+1st, 2nd, and 3rd posiiton.
+
+  REF - H and L of Mouse) Shaprio et al, 2002
+
+  mutMap = loadMutabilityMap;
+
+  OUTPUT:
+    mutMap: key-value mapping of tri-nucleotides to the 1st, 2nd, and 3rd
+      nt's mutability index.
+
+  See also calcSeqMutability

@@ -1,0 +1,15 @@
+renumberGrpNum will renumber the group # to go from 1 to N.
+
+  VDJdata = renumberGrpNum()
+
+  VDJdata = renumberGrpNum(FullFileName)
+
+  VDJdata = renumberGrpNum(VDJdata,VDJheader);
+
+  INPUT
+    VDJdata: main BRILIA data cell
+    VDJheader: main BRILIA header cell
+    FullFileName: full file path and name or the BRILIA output csv file
+
+  OUTPUT
+    VDJdata: modified VDJdata with new group numbers from 1 to N

@@ -1,0 +1,16 @@
+labelNonprodVDJ will determine if a V(D)J sequence can be translated to AA
+without error. Will label the "Functional" column of VDJdata with:
+'N': Sequence has pseudogene, stop codon *, or out of frame error
+'Y': Entire sequence is translatable to AA
+'M': CDR3 sequence end or start is cutoff to determine for certain
+'I': Invalid annotation, mostly likely caused by error
+
+  VDJdata = labelNonprodVDJ(VDJdata,VDJheader,DB)
+
+  INPUT
+    VDJdata: main BRILIA data cell
+    VDJheader: main BRILIA header cell
+    DB: gene database structure(getCurrentDatabase.m)
+
+  OUTPUT
+    VDJdata: modified VDJdata with the "Function" column filled in.

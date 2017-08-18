@@ -1,0 +1,11 @@
+findMutCorrVvsDJ will look at X -> Y nucleotide mutation frequencies
+across V and D+J segments, and then return the % of X that mutated to
+A,C,G,T, etc. Returns a 3x8 matrix, with 
+1st row = [Av Cv Gv Tv Adj Cdj Gdj Tdj] aveerage mutation frequencies for the entire data,
+2nd row = standard deviations.
+The data ONLY includes mutated nts, and will not be diluted by 0
+mutations. Also, if a segment lacks a nucleotide, EX: Dseg = 'GGGG', then
+it will assign a negative frequency for mark for exclusion in calculations of Avg and Std mut rates.
+EX: Vseg = 'TGTAGG', DJseg = 'GGGTGG'
+CorrMat = findMutCorrVvsDJ(VDJdata,VDJheader
+CorrMat = []

@@ -1,0 +1,15 @@
+getBlankDataTable will create an empty VDJdata for BRILIA depending on
+what type of annotation is being done (e.g., heavy chain, light chain,
+both.
+
+  [VDJdata, VDJheader] = getBlankDataTable(N, Option)
+
+  INPUT
+    N: Number of rows to have in the table (equal to number of sequences)
+    Option ['H', 'L', 'HL']: Specifies which data table to return. 
+
+  OUTPUT
+    VDJdata: main BRILIA data cell
+    VDJheader: main BRILIA header cell
+
+  See also convertInput2VDJdata

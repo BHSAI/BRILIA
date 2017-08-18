@@ -1,0 +1,30 @@
+readDlmFile will take a delimited file and parse it into a cell array of
+strings.
+
+  CellData = readDlmFile()
+
+  CellData = readDlmFile(InputFile)
+
+  CellData = readDlmFile(..., 'Delimiter', Delimiter)
+
+  CellData = readDlmFile(..., 'LineRange', LineRange)
+
+  INPUT
+    InputFile: full name of the file to be open
+    Delimiter ['' ';' ',' '\t']: Delimiter for the file. The default is
+      empty '', meaning it will autodetect based on first two text lines.
+      The most common delimiter symbol is assumed the true delimiter.
+    LineRange [1 Inf]: 1x2 matrix of start to end lines to extract
+
+  OUTPUT
+    CellData: cell array of string data
+
+  WARNING
+    If the delimited file has improper delimiter usage, such as a single
+    string field having a delimiter symbol, then will split it
+    incorrectly. Also, if the number of delimited column is different
+    between data rows, this will delete off the excess data entries,
+    mainly because these are often OS-specific addons of ',' and to
+    prevent indexing errors and rescaling of the intended data table.
+
+  See also writeDlmFile

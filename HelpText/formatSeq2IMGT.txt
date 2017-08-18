@@ -1,0 +1,6 @@
+formatSeq2IMGT will convert a sequence to IMGT format if the CDR regions
+are defined. Will fill in unknown nts as N.
+
+  SeqIMGT = formatSeq2IMGT(VDJdata, VDJheader)
+
+  SeqIMGT = formatSeq2IMGT(Seq, CDR1s, CDR1e, CDR2s, CDR2e, CDR3s, CDR3e)

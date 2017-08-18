@@ -1,0 +1,18 @@
+makeTreeLegend_CDR3 will take CDR3 sequences in a Mx1 cell, and return a
+cell matrix of unique CDR3s that have been compared against the first
+CDR3. This is used mainly to provide the legend text for trees.
+
+  [CDR3legend, UnqCDR3seq, Idx] = makeTreeLegend_CDR3(CDR3seq)
+
+  INPUT
+    CDR3seq: Mx1 cell of CDR3 amino acid sequences, where the first one is
+      considered the root. 
+
+  OUTPUT
+    CDR3legend: a Mx1 cell containing formatted CDR3 sequences, where
+      matched letters to the first CDR3seq are replaced by '-'.
+    UnqCDR3seq: a Mx1 cell containing the unique CDR3 sequences, ordered
+      the same way as CDR3legend.
+    Idx: a Nx1 matrix same length as CDR3seq that maps the Mth position of
+      UnqCDR3seq to each entry of CDR3seq. This index is used to help
+      assign a unique color to each unique CDR3 sequence.

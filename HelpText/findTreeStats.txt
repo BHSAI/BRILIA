@@ -1,0 +1,2 @@
+getTreeStats will return the following tree-related info: [GroupNum
+WtNodeLevel AvgChildperNode]

@@ -1,0 +1,84 @@
+VDJdata,Description
+#COMMON FIELDS,
+SeqName,Original sequence name
+SeqNum,BRILIA-assigned sequence number
+GroupNum,BRILIA-assigned group number
+TemplateCount,DNA copy count
+TreeChildCount,Number of child seq for this seq
+#HEAVY CHAIN FIELDS,
+H-Seq,Sequence of VDJ gene (X are wild card letters)
+H-RefSeq,Predicted parent sequence (1st in group is germline sequence)
+H-OverhangSeq5,Trimmed sequence that goes beyond V 5' side
+H-OverhangSeq3,Trimmed sequence that goes beyond J 3' side
+H-Functional,Y for productive and N for nonproductive VDJ gene
+H-CDR1_AminoAcid,CDR1 amino acid
+H-CDR2_AminoAcid,CDR2 amino acid
+H-CDR3_AminoAcid,CDR3 amino acid
+H-V_GeneName,List of V gene names
+H-D_GeneName,List of D gene names
+H-J_GeneName,List of J gene names
+H-CDR1_Start,Location in Seq of CDR1 1st nt
+H-CDR1_End,Location of Seq of CDR1 last nt
+H-CDR1_Length,Length of CDR1 AA
+H-CDR2_Start,Location of Seq of CDR2 1st nt
+H-CDR2_End,Location of Seq of CDR2 last nt
+H-CDR2_Length,Length of CDR2 AA
+H-CDR3_Start,Location of Seq of CDR3 1st nt
+H-CDR3_End,Location of Seq of CDR3 last nt
+H-CDR3_Length,Length of CDR3 AA
+H-Length_V,Length of V segment
+H-Length_Nvd,Length of Nvd segment
+H-Length_D,Length of D segment
+H-Length_Ndj,Length of Ndj segment
+H-Length_J,Length of J segment
+H-SHM_V,Number of V nts mutated from RefSeq
+H-SHM_Nvd,Number of Nvd nts mutated from RefSeq
+H-SHM_D,Number of J nts mutated from RefSeq
+H-SHM_Ndj,Number of Ndj nts mutated from RefSeq
+H-SHM_J,Number of J nts mutated from RefSeq
+H-V_Deletion3,Number of nts deleted 3' end of V
+H-D_Deletion5,Number of nts deleted 5' end of D
+H-D_Deletion3,Number of nts deleted 3' end of D
+H-J_Deletion5,Number of nts deleted 5' end of J
+H-V_MapNum,Location of V gene in the IGHV database file
+H-D_MapNum,Location of D gene in the IGHD database file
+H-J_MapNum,Location of J gene in the IGHK database file
+H-V_Align,Alignment results for V gene
+H-D_Align,Alignment results for D gene
+H-J_Align,Alignment results for J gene
+#LIGHT CHAIN FIELDS,
+L-Seq,Sequence of VJ light gene
+L-RefSeq,Predicted parent or germline light sequence
+L-OverhangSeq5,Trimmed 5' side sequence that goes beyond V
+L-OverhangSeq3,Trimmed 3' side sequence that goes beyond J
+L-Functional,Y for productive and N for nonproductive VDJ gene
+L-CDR1_AminoAcid,CDR1 amino acid
+L-CDR2_AminoAcid,CDR2 amino acid
+L-CDR3_AminoAcid,CDR3 amino acid Seq (including 104C and 118W that are not part of IMGT's CDR3 definition)
+L-V_GeneName,List of V gene names
+L-J_GeneName,List of J gene names
+L-CDR1_Start,Location in Seq of CDR1 1st nt
+L-CDR1_End,Location of Seq of CDR1 last nt
+L-CDR1_Length,AA length of CDR1
+L-CDR2_Start,Location of Seq of CDR2 1st nt
+L-CDR2_End,Location of Seq of CDR2 last nt
+L-CDR2_Length,AA length of CDR2
+L-CDR3_Start,Location of Seq of CDR3 1st nt
+L-CDR3_End,Location of Seq of CDR3 last nt
+L-CDR3_Length,AA length of CDR3
+L-Length_V,Length of V seg
+L-Length_N,Length of N seg
+L-Length_J,Length of J seg
+L-SHM_V,Number of V nts mutated from RefSeq
+L-SHM_N,Number of N nts mutated from RefSeq
+L-SHM_J,Number of J nts mutated from RefSeq
+L-V_Deletion3,Number of nts deleted 3' end of V
+L-J_Deletion5,Number of nts deleted 5' end of J
+L-V_MapNum,Location of IGKV of IGLV gene in the database file
+L-J_MapNum,Location of IGKJ or IGLJ gene in the database file
+L-V_Align,Alignment results for Vk or Vl gene
+L-J_Align,Alignment results for Jk or Jl gene
+#MISC OR NOT IMPLEMENTED,
+H-C_GeneName,Constant region annotation
+H-C_Start,Constant region 1st nt
+H-C_End,Constant region last nt

@@ -1,0 +1,62 @@
+calcSHMHAMdist will calculate the adjusted hamming distance that has
+reduced distance if mutations agree with SHM tendencies, and increased
+distance for consecutively mismatched nts.
+
+Distance = sum(ContigMiss^2) - 0.5sum(FavoredMut) + 0.5sum(UnfavoredMut)
+
+where ContigMiss is the length of contiguously mismatched segments,
+FavoredMut is the number of mutations that agree with SHM tendencies, and
+UnfavoredMut is the number of mutations that disagree with SHM tendencies.
+Neutral mutations do not have a favored/unfavored distance adjustment.
+
+The sum(ContigMiss)^2 term was added to increase the distance between
+sequences with many contiguously mismatched nts that are more likely to
+arise from incorrect annotations than SHMs. The idea is by increasing
+distance, they are likely to be cut off from the main tree and reassigned
+a new germline annotation.
+
+  [PCdist, CPdist, HamDist] = calcSHMHAMdist(Seq1,Seq2)
+
+  [PCdist, CPdist, HamDist] = calcSHMHAMdist(Seq1,Seq2,SHMtendency)
+
+  INPUT
+    Seq1: 1st sequence, assumed parent seq
+    Seq2: 2nd sequence, assumed child seq
+    SHMtendency: 4x4 matrix where 1 = favorable mutation, -1 =
+      unfavorable mutations, 0 = no preferrence. Column are ACGT of
+      starting sequence X0, rows are ACGT of ending sequence X1. Default:
+      SHMtendency =    A0  C0  G0  T0
+                    A1  0  -1   1  -1
+                    C1  0   0  -1   0
+                    G1  1  -1   0  -1
+                    T1  1   1  -1   0
+
+  OUTPUT
+    PCdist: distance if Seq1 is parent and Seq2 is child.
+    CPdist: distance if Seq2 is parent and Seq1 is child.
+    HamDist: number of mismatched letters between Seq1 and Seq2.
+
+  NOTE
+    'X' is a wildcard match.
+
+  EXAMPLE
+    Case when C->T and A->G high preference mutations
+      Seq1 = 'ACGTAT' 
+      Seq2 = 'ATGTGT'
+      [PCdist CPdist HamDist] = calcSHMHAMdist(Seq1,Seq2)
+         PCdist =
+             1.0
+         CPdist =
+             1.5
+         HamDist =
+             2
+   Case when there is a triple consec mismatch  
+     Seq1 = 'ACGCTT' 
+     Seq2 = 'ATTGTT'
+     [PCdist CPdist HamDist] = calcSHMHAMdist(Seq1,Seq2)
+        PCdist %3^2 - 0.5 + 0.5 + 0.5
+            9.5
+        CPdist %3^2 - 0.0 + 0.5 + 0.5
+            10
+        HamDist = 
+            3

@@ -1,0 +1,17 @@
+setPlotTickDecimal will extract the plot's current X and Y tick labels,
+and then set the number of decimal digits to be the same. This is useful
+since Matlab yields varying number of decimals points when plotting, which
+is not visually appealing.
+
+  setPlotTickDecimal(Ax, XDecimal, YDecimal)
+
+  setPlotTickDecimal(Ax, 'XDecimal', XDecimal, 'YDecimal', YDecimal)
+  
+  INPUT
+    Ax: axes handle to modify
+    Xdecimal [Int or 'max']: number of decimal digits only for the x axis.
+      Negative value will preserve current decimal digits. 'max' will find
+      the current maximum decimal count and apply it.
+    Ydecimal [Int or 'max']: number of decimal digits only for the y axis. 
+      Negative value will preserve current decimal digits. 'max' will find
+      the current maximum decimal count and apply it.

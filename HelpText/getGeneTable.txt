@@ -1,0 +1,3 @@
+getGeneTable will get IMGT gene tables listing the gene name and host
+strain that contained the gene. The website can be found at 
+http://www.imgt.org/IMGTrepertoire/LocusGenes/#F

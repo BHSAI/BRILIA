@@ -1,0 +1,10 @@
+normalizeMotifData will normalize the frequency values within the
+MotifData output file such that the sum within each cell is 1. 
+
+  NormMotifData = normalizeMotifData(MotifData)
+
+  INPUT
+    MotfiData: output from collectMotifData
+    
+  OUTPUT
+    NormMotifData: normalized MotifData

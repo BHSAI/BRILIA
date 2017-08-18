@@ -1,0 +1,37 @@
+getMotifData will extract mutation count of known canonical hotspot
+motifs and return a 12x3 matrix of frequency of X -> Y mutations.
+
+AID hotspot is WRC and GYW, or [AT][AG]C and G[AC][AT]
+ADAR hotspot is WA and TW, or [AT]A and T[AT]
+
+  MotifData = getHotspotMutData
+
+  MotifData = getHotspotMutData(VDJdata, VDJheader)
+
+  MotifData = getHotspotMutData(FileName)
+
+  MotifData = getHotspotMutData(..., Param, Value)
+
+  INPUT
+    VDJdata: MxN cell of all VDJ annotaiton data
+    VDJheader: 1xN cell of all header name for VDJdata
+    FileName: Full file name of the BRILIA output file
+
+      Param           Value           Description
+      -------------   -------------   ------------------------------------
+      'Functional'    'y' 'n' 'all'   Specify which functional H + L genes
+                                        to use (Default 'y')
+
+      *Not implemented yet
+      'Section',      'cdr3' 'fwr3'   Specfify to get cdrN or frameworkN,
+                      'cdr2' 'fwr2'     where N is 1, 2, or 3. Default
+                      'cdr1' 'fwr1'     'all'.
+                      'all'           
+
+  OUTPUT
+    MotifData: Structure of Structures with fields being hotspot motifs,
+      and values containing frequency the Nth letter turns to A, C, G, or
+      T that also leads to nonsynonymous mutations
+      Syn: data for synonymous mutations
+      Nonsyn: data for nonsynoymous mutations
+      All: combined Syn and Nonsyn

@@ -1,0 +1,34 @@
+countSeqLetter will take a vector of NT or AA sequences, and then count
+how many letters are there per position. Returns either a 20xN amino acid
+array (21st is ambiguous or special), or a 4xN nt array. Unique characters
+are ignored by default.
+
+  [Freq, Letter] = countSeqletter(Seq)
+
+  [Freq, Letter] = countSeqletter(Seq, Alphabet)
+
+  INPUT
+    Seq: Nx1 cell array or NxM char array of sequences.
+    Alphabet: 'NT' or 'AA' specifies which type of sequences to be used.
+   
+  OUTPUT
+    Freq: 4xM or 20xM matrix counting the frequence of each nucleotide.
+      Ignores ambiguous characters.
+    Letter: 4x1 or 20x1 cell listing the order of the NT or AA letter
+      returned by countSeqLetter.
+
+  EXAMPLE
+    Seq = {'ACGUGACGTG';
+           'CCGUGAAGTT';
+           'TCCUGAAGTT'};
+    [Freq, Letter] = countSeqLetter(Seq)
+     Freq =
+        1   0   0   0   0   3   2   0   0   0
+        1   3   1   0   0   0   1   0   0   0
+        0   0   2   0   3   0   0   3   0   1
+        1   0   0   3   0   0   0   0   3   2
+     Letter = 
+       'A'
+       'C'
+       'G'
+       'T'

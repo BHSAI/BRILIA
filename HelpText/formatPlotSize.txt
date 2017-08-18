@@ -1,0 +1,42 @@
+formatPlotSize is used to either create a new figure with a specified
+figure size, or resize figures to remove excess border spacing, or
+standardize the plot area size.
+
+  [Gx,Ax] = formatPlotSize(Ax,FigW,FigH)
+
+  [Gx,Ax] = formatPlotSize([],FigW,FigH)
+
+  [Gx,Ax] = formatPlotSize([],FigW,FigH,Option)
+
+  [Gx,Ax] = formatPlotSize([],FigW,FigH,Option,Param,Value,...)
+
+  INPUT
+    Ax: axes handle you want to resize. If empty, will generate an empty
+      figure.
+    FigW: width of the desired figure, in inches by default.
+    FigH: height of the desired figure, in inches by default.
+    Option ['outer','inner']: determines if you want to set the plot area
+      (inner) or the whole figure (outer) size to FigW and FigH. Use the
+      'inner' option if you want the plot area to be same sizes across
+      multiple figures.
+    
+    Can use these param-value pairs after specifinn Option:
+      Parmaeter Name  Value          Description
+      --------------- ------------   -------------------------------------
+      Units           'inch','cent'  Unit of measurement for figure
+      AddBorder       N              Size of outer border in the unit of
+                                       the figure.
+
+  OUTPUT
+    Gx: Figure handle
+    Ax: Axes handle
+
+  NOTE
+    The returning figure will have its units changed out of normalize.
+    This is because it's hard to adjust figure sizes using relative units
+    of measurement. 
+
+    Use this mainly to remove excess borders surrounding the plot areal
+
+    Does not work if there are legends that go beyond the plotting area,
+    since the legend locations are not included in the TightInset info.
