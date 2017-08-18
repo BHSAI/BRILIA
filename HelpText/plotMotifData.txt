@@ -1,0 +1,13 @@
+plotMotifData will plot the AID and ADAR motifs and the resulting X->Y
+nucleotide subsitution frequencies. 
+
+  INPUT
+    MotifData: Structure of Structure of hostpost motifs, where the values
+      within a struture containins a 1x4 matrix of mutation frequency from
+      X to A, C, G, or T in that order.
+    Type ['syn', 'nonsyn', 'all']: to plot synonymous, nonsynonymous, or
+      both types of mutations
+
+  OUTPUT
+    Gx: figure handle
+    Axs: figures handles of the subplots

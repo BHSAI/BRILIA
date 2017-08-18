@@ -1,0 +1,3 @@
+findGeneMods will analyzes Adap-formated files, and look for the deletion
+and insertion frequencies. If Cluster = On, it will only report the
+cluster's results.

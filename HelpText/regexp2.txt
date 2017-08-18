@@ -1,0 +1,12 @@
+regexp2 extends regexp basic capabilities of regexp, but will return
+overlapping matches, which is shown example below:
+
+  Str = 'AAAAA'
+  Expr = 'AA'
+  StartLoc = regexp(Str, Expr) %Does NOT find overlapping AA patterns
+  StartLoc = 
+        1  3
+
+  StartLoc = regexp2(Str, Expr) 
+  StartLoc =
+        1  2  3  4

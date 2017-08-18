@@ -1,0 +1,59 @@
+prepSaveTarget will prepare the folder and/or file name to use for
+saving items. This was created to simplify making decisions for
+where to save a file given a certain combination of inputs. This
+function will also attempt to create the directory to save the target
+files.
+
+  [FullSaveName, ValidTarget] = prepSaveTarget(Param, Value, ...)
+
+  INPUT
+    Param-Value pairs are as follows:
+    Param        Value    Description
+    -----------  -------  ------------------------------------------------
+    SaveAs         ''     Full or just file name to use w or w/o extension
+    SavePrefix     ''     Any string you want to add between the save file
+                            name and the extension (EX: If SavePrefix =
+                            '.grp1', then save.png => save.grp1.png
+    SaveExt        ''     The file extension to use. See note.
+    SaveDir        ''     Save directory to use for saving files. Will use
+                            current dir if SaveAs has not file path and
+                            SaveDir is empty.
+    SaveSubDir     ''     Sub directory to add on top of any dir in SaveAs
+                            or DefaultDir. Used to simplify adding a sub
+                            dir under an original file dir.
+    MakeSaveDir    'n'    Will only return the FullSaveName.
+                   'y'    Will attempt to create the save dir. 
+    DefaultSaveAs  ''     Will use this if SaveAs is empty. Hint: Let the
+                            function that is going to actually write the
+                            file specify as SaveSubDir and DefaultSaveAs.
+
+  OUTPUT
+    FullSaveName: The full file path and name to use for saving the file
+
+  NOTE
+    SaveExt does not have to be specified if SaveAs has the extension, BUT
+    if specified, will override what is in SaveAs extension. This is to
+    allow users to use a source file name for the SaveAs value, and to
+    simply change the extension to an image. 
+
+    The default order of preference for saving are as follows:
+    SavePath = SaveAs folder > SaveDir folder > or DefaultDir (cd)
+    *Having a SaveSubDir will ALWAYS created a subdir
+    SaveName = SaveAs file name > error
+    SaveExt = This overrides SaveAs' file ext > SaveAs file ext > error
+    
+  EXAMPLE
+    FileName = 'c:\local\file.csv'
+    FullSaveName = prepSaveTarget('SaveAs', FileName, 'SaveExt', ...
+                                               '.png', 'SavePrefix', '.2')
+    FullSaveName = 
+          'c:\local\file.2.png'
+
+    SaveName = 'file.csv'
+    SavePre = '.3'
+    SavePath = 'c:\local'
+    SaveSubDir = '\Plots\New'
+    FullSaveName = prepSaveTarget('SaveAs', SaveName, 'SaveSubDir', ...
+                    SaveSubDir, SavePrefix', SavePre, 'SaveDir', SavePath)
+    FullSaveName = 
+          'c:\local\Plots\file.3.csv'

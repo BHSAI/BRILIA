@@ -1,0 +1,26 @@
+getMaxPlotPosition will get the maximum plot position possible without
+running the x and y labels off the defined OuterPos area.
+
+  MaxPos = getMaxPlotPosition(Ax, OuterPos)
+
+  MaxPos = getMaxPlotPosition(Ax, OuterPos, Param, Value)
+
+  INPUT
+    Ax: axis handle
+    OuterPos: 1x4 matrix of the axes outer position you want Ax to fit
+      within, given as [Xloc, Yloc, Width, Height]
+    Param        Value             Description
+    ------------ ----------------- ---------------------------------------
+    LeftPad      Double {0, 1}     Add left border, or preserve (-1)
+    RightPad     Double {0, 1}     Add right border, or presreve (-1)
+    TopPad       Double {0, 1}     Add top border, or preserve (-1)
+    BottomPad    Double {0, 1}     Add bottom border, or preserve (-1)
+
+  OUTPUT
+    MaxPos: 1x4 matrix of the axes position that will fill the entire
+      region specified by OuterPos
+
+  NOTE
+    All resizing uses the normalized axes units to fill the figure space.
+    All axes units are restored to the original units after resizing.
+

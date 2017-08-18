@@ -1,0 +1,38 @@
+findGeneMatch will look for the best sequence match to a gene database
+sequence set. This is the core alignment-based gene search.
+
+  GeneMatch = findGeneMatch(Seq, Xmap, X, MissRate)
+
+  GeneMatch = findGeneMatch(Seq, Xmap, X, MissRate, CDR3anchor)
+
+  GeneMatch = findGeneMatch(Seq, Xmap, X, MissRate, CDR3anchor, 'ForceAnchor')
+ 
+  INPUTS
+    Seq: Character sequence
+    Xmap: Database DB.[X]map, where [X] is V, D, J, Vk, Vl, Jk, or Jl.
+    X ['V', 'D', 'J']: character specifying what segment to match. Does not
+      have to specify heavy/light chain Vs or Js.
+    MissRate [Integer >= 0]: How many missed nt/bp are allowed for
+      elongating a contiguous C region for alignment score. Ex: MissRate
+      0.02 = 2% of shorter seq length.
+    MissRate: How many point mutations per nt are allowed during
+      alignment. Default is 0.00, and ranges from 0.00 to 1.00.
+    CDR3anchor: Positions of potential 104C 1st nt of codon or 118W 3rd nt
+      of codon. CDR3 anchor can be a matrix of values, and providing it
+      speeds up alignment and reduces chance of incorrect J alignments, 
+      especially when dealing with shorter sequences cut at the 118W.
+   'ForceAnchor': will force findGeneMatch to find a solution that matches
+      to at least one of the anchor points. Will not attempt a unseeded
+      alignment if the seeded alignment gives a low alignment % (below 70%
+      match).
+
+  OUTPUT
+    GeneMatch: 1x6 cell array of cells containing gene match data as follows
+      Col1   Gene number in Xmap
+      Col2   Full gene name(s)
+      Col3   [LeftLength MiddleLength RighLength] of the reference gene
+      Col4   [LeftLength MiddleLength RighLength] of the Seq
+      Col5   [(# of matches) AlignmentScore]
+      Col6   3xN character alignment results
+
+  See also alignSeq, findVDJmatch, findVJmatch

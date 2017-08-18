@@ -1,0 +1,16 @@
+makeClassifier will make a letter sequence that labels each nt by the
+segment it belongs to. The "Classifier" sequence is stored in VDJdata in
+the "Classifier" column.
+
+  VDJdata = makeClassifier(VDJdata,VDJheader)
+
+  EXAMPLE
+    Classifier = 'VVVVVVVVVVVVVVVVppmmmppDDDDDDppnnppJJJJJJJJJ';
+      V = V   segment
+      M = Nvd region
+      D = D   segment
+      N = Ndj region
+      J = J   segment
+      B = p-nucleotides in the Nvd region
+      P = p-nucleotides in the Ndj region
+      v,m,d,n,j,b,p = lowercase are mismatched with the reference sequence

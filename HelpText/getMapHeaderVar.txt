@@ -1,0 +1,23 @@
+getMapHeaderVar is used to return the column number associated with the
+data type of Xmap via a short naming system and ending with "Loc". It is
+NOT an enumeration class because newer version can have different headers,
+hence once must alway compute the new column locations.
+
+  M = getMapHeaderVar(MapHeader); 
+
+  INPUT
+    MapHeader: 1xM cell headers for the germline sequences.
+
+  OUTPUT
+    M: structure containing standardized header name variable
+      M.SeqLoc
+      M.GeneLoc
+      M.FunctLoc
+      M.StrainLoc
+      M.EntryNumLoc
+      M.GapInfoLoc
+      M.CDR1sLoc
+      M.CDR1eLoc
+      M.CDR2sLoc
+      M.CDR2eLoc
+      M.AnchorLoc

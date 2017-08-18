@@ -1,0 +1,44 @@
+getUnqStrain will look at the VDJ database to look for unique mouse
+strains. Returns a cell with  unique strains.
+
+  UnqStrainCell = getUnqStrain(DB)
+
+  UnqStrainCell = getUnqStrain(DB, N)
+
+  INPUT
+    DB: database structure from getGeneDatabase
+    N: the first N number of letters of the strain name to use for
+      condensing the strings. If N = 0, will only return unique, full name
+      strains. If N = 4, will match strings up to N letter and group them
+      together. 
+
+  OUTPUT
+    UnqStrianCell: a Mx1 cell of string of unique strains, group based on
+      how many N letters of the strain name are the same.
+
+  EXAMPLE
+    DB = getGeneDatabase('Mouse')
+    UnqStrainCell = getUnqStrain(DB, 0)
+    UnqStrainCell = 
+         '129/Sv'
+         'A/J'
+         'AKR'
+         'BALB.K'
+         'BALB/b'
+         'BALB/c'
+         'C3H'
+         'C57BL'
+         'C57BL/10'
+         'C57BL/6'
+         'C57BL/6J'
+         ...
+
+    UnqStrainCell = getUnqStrain(DB, 4)
+    UnqStrainCell = 
+         '129/Sv'
+         'A/J'
+         'AKR'
+         'BALB.K;BALB/b;BALB/c'
+         'C3H'
+         'C57BL;C57BL/10;C57BL/6;C57BL/6J'
+         ...

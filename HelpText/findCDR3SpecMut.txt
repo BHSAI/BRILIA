@@ -1,0 +1,3 @@
+function findCDR3SpecMut will look for specific mutations that the user
+defined, and return the index location of where that CDR3 mutation has
+occured. Note: Requires that the reference NT be resolved first.

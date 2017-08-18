@@ -1,0 +1,102 @@
+BRILIA is the main code that will run the annotation of immunosequencing
+data. BRILIA stands for B-cell Repertoire Inductive Lineage and
+Immunosequence Annotator, where "immunosequence" is simply referring to a
+DNA/RNA sequences of a B cell receptor. BRILIA works better if the
+sequences are obtained from a single repertoire of B cells from the same
+host, and if low-quality regions are trimmed away or replaced with "N" or
+"X" wildcard nucleotides.
+
+  BRILIA('getversion')
+
+  BRILIA(InputFile, Param, Value, ...)
+
+  INPUT
+    InputFile: char or cell name(s) of the sequence file(s) to process
+    Param, Value pairs are for specific setting as follows
+      Param             Value                  This param-value sets:
+      ---------------   ---------------------  -----------------------------
+      'SettingFile'     [SettingsFile.txt]     All settings specified by
+                                                 a txt file
+      'Species'         'human' 'mouse' etc    VDJ database by species
+      'Strain'          'all' 'C57BL' etc      VDJ database by strain
+      'Ddirection'      'all' 'fwd' 'rev'      Allowed D gene direction
+      'Vfunction'       'all' 'f' 'p' 'orf'    Allowed V gene functions
+      'DevPerc'         0 <= N <= 100          Clustering cutoff dist by
+                                                 of seq length
+      'FileType'        'fasta', 'fastq',      Speficy if input file type 
+                        'delimited'              unobvious (eg, seq.txt)
+      'Delimiter'       ';' ', ' '\t' ''       Delimiter type. Empty means
+                                                 autodetect. Unused if
+                                                 loading fasta or fastq.
+      'CheckSeqDir'     'y' 'n'                Whether or not to check 
+                                                 for complement seq
+      'NumProc'         'max' or N             Number of processors to
+                                                 use. Default 'max'.
+      'StatusHandle'    [text handle obj]      GUI handle used to update
+                                                 the status text.
+      'SeqRange'        N or [N(1) N(2)]       Nth or N(1) to N(2)
+                                                 sequence to process.
+      'Resume'          'y' or 'n'             'y' = start from beginning
+                                               'n' = resumes from an
+                                                 interrupted job based on
+                                                 what is in the Temp dir.
+      'ResumeFrom'      [FolderName]           Directory storing the
+                                                 Raw.csv file to resume
+                                                 from for the lineage
+                                                 correction. Skips
+                                                 annotation, but must use
+                                                 same database.
+      'OutputFile'      [OutputFile.csv]       Outputfile name. See note
+                                                 below about outputfile
+                                                 handling.
+
+  OUTPUT
+    Version: Version string in X.Y.Z
+    P: default inputs of BRILIA returned as a structure
+    [filename].Raw.csv: annotation only file, no lineage correction. Used for
+    resuming from ('ResumeFrom') annotation file to lineage-corrected
+    annotation file.
+    [filename].Err.csv: sequences that could not be annotated fully or are
+    unproductive.
+    [filename].csv: final annotation file
+
+  NOTE
+    All OutputFile is a comma-delimited ".csv" file.
+
+    A Temp folder will ALWAYS be created in the same folder where the
+    InputFile is. This folder stores the initial VDJ annotation files,
+    which is used as a save point for conducting lineage correction in
+    case there was an interruption. Without this folder, BRILIA cannot
+    "resume" from annotation and must start from the beginning, which
+    takes a while, especially if one just want to change the lineage
+    parameter.
+
+    If NO OutputFile is given, then it will save the file into the input
+    file directory, subfolder "BRILIA", under the following filename,
+    inputfilename.BRILIAvX.[XXX].csv. This file is
+    semicolon delimited.
+    
+    If OutputFile WITH the full path is given, then it will create the
+    folder directory of the output file and save everything to this file
+    when done. Note that an [OutputFile].Raw.csv file will be created,
+    but the final annotations is [OutputFile].csv and NOT
+    [OutputFile].Final.csv.
+    
+    If OutputFile WITHOUT the full path is given, then it will create a
+    subfolder called "BRILIA" where the input file is, and save the
+    outputfile there, along with the [OutputFile].Raw.csv file and
+    [OutputFile].csv.
+
+  EXAMPLE (MATLAB)
+    >> BRILIA([], 'SettingFile', 'SettingFile.txt');
+
+    >> BRILIA('SeqFile.fasta', 'Species', 'Mouse', 'Strain', 'C57BL',
+      'Chain', 'H', 'CheckSeqDir', 'n', 'NumProc', '4');
+
+  EXAMPLE (command line)
+    > BRILIA SeqFile.fasta SettingFile SettingFile.txt
+
+    > BRILIA SeqFile.fasta Species Mouse Strain C57BL Chain H CheckSeqDir
+      N NumProc 4
+
+  Written by Donald Lee, dlee@bhsai.org

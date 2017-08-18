@@ -1,0 +1,18 @@
+getHotMotifData(MotifData) will extract motif and the corresponding
+mutation frequencies for known  hotspots. Returns a structure for 4 base
+pair, HotMotifData.A or .C or .G or .T, which contains a Mx5 cell that
+stores the trinucloetide sequence + mutation position number, and the
+mutation of the .X nucleotide to A, C, G, or T.
+
+  HotMotifData = getHotMotifData(MotifData)
+
+  INPUT
+    MotifData: output structure from collectMotifData
+    
+  OUTPUT
+    HotMotifData: structure containing:
+      Header: {'TriNucCode' 'A' 'C' 'G' 'T'};
+      A: Mut freq for A -> X
+      C: Mut freq for C -> X
+      G: Mut freq for G -> X
+      T: Mut freq for T -> X

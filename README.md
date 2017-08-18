@@ -1,4 +1,4 @@
-# BRILIA  v2.0.7
+# BRILIA  v3.0.5
 ## (B-cell repertoire inductive lineage and immunosequence annotator)
 
 ## REFERENCE:
@@ -6,73 +6,117 @@
 
 ## CONTACT:
   *  Donald for questions about BRILIA software, bugs, etc: dlee@bhsai.org  
-  *  Sid for questions about the immunosequencing research we do: schaudhury@bhsai.org
+  *  Sid for questions about the immunosequencing research: schaudhury@bhsai.org
 
 ## PURPOSE:
 
-BRILIA is designed to annotate a repertoire of B-cell receptor, heavy-chain sequences across the VDJ junction. It returns the CDR3 regions, VDJ germline gene predictions, and also phylogeny relationships among B cells. For more information on how BRILIA works, please read the methods article cited above.
+BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning information about CDR regions, phylogeny relationships, and somatic hypermutations. More information about BRILIA can be found [here.](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full)
   
-## INPUT FILES (see Example_Files folder): 
+## INPUT FILES [(See example input files)](): 
+ 
+  * Accepted sequence file formats: 
+    * fasta (.fa or .fasta)
+    * fastq (.fastq)
+    * comma-delimited (.csv)
+    * semicolon-delimited (.ssv)
+    * tab-delimited (.tsv)
+  * Does not accept paired-end reads, so please assemble them using a 3rd party software.
+  * Non-nucleotide letters are treated as wildcard "X" or "N" nucleotides.
+  * For delimited files, make sure that:
+    * 1st row is the data header: "SeqName,H-Seq,L-Seq,TemplateCount"
+    * data is stored in subsequent rows in the order of the data header. 
+      * SeqName: the name of the sequence. Required info.
+      * H-Seq: heavy chain sequence. Optional IF doing Light chain only.
+      * L-Seq: light chain sequence. Optional IF doing Heavy chain only.
+      * TemplateCount: the number of sequence copies. Optional if DNA template count or copy number is unknown.
+  * Delimiter symbols cannot be used in places where they are not delimiters.
+  * NOTE: BRILIA will auto-detect the delimiter and heavy/light chain if formatted properly.
 
-Takes fasta, fastq, csv, xlsx, or xlsx file containing nucleotide sequences of VDJ junctions. Users should ensure that:
-  *  the 1st row of tabulated data have data labels "SeqName" and "Seq". "TemplateCount" is optional.
-  *  ambiguous non-nucleotide letters are minimal, otherwise BRILIA will treat them as wildcard nucleotides.
+## OUTPUT FILES [(See example output files)](): 
 
-## OUTPUT FILE (see Example_Files folder): 
-
-Returns a semicolon-delimited CSV file listing the annotation results and phylogeny relationships among sequences. This file is saved in a new folder called BRILIA and the version number is added to the file name (Ex: FileName.BRILIAv1.2.3.csv). Sequences that could not be processed are saved in a separate file ending with Err.csv.   
-
-See output file column definitions [here](https://github.com/BHSAI/BRILIA/blob/master/Support_Files/DataHeaderInfo.csv).
+  * Returns 3 delimited csv file:
+    * [output_file_name].BRILIAvX.csv : stores final annotation and phylogeny data of productive V(D)J sequences
+    * [output_file_name].BRILIAvX.Raw.csv : stores initial annotation of V(D)J sequences without lineage-base annotation correction. This is used as a save point for reclustering sequences. 
+    * [output_file_name].BRILIAvX.Err.csv : stores non-productive VDJ sequences and any sequences that could not be annotated fully.
+  * If the output file is not specified, results will be stored in a subfolder with the same name as the input file. 
+  * See output file header details [here](https://github.com/BHSAI/BRILIA/blob/master/Support_Files/DataHeaderInfo.csv).
 
 ## Running BRILIA without MATLAB
-1. Download the MATLAB runtime library 9.0.1 (specifically this version) from the [MathWorks website] (https://www.mathworks.com/products/compiler/mcr.html).
+### General preparations and downloads
+1. Download the MATLAB Runtime Version R2017a (9.2) from the [MathWorks website] (https://www.mathworks.com/products/compiler/mcr.html).
 2. Install the MRC library on your computer.
-3. Download the BRILIA exectuable file. [BRILIAv2.0.7.zip](https://github.com/BHSAI/BRILIA/files/767682/BRILIAv2.0.7.zip)
-4. Unzip the exe file and run the BRILIA.exe. It may ask for permission to read/write files.
-5. Follow the top-down flow of the GUI to setup the parameters, process sequence files, and draw lineage trees. The GUI itself has help popup texts if you hover your cursor over the setting name and buttons.
-6. To see lineage trees, use "Tree Tool". You can also use Tree Tool directly if you have other BRILIA-processed files.
+3. Download the BRILIA exectuable files for your OS. [BRILIAv2.0.7.zip](https://github.com/BHSAI/BRILIA/files/767682/BRILIAv2.0.7.zip)
+4. Unzip the executable files into a folder called BRILIA.
 
-## Running BRILIA in MATLAB (requires bioinformatics toolbox):
+### For WINDOWS
+5. Open windows' command prompt.
+6. Go to the BRILIA folder.
+```
+  \BRILIA>  cd [some_path]/BRILIA
+```
+7. To process data, type:
+```
+  \BRILIA>  BRILIA.exe [*input_file*] Species [*species_name*] Chain H
+```
+8. To plot lineage trees, type the following:
+```
+  \BRILIA>  plotTree.exe [*output_file*]
+```
 
-1. Copy all codes into a folder called BRILIA (Delete older BRILIA files as this could cause code conflicts).
-2. Open MATLAB and set the working directory to the BRILIA folder.
-3. In the command line, invoke the addAllPaths function to add all BRILIA folders into the matlab path.  
-   > addAllPaths
-4. To run BRILIA GUI, run the BRILIAgui in the command line:  
-   > BRILIAgui
+### For LINUX
+5. Open up the linux terminal.
+6. Go to the BRILIA folder.
+```
+  BRILIA]$  cd [some_path]/BRILIA
+```
+7. To process data, type:
+```
+  BRILIA]$  ./run_BRILIA.sh ../mcr/v92/ [*input_file*] Species [*species_name*] Chain H
+```
+8. To plot lineage tree, type:
+```
+  BRILIA]$  ./run_plotTree.sh ../mcr/v92/ [*output_file*]
+```
 
-   OR
+## Running BRILIA in MATLAB 
 
-   To run BRILIA by code, use either of the following example commands (type help BRILIA to learn more):
+Note: Requires bioinformatics toolbox. Use `>> ver` command in Matlab to check.
+1. Copy all codes into a folder called BRILIA, deleting any older BRILIA codes to prevent conflicts.
+2. Open MATLAB and set the working directory to the */BRILIA* folder.
+3. In the command line, add all BRILIA folders into the Matlab path using addAllPaths.  
+4. To get details of the inputs and Param-Value pairs:
+```
+   >> help BRILIA 
+```
+4. To run BRILIA, use one of the following commands:
 
-   EX1) Will ask user to select the input sequence file, host species, and host strain.
-   > BRILIA  
+   EX1) Will ask user to select the input file, host species, and host strain.
+```
+   >> BRILIA  
+```
    
-   EX2) Will ask user to select file while using all BRILIA parameters defined in a txt file (see SettingExample.txt)
-   > BRILIA( [], 'SettingFile', 'SettingExample.txt' )    
+   EX2) Will ask user to select the input file while using all BRILIA parameters defined in seetting txt file [(see SettingExample.txt.)]()
+```
+   >> BRILIA( 'InputFile.fa', 'SettingFile', 'SettingExample.txt' )    
+```
 
-   EX3) Will process sequence file named Seqfile.fasta using the Human VDJ gene database and other settings specfied by ParamName-Value pairs.
-   > BRILIA( 'Seqfile.fasta' , 'Species' , 'human' , ParamName , Value, ... )  
+   EX3) Will process a specified input file using the Human VDJ gene database and other settings specfied by Param-Value pairs.
+```
+   >> BRILIA( 'InputFile.fa', 'Species', 'human', Param, Value, ... )  
+```
 
-   HINT) Try processing the example input files in the Example_Files folder.
-   > BRILIA( 'ExMouseSeq_Semicolon.csv', 'SettingFile' , 'ExMouseSeq_SettingFile.txt' );  
-   > BRILIA( 'ExMouseSeq_Tabulated.csv', 'Delimiter', '\t', 'Species', 'Mouse', 'Strain', 'C57BL');
+   HINT) Look at the test scripts found [here.]()
+```
+   >> testMouseH  %will run a test script for mouse heavy chain processing
+```
 
-NOTE: BRILIA should create a new folder called BRILIA and save the output results in that folder.
 
 The program is distributed under the [GNU General Public License] (http://www.gnu.org/licenses/gpl.html).  
 
 See BRILIA patch info at [here] (https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md).  
 
-## UPCOMING UPDATES (2017-08-07)
-  The next version of BRILIA (v3) is on its way with some MAJOR changes!
-  *  More error handling of non-VDJ sequences
-  *  Heavy and Light chain annotations
-  *  CDR1, 2, and 3 annotations according to IMGT definitions
-  *  Segments annotation jobs by CDR3 lengths to reduce memory overload
-  *  Binary files for using BRILIA in a command-line interface
-  *  Data plotting tools for making publication-quality figures in Matlab
-  *  Analysis plots to show repertoire properties such as SHMs, etc.
-  *  Cleaner codes and folder names
-  *  Cleaner annotation files with alignment information
-  
+## UPCOMING UPDATES (Proposed on 2017-01-24)
+  *  Will update the data plotting functions. The Data_Plotting folder is being all reworked, as there's unused / temporary scripts there. New codes will be placed in Plot_Codes folder.
+  *  Will add CDR1 and CDR2 into the outputs
+  *  Will enforce quality control to ensure nonsense CDR3 or VDJ annotations are removed and placed into [FileName]Err.csv
+  *  Will replace try/catch with validation codes, since former method is generally slower.

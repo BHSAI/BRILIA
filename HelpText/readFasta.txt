@@ -1,0 +1,15 @@
+readFasta will read a fasta file and return 2 cells containing the
+sequence name and the sequence itself. [Not used as MATLAB has the
+fastaread function]
+
+  [Header, Sequence] = readFasta(FileName);
+
+  [Header, Sequence] = readFasta();
+
+  INPUT
+    FileName: full file name of the fasta file. If empty, will ask user to
+    select the file.
+
+  OUTPUT
+    Header: Nx1 cell of sequence header information
+    Sequence: Nx1 cell of sequences

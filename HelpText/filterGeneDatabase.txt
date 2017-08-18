@@ -1,0 +1,18 @@
+filterRefGene will process the database DB to retain only those of
+interest, as defined by the filter criteria.
+
+  DB = filterRefGene(DB,Param,Value)
+  
+  INPUT
+    DB: database structure from getCurrentDatabase.m
+    Param-Value paris are as follows
+      Parameter     Value
+      ------------  ------------------------
+      Strain        'All' 'C57BL' 'BALB', ...
+      Ddirection    'All' 'fwd' 'rev' (or 'inv')
+      Vfunction     'All' 'F' 'P' 'ORF' 
+
+  OUTPUT
+    DB: the filtered version of the input DB, where unused gene sequences
+      are set to empty ''. This prevents the shifting of Map numbering
+      schemes required by the software to perform.

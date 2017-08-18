@@ -1,0 +1,22 @@
+findCDR3 will return the CDR3 information, such as AA, AA length, and
+start and end location of this region for the Sequence in VDJdata.
+
+  VDJdata = findCDR3(VDJdata, VDJheader, DB)
+
+  VDJdata = findCDR3(VDJdata, VDJheader, DB, Option)
+
+  INPUT
+    VDJdata: main BRILIA data cell
+    VDJheader: main BRILIA header cell
+    DB: Gene database structure (getCurrentDatabase.m)
+    Option ['IMGT','anchor]: specify whether to return the IMGT's
+      definition of CDR3 or the CDR3 anchor. The anchor positions include
+      the 104C and 118F/W codons. Default is 'IMGT'.
+
+  OUTPUT
+    VDJdata: modified VDJdata with the CDR3 information filled
+
+  NOTE
+    This must be run after finding V(D)J annotations.
+
+  See also findCDR1, findCDR2

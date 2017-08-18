@@ -1,0 +1,9 @@
+runAnalysis will perform a series of common analysis to an existing BRILIA
+output data, returning a folder of plots and tables used in analysis.
+
+  INPUT
+    FileName: file name of the BRILIA output file
+    SaveDir: directory to save the file to. If not specified or empty,
+      will save to the same folder as FileName.
+    SaveSubDir: a subdirectory that will ALWAYS be made and used to store
+      the output file. If empty, will use SaveDir.

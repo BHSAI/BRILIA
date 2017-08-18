@@ -1,0 +1,15 @@
+alignMultSeq will take a cell string of sequences, and align them with
+respect to 1st seq in the series
+
+  AlignSeq = alignMultSeq(SeqSet)
+
+  [AlignSeq, ConsSeq] = alignMultSeq(SeqSet)
+
+  INPUT
+    SeqSet: a Mx1 cell of sequences to be aligned, where the 1st sequence
+      is the reference sequence
+
+  OUTPUT
+    AlignSeq: Mx1 cell of sequences that were aligned to the 1st sequence
+      of SeqSet. Paddings are added as '-' to ensure sequences have the
+      same lengths.

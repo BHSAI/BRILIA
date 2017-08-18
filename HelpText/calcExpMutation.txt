@@ -1,0 +1,2 @@
+calcExpMutation will calculate the expected replacement AA mutation given
+a NT sequence.

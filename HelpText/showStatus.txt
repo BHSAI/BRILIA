@@ -1,0 +1,1 @@
+Simple function for showing status of BRILIA if there is a GUI or not.

@@ -1,0 +1,11 @@
+IMGT gene name;IMGT allele name;Fct;;Chromosomal localization;R;T;Pr;Positions in the locus;Strain;Clone names;;Accession numbers;;;Positions in the sequence (J-REGION);Secondary accession numbers;Strain;Clone names;;Accession numbers;;;Positions in the sequence (J-REGION)
+IGLJ1;IGLJ1*01;F;;16 (13.0 cM);;+;;;BALB/c;J1;MAP;V00813;[3];;;;BALB/c;M315J1;MAP;X58419;[2];;
+;;;;16 (13.0 cM);;;;;;;;;;;;;;J1;MAP;J00586;[1];;
+;;;;16 (13.0 cM);;;;;;;;;;;;;BALB/c;;;X58411;[2];-4;
+IGLJ2;IGLJ2*01;F;;16 (13.0 cM);;+;;;BALB/c;J2;MAP;J00593;[1];;;;BALB/c;M315J2;MAP;X58420;[2];;
+;;;;16 (13.0 cM);;;;;;;;;;;;;;;;X58414;[2];-5;
+IGLJ3;IGLJ3*01;F;;16 (13.0 cM);;+;;;BALB/c;J3;MAP;J00583;[1];;;;BALB/c;M315J3;MAP;X58421;[2];;
+;;;;16 (13.0 cM);;;;;;;;;;;;;;;;X58411;[2];-4;
+IGLJ3P;IGLJ3P*01;ORF;-1;16 (13.0 cM);;;;;BALB/c;Pseudo J3;MAP;J00584;[1];;;;;;;;;;
+IGLJ4;IGLJ4*01;ORF;-2;16 (13.0 cM);;;;;BALB/c;PseudoJL4;MAP;J00596;[1];-3;;;BALB/c;M315J4;MAP;X58422;[2];;
+;;;;16 (13.0 cM);;;;;;;;;;;;;;;;X58414;[2];-5;

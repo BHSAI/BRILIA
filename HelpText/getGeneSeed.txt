@@ -1,0 +1,21 @@
+getGeneSeed will look through the database V or J genes, and extract N
+number of nts of the framework regions, including the conserved C and W
+codon set. 
+
+  SeedSeq = getGeneSeed(DB,X,Nleft,Nright,Alphabet)
+
+  INPUT
+    DB: gene database structure(getCurrentDatabase.m)
+    X ['V' 'Vk' 'Vl' 'J' 'Jk' 'Jl']: Specificy what database gene is used.
+    Nleft: number of NT or AA left of anchor
+    Nright: number of NT or AA right of anchor
+    Alphabet ['nt' or 'aa']: Choose NT or AA letters
+
+  OUTPUT
+    SeedSeq: cell array of NT or AA sequences that can be used for
+      alignment purposes. 
+
+  NOTE
+    Genes without a solid anchor point C or W are REMOVED from SeedSeq
+    output! This is to prevent confusion pinpointing where the seed
+    sequence marks the position of the C or W.

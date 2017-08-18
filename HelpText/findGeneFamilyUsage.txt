@@ -1,0 +1,4 @@
+findGeneFamilyUsage will extract the family number for V,D,J  usage.
+Unresolved/empty = 0, and inverse gene matches are negative values.
+Option = 1, individual gene usage data
+Option = 2, group by gene family

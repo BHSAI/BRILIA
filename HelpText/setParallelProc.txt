@@ -1,0 +1,13 @@
+setParallelProc will determine how many processors to turn on or off
+depending on the user specifications.
+
+  setParallelProc(NumProc)
+
+  Success = setParallelProc(NumProc)
+
+  INPUT
+    NumProc [N or 'max']: N number of processors to use, or 'max' number
+      of processors to use.
+
+  OUTPUT
+    Success: 1 for successful or 0 for not successful

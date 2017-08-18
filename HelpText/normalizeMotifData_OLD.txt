@@ -1,0 +1,5 @@
+normalizeMotifData will normalize the MotifData values so that they sum to
+1.
+
+  NormMotifData = normalizeMotifData(MotifData)
+

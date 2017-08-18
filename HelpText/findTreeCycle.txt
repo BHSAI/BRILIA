@@ -1,0 +1,3 @@
+findTreeCycle will look for the AncMap entries that causes a cyclic loop.
+
+  CycleLoc = findTreeCycle(AncMap)

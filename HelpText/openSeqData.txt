@@ -1,0 +1,11 @@
+openSeqData will ask user to open up a delimited BRILIA output file for
+use in matlab. Determines which data should be numerical and converts
+strings to numbers accordingly.
+ 
+  [VDJdata, VDJheader] = openSeqData;
+
+  [VDJdata, VDJheader, FileName, FilePath] = openSeqData;
+
+  ... = openSeqData(FileName, Param, Value, ...)
+
+  ... = openSeqData('', Param, Value, ...)

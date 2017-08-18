@@ -1,0 +1,25 @@
+plotHistGraph plots a default bar graph based on the inputs specified.
+
+  [Gx, Ax, Bx] =  plotHistGraph(Edges,Ncount,Normalize)
+
+  plotHistGraph(Edges,Ncount,Normalize,Param,Value,...)
+
+  plotHistGraph(Ax,Edges,Ncount,Normalize,Param,Value,...)
+
+  INPUT
+    Ax: Axes handle to plot the bar graph to. If not specified, will make
+       a new figure and axes.
+    Edges: Mx1 matrix of left edges of a histogram
+    Ncount: MxN matrix of frequency of each edge
+    Normalize ['y' or 'n']: Normalize the data
+    
+      Param           Value       Description
+      --------------  ----------  ----------------------------------------
+      Legend          Nx1 cell    Cell of legend name, in the order of the
+                                    column data of Ncount
+      Title           string      Name of the plot
+
+  OUTPUT
+    Gx: figure handle
+    Ax: axes handle
+    Bx: bar  handles

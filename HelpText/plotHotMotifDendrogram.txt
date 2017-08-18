@@ -1,0 +1,17 @@
+plotHotMotifDendrogram will plot dendrograms to compare similarity in
+mutation frequency distribution amongst hotspot motifs.
+
+  ImageName = plotHotMotifDendrogram(HotMotifData, Param, Value, ...)
+
+  INPUT
+    HotMotifData: output of getMotifData, which contains information on
+      hotspot motifs and pairwise mutations frequencies.
+    Param: parameter names of axes, such as 'XLim', 'YLim', 'Visible'.
+    Value: values for the parameters.
+
+  OUTPUT
+    ImageName: the full file name where the plot is saved.
+
+  NOTE
+    This function invokes resizeFigure, resizeSubplots and savePlots,
+    hence Param-Value pairs for these functions can be used here.

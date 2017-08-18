@@ -1,0 +1,13 @@
+fixDegenVDJ will remove pseudogene (P) and open reading frame (ORF)
+annotations if a functional gene annotations are also suggested by BRILIA.
+
+  VDJdata = fixPseudoVDJ(VDJdata, VDJheader, DB)
+
+  INPUT
+    VDJdata: main BRILIA data cell
+    VDJheader: main BRILIA header cell
+    DB: Gene database structure (getCurrentDatabase.m)
+
+  OUTPUT
+    VDJdata: modified VDJdata where pseudogenes and ORF suggestion are
+      removed if amongst function gene suggestions.

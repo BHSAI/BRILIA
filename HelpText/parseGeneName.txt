@@ -1,0 +1,12 @@
+parseGeneName will take in a gene name, and return the gene family, gene
+number, and gene allele as a Mx3 cell matrix.
+
+  [FamNum, GeneNum, AlleleNum] = parseGeneName(AllGeneNames)
+
+  INPUT
+    AllGeneNames: char or Mx1 cell matrix of gene names
+  
+  OUTPUT
+    FamNum: the IG[HLK][VDJ]## number. Ex: 'IGHV1';
+    GeneNum: the string between the FamNum and AlleleNum. EX: '-12'
+    AlleleNum: the string after any asterick. EX: '*01'

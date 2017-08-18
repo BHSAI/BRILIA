@@ -1,0 +1,9 @@
+generateNregion will use create an N region segment based on the
+composition probability of nucleotides in N, and complement addition
+probability of N.
+
+  Nregion = generationNregion(Nlength)
+  Nregion = generationNregion(Nlength,ACGTprob,FLIPprob)
+
+  Default ACGTprob = [0.25 0.08 0.60 0.07] for A,C,G,T
+  Default FLIPprob = 0.33, meaning 33% chance to take complement seq. 

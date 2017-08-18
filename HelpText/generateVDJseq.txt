@@ -1,0 +1,49 @@
+generateVDJseq will generate VDJ genes by randomly selecting germline VDJ
+genes, randomly deleting nts from gene edges, randomly creating N regions, 
+and then combining them into a single sequence. Somatic hyper mutation
+simulations are performed if SHMrate > 0. A mutated sequence is added to
+the dataset only if it reaches SHMrate level of mutation. Only productive
+VDJ rearrangements are stored since these are the one that can go undergo
+SHM. We are not considering unproductive VDJ genes in the 2nd chromosome
+that could also undergo SHM if there is a productive gene.
+
+  [VDJdata, VDJheader] = generateVDJseq(Param, Value, ...)
+
+  INPUT
+    Param           Value                 This sets:
+    ------------    --------------------  -------------------------
+    SaveAs          [FileName].csv        Place to store VDJdata. If
+                                            empty, asks users to choose.
+    CloneCount      1 <= N <= 10000       # of germline VDJ seq to make
+    BranchLength    1 <= N <= 20          # of linear descendants per
+                                            branch per group
+    BranchWidth     1 <= N <= 20          # of branches per group
+    SHMperc         0 <= N <= 100         % of SHMs per descendant
+    TDTon           'y' 'n'               Include TDT-based N regions
+    Species         'human' 'mouse' etc   VDJ database by species
+    Strain          'all' 'C57BL' etc     VDJ database by strain
+    Ddirection      'all' 'fwd' 'inv'     Allowed D gene direction
+    Vfunction       'all' 'f' 'p' 'orf'   Allowed V gene functions
+
+  OUTPUT
+    VDJdata: cell matrix storing all information about each VDJgene
+    VDJheader: cell matrix storing data field names for VDJdata
+  
+  NOTE
+    The total number of sequences generated will be CloneCount *
+    BranchLength * BranchCount.
+
+    Simulation of SHMs does not account for SHM hot spots yet.
+
+    VDJ recombination event does not account for bias in certain gene
+    usage. Instead, selects gene uniformly.
+
+    VDJ gene edge deletions follow exponential distrbution with mean
+    deletion counts determined by literature data. Max deletion is capped
+    at 13 to prevent complete gene deletion issues.
+
+    Nregions are synthesized according to the behavior of Terminal
+    Deoxynucleotidyl Transferase. which mostly adds A's and G's, or C's
+    and T's.
+
+    Only genes with well-defined C and W locations can be used.

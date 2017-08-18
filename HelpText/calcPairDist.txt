@@ -1,0 +1,50 @@
+calcPairDist will compute the pairwise distance matrix and return an
+square matrix, where diagonals are max value or Inf to prevent the
+self-to-self sequence distance from being the lowest distance.
+
+  PairDist = calcPairDist(Seq, DistMode)
+
+  PairDist = calcPairDist(Seq, DistMode, Class)
+
+  PairDist = calcPairDist(Seq, DistMode, Class)
+
+  INPUT 
+    Seq: Mx1 cell of trimmed and aligned sequences
+    DistMode: Method for calculating seq-to-seq distance 
+      'ham' for hamming distance
+      'shmham' for hamming distance adjusted based on SHM tendencies. 
+      'identity' for finding distance as (MissedNT) / min([length(SeqA), 
+         length(SeqB)], or sequence identity mismatched of the smaller
+         sequence.
+    Class: Set the class of the resulting PairDist, if you know what it
+      is.
+
+  OUTPUT
+    PairDist: MxM dissimilarity or distance matrix of pairwise sequence
+      comparisons in UINT8, 16, or 32 format. Each row is the parent seq, 
+      each col is the child sequence. See note about 'shmham' dist output
+      below.
+ 
+  NOTE
+    'X' = wildcard match.
+
+    All sequences should be uppercase.
+
+    When using 'shmham', the PairDist matrix will be doubled the value to
+    ensure all distance are integers, allowing for low-memory UINT format
+    matrices. The real shmham dist computes a 0.5 correction per
+    mismatched nt that follows SHM tendencies, which would require DOUBLE
+    format matrices that are more memory intensive. This will not affect
+    the lineage tree reconstruction.
+
+  EXAMPLE
+    Seq = {'AAGGTG'; 'ACGCTG'; 'ACTCTG'}
+    [PairDist, HamDist] = calcPairDist(Seq, 'shmham')
+    PairDist =
+       255    5   20
+         6  255    3
+        21    3  255
+    HamDist =
+         0    2    3
+         2    0    1
+         3    1    0

@@ -1,0 +1,26 @@
+findPnts will take a sequence and find p-nucleotides.
+
+  Ploc = findPnts(RefSeq, NonPrange, Pside)
+
+  Ploc = findPnts(RefSeq, NonPrange, Pside, RefDelLeft, RefDelRight)
+
+  INPUT
+    RefSeq: nucleotide sequence of the germline sequence
+    NonPrange [s1,s2]: index range of non-Pnucleotides
+    Pside ['left','right','both']: find P nts left or right of range values
+    RefDelLeft: Integer >= 0, will only find P if RefDelLeft = 0;
+    RefDelRight: Integer >= 0, will only find P if RefDelRight = 0;
+
+  NOTE
+    RefDelLeft and RefDelRight must be 0 for P-nts to be found. The reason
+    for including these inputs is in case you want to use findPnts in a
+    function, but do not want to write extra code to check if P nts can
+    exist.
+
+  EXAMPLE
+    RefSeq = 'ACGTTATGCATGAA'
+    NonPrange = [1,8];
+    Pside = 'right';
+    Ploc = findPnts(RefSeq,NonPrange,Pside)
+    Ploc = 
+      0  0  0  0  0  0  0  0  1  1  1  0  0  0

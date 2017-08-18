@@ -1,0 +1,43 @@
+findVDJmatch will look for the best V, D, J gene match for a sequence in the
+following order: find V preserving nts for DJ, find J perserving nts for
+D, find D. This is good for an initial heavy chain annotation.
+
+  VDJdata = findVDJmatch(VDJdata, VDJheader, DB)
+
+  VDJdata = findVDJmatch(VDJdata, VDJheader, DB, Param, Value, ...)
+
+  [VDJdata, BadIdx] = findVDJmatch(...)
+
+  INPUT
+    VDJdata: main BRILIA data cell
+    VDJheader: main BRILIA header cell
+    DB: Gene database structure (getCurrentDatabase.m)
+
+      Param           Value       Description
+      --------------- ---------   ----------------------------------------
+      'Update'        'y' 'n'     Yes or No to updating other fields
+                                    besides the gene fields, such as CDR3, 
+                                    SHM, RefSeq.
+      'DJreserve'     9           How may nts on right of Seq to preserve
+                                    for D+J gene matching
+      'Dreserve'      3           How may nts on right of Seq to preserve
+                                    for D gene matching
+
+  NOTE
+    If CDR3start and CDR3end anchor locations are provided in VDJdata, 
+    findVDJmatch will uses these location(s) to speed up V and J
+    alignments. Use seedCDR3position.m prior to this to benefit from
+    faster alignment. 
+
+    Using seeded alignment is faster BUT could cause this to miss the best
+    alignment. If you have the time, consider setting CDR3start and
+    CDR3end values to 0 or empty in VDJdata.
+ 
+    After finding V, it will check to see if a 'TGG' of the 118W exists
+    after the 'TGT' of the conserved 104C, that is in frame. If it does
+    find one, it will force a J alignment such that the 118W are aligned.
+    This helps if the input seq is too short and ends exactly on the
+    conserved 118W. Otherwise, it either uses the seed from
+    seedCDR3position or a full J alignment to determine the J segment.
+
+  See also findVJmatch

@@ -1,0 +1,28 @@
+fixGeneIndel will correct the V gene inserstion/deletion (indel) error as
+produced by the sequencing platform error. Will NOT do D and J indel
+corrections since they are generally too short to be certain. 
+
+  VDJdata = fixGeneIndel(VDJdata, VDJheader, DB)
+
+  [VDJdata, BadIdx] = fixGeneIndel(...)
+
+  INPUT
+    VDJdata: main BRILIA data cell
+    VDJheader: main BRILIA header cell
+    DB: Gene database structure (getCurrentDatabase.m)
+
+  OUTPUT
+    VDJdata: modified VDJdata where nt insertion and deletion in the V
+      genes are corrected for. 
+
+  NOTE
+    This code DOES NOT fix indel error that are >= 2 consecutive nts long, 
+      because this could signifiy an alignment error as opposed to an
+      indel error. Also, V and J gene indels are not corrected for.
+
+    In order for indel correction to trigger, it must detect V alignments
+      that either:
+        1) shows a germline V gene deletion that goes beyond the conserved
+           C residue, OR
+        2) has a 20% miss rate in the V alignment caused by indel-induced
+           frame shift error

@@ -1,0 +1,168 @@
+alignSeq will align sequence SeqA and SeqB using the BRILIA alignment
+protocol. Consecutive matches add C^2 score and consecutive mismatches
+subtract M^2 score, where C and M is the length of each contiguous
+segment. If AllowedMiss is specified, then C segments can be elongated
+only if there is a 1-letter miss, and if the number of AllowedMiss has not
+been reached, going left to right. More information is provided in the
+reference for BRILIA.
+
+  Score = alignSeq(SeqA, SeqB)
+
+  [Score, Alignment] = alignSeq(SeqA, SeqB,)
+
+  [Score, Alignment, StartAt] = alignSeq(SeqA, SeqB,)
+
+  [Score, Alignment, StartAt, MatchAt] = alignSeq(SeqA, SeqB,)
+
+  [...] = alignSeq(SeqA, SeqB, Param1, Value1, ...)
+
+  P = alignSeq('getinput')   %To get the input structure
+
+  [...] = alignSeq(SeqA, SeqB, P)  %where P is an input structure
+  
+  INPUTS
+    SeqA: Character sequence. X = wildcard match. Z = do not match.
+    SeqB: Character sequence. X = wildcard match. Z = do not match.
+
+  INPUTS (Param, [Value])
+    MissRate [Integer >= 0]: How many missed nt/bp are allowed for
+      elongating a contiguous C region for alignment score. Ex: MissRate
+      0.02 = 2% of shorter seq length.
+    Alphabet ['nt','aa','any']: Specify if it's a DNA/RNA or Amino Acid
+      seq or any char. Used to relabel ambiguous characters to 'X'
+      wildcard letter.
+    TrimSide ['none','left','right','both']: Will remove seq matches from
+      the direction specified to improve the alignment quality near edges.
+    PenaltySide ['none','left','right']: Will reduce alignment score if
+      the left or right portion of SeqA overhangs SeqB and is unused.
+      Penalty is (unused nt)^2.
+    PreferSide ['none','left','right']: If a tie alignment is found, will
+      favor the alignment closers to this side of SeqA.
+    CheckSeq ['no','yes']: If you think there is an ambiguous character in
+      sequence, remove it, then set to 'no' as alignSeq will attempt
+      replace with wildcard. HINT: better to remove ambiguous character
+      and set to 'X' BEFORE running this.
+    ExactMatch ['no','yes']: If SeqA and SeqB are same lengths and you
+      want to do a simple, direct alignment, then use 'yes'.
+    
+  INPUTS (Structure)
+    For aligning a lot of sequences, use the structure-format input, as
+    this saves time with input checking. Must be correctly made, since no
+    error checking is done at this point.
+       >> P = alignSeq('getinput');
+       >> P.MissRate = 0;
+       >> P.Alphabet = 'nt';
+       >> P.TrimSide = 'left';
+       >> P.PreferSide = 'right';
+       >> P.CheckSeq = 'yes';
+       >> P.ExactMatch = 'no';
+       >> P.DiagIdx = [];
+       >> Score = alignSeq(SeqA,SeqB,P);
+
+  OUTPUTS
+    Score: 2x1 matrix, Score(1) is the # of hits, and Score(2) is the
+      aligment score of BRILIA.
+    Alignment: 3xM char matrix showing the alignment results of SeqA and
+      SeqB. '|' in the 2nd char row marks locations of matches, while '-'
+      in the 1st and 3rd row are unmatched letters.
+    StartAt: 2x1 matrix, StartAt(1) is always 1 the SeqA start, and
+      StartAt(2) is the SeqB start relative to the nth letter of SeqA. 
+      EX: if StartAt(2) = 3, then SeqB aligns with A if its 1st letter
+      start below the 3rd letter of SeqB. If StartAt(2) = -3, then the 1st
+      letter of SeqB start left of SeqA's 1st letter by 3 letters (missing
+      3 letters).
+    MatchAt: 2x1 matrix showing the 1st and last location of the '|' in
+      the Alignment char matrix.
+
+--------------------------------------------------------------------------
+  EXAMPLES
+    Case1) "TrimSide" edge cleaning
+      SeqA = 'TAATAATTAAT'
+      SeqB = 'TCCTAATTGGT'
+      [Score, Alignment, StartAt, MatchAt] = alignSeq(SeqA,SeqB)
+      Score =
+            7
+           19
+      Alignment =
+         TAATAATTAAT
+         |  |||||  |
+         TCCTAATTGGT
+      StartAt =
+            1
+            1
+      MatchAt =
+            1
+           11
+
+      [Score, Alignment] = alignSeq(SeqA,SeqB,'TrimSide','left')
+       Alignment =
+         TAATAATTAAT
+            |||||  |
+         TCCTAATTGGT
+
+      [Score, Alignment] = alignSeq(SeqA,SeqB,'TrimSide','right')
+       Alignment =
+         TAATAATTAAT
+         |  |||||   
+         TCCTAATTGGT
+
+      [Score, Alignment] = alignSeq(SeqA,SeqB,'TrimSide','both')
+       Alignment =
+         TAATAATTAAT
+            |||||   
+         TCCTAATTGGT
+
+    Case2) "PreferSide" tie-breaking
+      SeqA = 'AAAA'
+      SeqB = 'CAAAATTAAAATTAAAAC'
+      [~, Alignment] = alignSeq(SeqA,SeqB,'PreferSide','left')
+       Alignment =
+         -AAAA-------------
+          ||||             
+         CAAAATTAAAATTAAAAC
+
+      [~, Alignment] = alignSeq(SeqA,SeqB,'PreferSide','right')
+       Alignment =
+         -------------AAAA-
+                      |||| 
+         CAAAATTAAAATTAAAAC
+
+      [~, Alignment] = alignSeq(SeqA,SeqB,'PreferSide','none')
+       Alignment =
+         -------AAAA-------
+                ||||       
+         CAAAATTAAAATTAAAAC
+
+    Case3) Wildcard matching and exact matching
+      SeqA = 'CGAAXCAA'
+      SeqB = 'ACGAACGA'
+      [~, Alignment] = alignSeq(SeqA,SeqB,'ExactMatch','no')
+       Alignment =
+         -CGAAXCAA
+          ||||| |  
+         ACGAACGA-
+
+      [~, Alignment] = alignSeq(SeqA,SeqB,'ExactMatch','yes')
+       Alignment =
+         CGAAXCAA
+            ||| |
+         ACGAACGA
+
+    Case4) AllowedMiss scoring changes
+      SeqA = 'ACGTGGTA'
+      SeqB = 'ACATGATA'    
+      [Score, Alignment] = alignSeq(SeqA,SeqB,'ExactMatch','yes','AllowedMiss',0)
+       Score =
+           6
+          10
+       Alignment =
+         ACGTGGTA
+         || || ||
+         ACATGATA
+
+      Score = alignSeq(SeqA,SeqB,'ExactMatch','yes','AllowedMiss',1)
+        Score =
+            6
+           19
+
+  See also makeDiagonalSeq, calcAlignScore, trimMatchResults

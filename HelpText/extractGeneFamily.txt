@@ -1,0 +1,3 @@
+extractGeneFamily will open up adaptive file formats, and extract the
+family number, placing them into a csv file with " ; " delimiter, of V; D;
+J family # only. EX: IGHV01, IGHD02r, IGHJ01 will be 1; -2; 1.

@@ -1,0 +1,21 @@
+saveSeqDataForBaseline will convert a VDJdata to a readable fasta file
+for BASELINe[REF].
+
+  saveSeqDataForBaseline(VDJdata, VDJheader, )
+
+  Fasta file with >>> sequence is a group separator, >> is the reference
+  sequence, and > is the clone sequence. 
+
+  Example: 
+    >>> Group 1
+    >> Germline1 Sequence
+    ACGCTGA
+    > Seq 1
+    ACGTTGA
+    > Seq 2
+    AGTTTGA
+
+REF: Gur Yaari; Mohamed Uduman; Steven H. Kleinstein. Quantifying
+selection in high-throughput Immunoglobulin sequencing data sets. Nucleic
+Acids Res. 2012 May 27.
+BaseLine v1.3 at http://selection.med.yale.edu/baseline/

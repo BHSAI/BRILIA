@@ -1,0 +1,38 @@
+resizeSubplots will resize all subplots such that each plot has the same
+and largest axes size, without running axes labels off the figure.
+
+  resizeSubplots(Gx, varargin)
+
+  INPUT
+    Gx: figure handle to modify
+    varargin: cell array of Param-Value pairs.
+    
+    Param           Value         Description
+    ----------      ---------     ----------------------------------------
+    ScaleVertical   'y' 'n'       If 'y', will scale subplots vertically
+                                    based on original plot outer heights. 
+                                  If 'n', will divide plot heights evenly.
+    ScaleHorizontal 'y' 'n'       If 'y', will scale subplot horizontally
+                                    based on original plot outer widths. 
+                                  If 'n', will divide plot width evenly.
+    MatchWidth      'y' 'n'       If 'y', will set the width of each plot
+                                    the same per each column.
+                                  If 'n', will just fill the column width.
+    HorzSpacer      Number [0, 1] Will add a horizontal spacer between
+                                    subplot plots
+    VertSpacer      Number [0, 1] Will add a veritcal spacer between
+                                    subplot plots
+    FigSpacer       Number [0, 1] Will add a perimiter spacer around all
+                                    subplots 
+
+  EXAMPLE
+    Gx = figure();
+    subplot(2, 2, 1)
+    set(gca, 'position',  [0 0.5 0.3 0.2]);
+    plot(1, 1, 'r')
+    subplot(2, 2, 2)
+    plot(1, 2, 'b')
+    subplot(2, 2, 4)
+    plot(3, 3, 'k')
+    ylabel('blah')
+    resizeSubplots(Gx, 'ScaleVertical', 'n', 'MatchWidth', 'y', 'Border', 0.01)

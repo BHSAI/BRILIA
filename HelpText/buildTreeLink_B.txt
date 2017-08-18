@@ -1,0 +1,11 @@
+DEPRACATED, replaced with calcRootedAncMap
+
+buildTreeLink_B perform the tree linking given a defined cluster, where
+the first seq is the root seq. 
+The way it works is this: 
+1) First seq "was" set as root, based on Template Count and Alignment Score
+2) Find the "next" seq with lowest score, and link it to root.
+3) Find the "next" seq with lowest score, and link it to root or other seq.
+4) repeat 3 until no more linking is left.
+* This linking step is indepedent of cutoff distance, as it will always
+link it.

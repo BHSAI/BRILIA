@@ -1,0 +1,1 @@
+plotTDTmatrix will plot the frequence of NT in the N regions

@@ -1,0 +1,28 @@
+calcRootedAncMap perform the tree linking given a defined cluster, where
+the first seq is the most ancestral seq.
+  
+The way it works is this: 
+1) First seq "was" set as ancestor before puting the input in.
+2) Find the "next" seq with lowest score, and link it to root.
+3) Find the "next" seq with lowest score, and link it to root or other seq.
+4) repeat 3 until no more linking is left.
+
+  AncMap = calcRootedAncMap(PairDist)
+
+  INPUT
+    PairDist: a MxM matrix of distances between sequences, where the row
+      is the parent and col is the child sequences. 1st Row and Col is for
+      the root sequence.
+
+  OUTPUT
+    AncMap: a Mx3 matrix storing information about each child object's
+      parent object and the SHM distance from parent to child object.
+
+  NOTE
+    This does not have a cutoff distance as it will link everything to the
+    ancestral sequence.
+    
+    Unlike calcAncMap, calcRootedAncMap does not generate cyclic
+    dependencies since the root is defined and this prevents the issue.
+
+  See also calcAncMap, calcPairDist, findTreeClust, findTreeCycle

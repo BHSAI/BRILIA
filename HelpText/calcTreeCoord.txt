@@ -1,0 +1,23 @@
+calcTreeCoord is used to calculate the node and leaf coordinates
+recursively, given AncMap (the ancestry mapping matrix).
+  
+  TreeCoord = calcTreeCoord(AncMap)
+
+  TreeCoord = calcTreeCoord(AncMap, TreeCoord, ParentNum)  (For recursion)
+
+  INPUT
+    AncMap: Mx3 ancestry map of [ChildNum ParentNum Par2ChildDist].
+      Par2ChildDist is either hamming distance or SHM distance from parent
+      to child. A ParentNum = 0 means germline root.
+   
+  OUTPUT
+    TreeCoord: (M+x)x3 matrix of [Xpos Ypos LeafStatus].
+      IF the distance from root to 1st real sequence is 0, then x = 0.
+      IF the root is not the same as th 1st sequence, then x = 1 and a
+        extra coordinate is provided from root to 1st sequence.
+      LeafStatus is 0 if this child is also a parent.
+      LeafStatus is 1 if this child ends the tree as a leaf.
+
+  NOTE
+    This uses recusion to fill in TreeCoord, hence TreeCoord is a hidden
+    input to the function that shouldn't be used by the user.

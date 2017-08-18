@@ -1,4 +1,32 @@
 ---------------------------------------------------------------------------
+##Patch notice for version 3.0.0
+
+Major changes
+- Reworked all BRILIA codes to handle paired heavy-light chain sequences. 
+- Rearranged data columns so that numeric values are grouped at the end and annotatoins are grouped closer to the beginning.
+- Column headers are labeled with either H- or L- to specify annotaiton for heavy or light chain.
+- Database files are all changed to include CDR1 and CDR2 information, along with heavy and light chain genes if available.
+- Reworked the way BRILIA can import IMGT standardized gene fasta format (with "." fillers)
+- Try and Catch statements are all removed and replaced with data checkers prior to attempt, This is faster.
+- Added CDR1 and CDR2 information.
+- Fixed the way convolveSeq computed the "AllowedMiss" point mutations when calculating alignment scores. It now properly uses "MissRate", which is then used to computer AllowedMiss per each sequence aligned. 
+
+* Due to these changes, version 3.0.0 will not work with lower version. Please uninstall old version and use latest version.
+
+---------------------------------------------------------------------------
+##Patch notice for version 2.1.0
+
+Important changes
+- CDR1 and CDR2 sequences are now provided. If the sequence does not cover the CDR1 and 2 regions, BRILIA will return the germline CDR1 and 2 sequences.
+- Fixed the CDR3 sequences to match with IMGT's defintion of CDR3 region, which excludes the 104C and 118W.
+- Features for importing IMGT reference sequence fasta files into BRILIA have been improved.
+- If the input sequences extend beyond the V gene, the extraneous sequences will be moved to the TrimmedLeft column.
+- If the input sequences extend beyond the J gene, the extraneous sequences will be moved to the TrimmedRight column.
+
+General changes
+- More bug fixes in the tree plotting scripts.
+
+---------------------------------------------------------------------------
 ##Patch notice for version 2.0.7
 
 General changes
