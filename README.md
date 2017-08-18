@@ -56,11 +56,11 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ```
 7. To process data, type:
 ```
-  \BRILIA>  BRILIA.exe [some_path]/Seq1.fa Species [species_name] Chain H
+  \BRILIA>  BRILIA.exe [*input_file*] Species [*species_name*] Chain H
 ```
 8. To plot lineage trees, type the following:
 ```
-  \BRILIA>  plotTree.exe [some_path]/Seq1/Seq1.BRILIAv3.csv
+  \BRILIA>  plotTree.exe [*output_file*]
 ```
 
 ### For LINUX
@@ -71,28 +71,24 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ```
 7. To process data, type:
 ```
-  BRILIA]$  ./run_BRILIA.sh ../mcr/v92/ [some_path]/Seq1.fa Species [species_name] Chain H
+  BRILIA]$  ./run_BRILIA.sh ../mcr/v92/ [*input_file*] Species [*species_name*] Chain H
 ```
 8. To plot lineage tree, type:
 ```
-  BRILIA]$  ./run_plotTree.sh ../mcr/v92/ [some_path]/Seq1/Seq1.BRILIAv3.csv
+  BRILIA]$  ./run_plotTree.sh ../mcr/v92/ [*output_file*]
 ```
 
 ## Running BRILIA in MATLAB 
 
-Note: Requires bioinformatics toolbox. Type '> ver' in Matlab to check for this toolbox.
+Note: Requires bioinformatics toolbox. Use `>> ver` command in Matlab to check.
 1. Copy all codes into a folder called BRILIA, deleting any older BRILIA codes to prevent conflicts.
-2. Open MATLAB and set the working directory to the BRILIA folder.
+2. Open MATLAB and set the working directory to the */BRILIA* folder.
 3. In the command line, add all BRILIA folders into the Matlab path using addAllPaths.  
+4. To get details of the inputs and Param-Value pairs:
 ```
-   > addAllPaths
+   >> help BRILIA 
 ```
 4. To run BRILIA, use one of the following commands:
-
-   To get details of the inputs:
-```
-   > help BRILIA 
-```
 
    EX1) Will ask user to select the input file, host species, and host strain.
 ```
@@ -101,12 +97,12 @@ Note: Requires bioinformatics toolbox. Type '> ver' in Matlab to check for this 
    
    EX2) Will ask user to select the input file while using all BRILIA parameters defined in seetting txt file [(see SettingExample.txt.)]()
 ```
-   >> BRILIA( 'SeqFile.fasta', 'SettingFile', 'SettingExample.txt' )    
+   >> BRILIA( 'InputFile.fa', 'SettingFile', 'SettingExample.txt' )    
 ```
 
    EX3) Will process a specified input file using the Human VDJ gene database and other settings specfied by Param-Value pairs.
 ```
-   >> BRILIA( 'SeqFile.fasta', 'Species', 'human', Param, Value, ... )  
+   >> BRILIA( 'InputFile.fa', 'Species', 'human', Param, Value, ... )  
 ```
 
    HINT) Look at the test scripts found [here.]()
