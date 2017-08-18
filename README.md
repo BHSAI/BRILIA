@@ -60,7 +60,7 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ```
 8. To plot lineage trees, type the following:
 ```
-  \BRILIA>  plotTree.exe [output_file]
+  \BRILIA>  plotTree.exe [BRILIA_output_file]
 ```
 
 ### For LINUX
@@ -71,11 +71,11 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ```
 7. To process data, type:
 ```
-  BRILIA]$  ./run_BRILIA.sh ../mcr/v92/ [input_file] Species [species_name] Chain H
+  BRILIA]$  ./run_BRILIA.sh [mcr_library_path] [input_file] Species [species_name] Chain H
 ```
 8. To plot lineage tree, type:
 ```
-  BRILIA]$  ./run_plotTree.sh ../mcr/v92/ [output_file]
+  BRILIA]$  ./run_plotTree.sh [mcr_library_path] [BRILIA_output_file]
 ```
 
 ## Running BRILIA in MATLAB 
@@ -88,35 +88,25 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in Matlab to check.
 ```
    >> help BRILIA 
 ```
-4. To run BRILIA, use one of the following commands:
+5. To run BRILIA, use one of the following commands:
 
    EX1) Will ask user to select the input file, host species, and host strain.
 ```
    >> BRILIA  
 ```
-   
    EX2) Will ask user to select the input file while using all BRILIA parameters defined in seetting txt file [(see SettingExample.txt.)]()
 ```
    >> BRILIA( 'InputFile.fa', 'SettingFile', 'SettingExample.txt' )    
 ```
-
    EX3) Will process a specified input file using the Human VDJ gene database and other settings specfied by Param-Value pairs.
 ```
    >> BRILIA( 'InputFile.fa', 'Species', 'human', Param, Value, ... )  
 ```
-
    HINT) Look at the mouse heavy chain BRILIA test script found [here](https://github.com/BHSAI/BRILIA/blob/master/Examples/MouseH/testMouseH.m).
 ```
    >> testMouseH
 ```
 
-
 The program is distributed under the [GNU General Public License](http://www.gnu.org/licenses/gpl.html).  
 
-See BRILIA patch info at [here](https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md).  
-
-## UPCOMING UPDATES (Proposed on 2017-01-24)
-  *  Will update the data plotting functions. The Data_Plotting folder is being all reworked, as there's unused / temporary scripts there. New codes will be placed in Plot_Codes folder.
-  *  Will add CDR1 and CDR2 into the outputs
-  *  Will enforce quality control to ensure nonsense CDR3 or VDJ annotations are removed and placed into [FileName]Err.csv
-  *  Will replace try/catch with validation codes, since former method is generally slower.
+See BRILIA patch info at [here](https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md). 
