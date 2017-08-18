@@ -56,11 +56,11 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ```
 7. To process data, type:
 ```
-  \BRILIA>  BRILIA.exe [*input_file*] Species [*species_name*] Chain H
+  \BRILIA>  BRILIA.exe [input_file] Species [species_name] Chain H
 ```
 8. To plot lineage trees, type the following:
 ```
-  \BRILIA>  plotTree.exe [*output_file*]
+  \BRILIA>  plotTree.exe [output_file]
 ```
 
 ### For LINUX
@@ -71,11 +71,11 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ```
 7. To process data, type:
 ```
-  BRILIA]$  ./run_BRILIA.sh ../mcr/v92/ [*input_file*] Species [*species_name*] Chain H
+  BRILIA]$  ./run_BRILIA.sh ../mcr/v92/ [input_file] Species [species_name] Chain H
 ```
 8. To plot lineage tree, type:
 ```
-  BRILIA]$  ./run_plotTree.sh ../mcr/v92/ [*output_file*]
+  BRILIA]$  ./run_plotTree.sh ../mcr/v92/ [output_file]
 ```
 
 ## Running BRILIA in MATLAB 
@@ -105,9 +105,9 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in Matlab to check.
    >> BRILIA( 'InputFile.fa', 'Species', 'human', Param, Value, ... )  
 ```
 
-   HINT) Look at the test scripts found [here.]()
+   HINT) Look at the mouse heavy chain BRILIA test script found [here](https://github.com/BHSAI/BRILIA/blob/master/Examples/MouseH/testMouseH.m).
 ```
-   >> testMouseH  %will run a test script for mouse heavy chain processing
+   >> testMouseH
 ```
 
 
