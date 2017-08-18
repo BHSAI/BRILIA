@@ -43,42 +43,40 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 
 ## Running BRILIA without MATLAB
 ### General preparations and downloads
-1. Download the MATLAB runtime library from the [MathWorks website] (https://www.mathworks.com/products/compiler/mcr.html).
-  * For Windows, get the MCR version 9.0.1 
-  * For Linux, get the MCR version 9.0.2 
+1. Download the MATLAB Runtime Version R2017a (9.2) from the [MathWorks website] (https://www.mathworks.com/products/compiler/mcr.html).
 2. Install the MRC library on your computer.
-3. Download the BRILIA exectuable file for your OS. [BRILIAv2.0.7.zip](https://github.com/BHSAI/BRILIA/files/767682/BRILIAv2.0.7.zip)
+3. Download the BRILIA exectuable files for your OS. [BRILIAv2.0.7.zip](https://github.com/BHSAI/BRILIA/files/767682/BRILIAv2.0.7.zip)
 4. Unzip the executable files into a folder called BRILIA.
 
 ### For WINDOWS
 5. Open windows' command prompt.
 6. Go to the BRILIA folder.
-'
+```
   \BRILIA>  cd [some_path]/BRILIA
-'
+```
 7. To process data, type:
-'
+```
   \BRILIA>  BRILIA.exe [some_path]/Seq1.fa Species [species_name] Chain H
-'
+```
 8. To plot lineage trees, type the following:
-'''
+```
   \BRILIA>  plotTree.exe [some_path]/Seq1/Seq1.BRILIAv3.csv
-'''
+```
 
 ### For LINUX
 5. Open up the linux terminal.
 6. Go to the BRILIA folder.
-'''
+```
   BRILIA]$  cd [some_path]/BRILIA
-'''
+```
 7. To process data, type:
-'''
+```
   BRILIA]$  ./run_BRILIA.sh ../mcr/v92/ [some_path]/Seq1.fa Species [species_name] Chain H
-'''
+```
 8. To plot lineage tree, type:
-'''
+```
   BRILIA]$  ./run_plotTree.sh ../mcr/v92/ [some_path]/Seq1/Seq1.BRILIAv3.csv
-'''
+```
 
 ## Running BRILIA in MATLAB 
 
@@ -86,35 +84,35 @@ Note: Requires bioinformatics toolbox. Type '> ver' in Matlab to check for this 
 1. Copy all codes into a folder called BRILIA, deleting any older BRILIA codes to prevent conflicts.
 2. Open MATLAB and set the working directory to the BRILIA folder.
 3. In the command line, add all BRILIA folders into the Matlab path using addAllPaths.  
-'''
+```
    > addAllPaths
-'''
+```
 4. To run BRILIA, use one of the following commands:
 
    To get details of the inputs:
-'''
+```
    > help BRILIA 
-'''
+```
 
    EX1) Will ask user to select the input file, host species, and host strain.
-'''
+```
    >> BRILIA  
-'''
+```
    
    EX2) Will ask user to select the input file while using all BRILIA parameters defined in seetting txt file [(see SettingExample.txt.)]()
-'''
+```
    >> BRILIA( 'SeqFile.fasta', 'SettingFile', 'SettingExample.txt' )    
-'''
+```
 
    EX3) Will process a specified input file using the Human VDJ gene database and other settings specfied by Param-Value pairs.
-'''
+```
    >> BRILIA( 'SeqFile.fasta', 'Species', 'human', Param, Value, ... )  
-'''
+```
 
    HINT) Look at the test scripts found [here.]()
-'''
+```
    >> testMouseH  %will run a test script for mouse heavy chain processing
-'''
+```
 
 
 The program is distributed under the [GNU General Public License] (http://www.gnu.org/licenses/gpl.html).  
