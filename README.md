@@ -53,13 +53,13 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ### For WINDOWS
 5. Open windows' command prompt.
 6. Go to the BRILIA folder.
-'''
+'
   \BRILIA>  cd [some_path]/BRILIA
-'''
+'
 7. To process data, type:
-'''
+'
   \BRILIA>  BRILIA.exe [some_path]/Seq1.fa Species [species_name] Chain H
-'''
+'
 8. To plot lineage trees, type the following:
 '''
   \BRILIA>  plotTree.exe [some_path]/Seq1/Seq1.BRILIAv3.csv
