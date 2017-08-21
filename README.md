@@ -10,7 +10,7 @@
 
 ## PURPOSE:
 
-BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning information about CDR regions, phylogeny relationships, and somatic hypermutations. More information about BRILIA can be found [here.](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full)
+BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning information about CDR regions, phylogeny relationships, and somatic hypermutations. More information about BRILIA can be found in the [reference article](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full).
   
 ## INPUT FILES (See [example input files](https://github.com/BHSAI/BRILIA/tree/master/Examples/MouseH)): 
  
@@ -23,14 +23,15 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
   * Does not accept paired-end reads, so please assemble them using a 3rd party software.
   * Non-nucleotide letters are treated as wildcard "X" or "N" nucleotides.
   * For delimited files, make sure that:
-    * 1st row is the data header: "SeqName,H-Seq,L-Seq,TemplateCount"
+    * first row is the data header: "SeqName,H-Seq,L-Seq,TemplateCount"
     * data is stored in subsequent rows in the order of the data header. 
       * SeqName: the name of the sequence. Required.
       * H-Seq: heavy chain sequence. Optional IF doing Light chain only.
       * L-Seq: light chain sequence. Optional IF doing Heavy chain only.
       * TemplateCount: the number of sequence copies. Optional.
-  * Delimiter symbols cannot be used in places where they are not delimiters.
-  * NOTE: BRILIA will auto-detect the delimiter and heavy/light chain if formatted properly.
+    * delimiter symbols are not used in places where they are not delimiters.
+    
+    NOTE: BRILIA will auto-detect the delimiter and heavy/light chain if formatted properly.
 
 ## OUTPUT FILES (See [example output files](https://github.com/BHSAI/BRILIA/tree/master/Examples/MouseH/MouseH_Fasta)): 
 
@@ -39,7 +40,7 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
     * [output_file_name].BRILIAv3.Raw.csv : stores initial annotation of V(D)J sequences without lineage-base annotation correction. This is used as a save point for reclustering sequences. 
     * [output_file_name].BRILIAv3.Err.csv : stores non-productive VDJ sequences and any sequences that could not be annotated fully.
   * If the output file is not specified, results will be stored in a subfolder with the same name as the input file. 
-  * See output file header details [here](https://github.com/BHSAI/BRILIA/blob/master/Tables/DataHeaderInfo.csv).
+  * See [output file header info](https://github.com/BHSAI/BRILIA/blob/master/Tables/DataHeaderInfo.csv).
 
 ## Running BRILIA without MATLAB
 ### General preparations and downloads
@@ -83,29 +84,26 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 Note: Requires bioinformatics toolbox. Use `>> ver` command in MATLAB to check.
 1. Copy all codes into a folder called BRILIA, deleting any older BRILIA codes to prevent conflicts.
 2. Open MATLAB and set the working directory to the */BRILIA* folder.
-3. In the command line, add all BRILIA sub folders into the MATLAB path using `>> addAllPaths`.  
-4. To get details of the inputs and Param-Value pairs:
-```
-   >> help BRILIA 
-```
+3. In the command window, add all BRILIA sub folders into the MATLAB path using `>> addAllPaths`.  
+4. Get details about BRILIA inputs and Param-Value pairs using `>> help BRILIA`.
 5. To run BRILIA, use one of the following commands:
 
    EX1) Will ask user to select the input file, host species, and host strain.
-```
-   >> BRILIA  
-```
-   EX2) Will ask user to select the input file while using all BRILIA parameters defined in a setting txt file (see [example setting file](https://github.com/BHSAI/BRILIA/blob/master/SettingFile.txt)).
-```
-   >> BRILIA( 'InputFile.fa', 'SettingFile', 'SettingFile.txt' )    
-```
-   EX3) Will process a specified input file using the Human VDJ gene database and other settings specfied by Param-Value pairs.
-```
-   >> BRILIA( 'InputFile.fa', 'Species', 'human', Param, Value, ... )  
-```
+   ```
+      >> BRILIA  
+   ```
+   EX2) Will process "InputFile.fa" while using parameters stored in a setting txt file (see [example setting file](https://github.com/BHSAI/BRILIA/blob/master/SettingFile.txt)).
+   ```
+      >> BRILIA( 'InputFile.fa', 'SettingFile', 'SettingFile.txt' )    
+   ```
+   EX3) Will process "InputFile.fa" using the Human gene database and settings specfied by Param-Value pairs.
+   ```
+      >> BRILIA( 'InputFile.fa', 'Species', 'human', Param, Value, ... )  
+   ```
    HINT) Look at the mouse heavy chain [BRILIA test script](https://github.com/BHSAI/BRILIA/blob/master/Examples/MouseH/testMouseH.m).
-```
-   >> testMouseH
-```
+   ```
+      >> testMouseH
+   ```
 
 The program is distributed under the [GNU General Public License](http://www.gnu.org/licenses/gpl.html).  
 
