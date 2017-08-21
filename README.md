@@ -83,11 +83,8 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 Note: Requires bioinformatics toolbox. Use `>> ver` command in MATLAB to check.
 1. Copy all codes into a folder called BRILIA, deleting any older BRILIA codes to prevent conflicts.
 2. Open MATLAB and set the working directory to the */BRILIA* folder.
-3. In the command line, add all BRILIA sub folders into the MATLAB path using `>> addAllPaths`.  
-4. To get details of the inputs and Param-Value pairs:
-```
-   >> help BRILIA 
-```
+3. In the command window, add all BRILIA sub folders into the MATLAB path using `>> addAllPaths`.  
+4. Get details about BRILIA inputs and Param-Value pairs using `>> help BRILIA`.
 5. To run BRILIA, use one of the following commands:
 
    EX1) Will ask user to select the input file, host species, and host strain.
