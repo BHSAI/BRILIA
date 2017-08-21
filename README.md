@@ -10,7 +10,7 @@
 
 ## PURPOSE:
 
-BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning information about CDR regions, phylogeny relationships, and somatic hypermutations. More information about BRILIA can be found [here.](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full)
+BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning information about CDR regions, phylogeny relationships, and somatic hypermutations. More information about BRILIA can be found in the [reference article](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full).
   
 ## INPUT FILES (See [example input files](https://github.com/BHSAI/BRILIA/tree/master/Examples/MouseH)): 
  
@@ -39,7 +39,7 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
     * [output_file_name].BRILIAv3.Raw.csv : stores initial annotation of V(D)J sequences without lineage-base annotation correction. This is used as a save point for reclustering sequences. 
     * [output_file_name].BRILIAv3.Err.csv : stores non-productive VDJ sequences and any sequences that could not be annotated fully.
   * If the output file is not specified, results will be stored in a subfolder with the same name as the input file. 
-  * See output file header details [here](https://github.com/BHSAI/BRILIA/blob/master/Tables/DataHeaderInfo.csv).
+  * See [output file header info](https://github.com/BHSAI/BRILIA/blob/master/Tables/DataHeaderInfo.csv).
 
 ## Running BRILIA without MATLAB
 ### General preparations and downloads
