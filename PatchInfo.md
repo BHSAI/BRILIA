@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
-##Patch notice for version 3.0.5
+## Patch notice for version 3.0.5
 
 Major changes
 - Large sequence files will be processed in batches to prevent memory overload. (default is 1000 per batch, changeable using BatchSize parameter).
@@ -17,7 +17,7 @@ Major changes
 * Due to these changes, version 3.0.0 will not work with lower version. Please uninstall old version and use latest version.
 
 ---------------------------------------------------------------------------
-##Patch notice for version 2.1.0
+## Patch notice for version 2.1.0
 
 Important changes
 - CDR1 and CDR2 sequences are now provided. If the sequence does not cover the CDR1 and 2 regions, BRILIA will return the germline CDR1 and 2 sequences.
@@ -30,7 +30,7 @@ General changes
 - More bug fixes in the tree plotting scripts.
 
 ---------------------------------------------------------------------------
-##Patch notice for version 2.0.7
+## Patch notice for version 2.0.7
 
 General changes
 - Fixed an issue where template counts in CSV files were not being converted to double values correctly.
@@ -38,7 +38,7 @@ General changes
 - Cleaned up the example files to make it easier to see what input format BRILIA will take. 
 
 ---------------------------------------------------------------------------
-##Patch notice for version 2.0.6
+## Patch notice for version 2.0.6
 
 Generage changes
 - made a simple GUI for running BRILIA and drawing lineage tree per cluster (BRILIA/GUI/BRILIAgui.m). Still in early stages of GUI, so more features will be added.
@@ -48,7 +48,7 @@ Generage changes
 - moved some folders around for organizational purposes. 
 
 ---------------------------------------------------------------------------
-##Patch notice for version 2.0.5
+## Patch notice for version 2.0.5
 
 General changes
 - renamed Data_Plotting folder to Data_Plotting(Reworking) folder to let users know that I am reworking all codes here.
@@ -57,7 +57,7 @@ General changes
 - removed some unused codes in the SHMtree folder.
 
 ---------------------------------------------------------------------------
-##Patch notice for version 2.0.4
+## Patch notice for version 2.0.4
 
 General changes
 - reworked the simulate VDJ codes in the BRILIA/SimulateVDJ/ folder.
@@ -65,23 +65,23 @@ General changes
 - moved the older example files into separate folder in the BRILIA/Example_Files folder.
 
 ---------------------------------------------------------------------------
-##Patch notice for version 2.0.1
+## Patch notice for version 2.0.1
 
 A lot of changes have been made to make BRILIA more tolerable to a variety of input sequences. Below is a list of major changes, divided by categories.
 
-###General changes
+## #General changes
 - The Help comments are updated on all codes in Main_Codes.
 - Error handling is improved to prevent a single entry from stopping whole annotation process. Added try and catch statements.
 - BRILIA no longer asks users to choose strain when using human databases.
 - Unprocessed sequences are removed from the main file and set aside in an "Unprocessed" file.
 - Removed dependency on using Excel file format. Now relies on semicolon-delimited file formats mostly.
 
-###Updates to algorithm
+## #Updates to algorithm
 - N region score is modified to penalize long sequence. Equation changed from (P_TDT * L)^2 to (2*P_TDT - 1)*L^2. 
 - Sequence alignment now relies partially on seed-based alignment that looks for the conserved C and W, prior to finding the V D J gene.
 - Alignment score calculations have been adjusted to allow for lower alignment score for flanking non-match regions IF desired.
 
-###Specific changes
+## #Specific changes
 BRILIA.m
 - Can process multiple files, and replaces BRILIAbatch.m
 - Can process variable-length sequences by padding sequences within same cluster with 'X'. Important for conforming groups and finding clusters.
