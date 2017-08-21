@@ -94,21 +94,21 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in Matlab to check.
 ```
    >> BRILIA  
 ```
-   EX2) Will ask user to select the input file while using all BRILIA parameters defined in seetting txt file [(see SettingExample.txt.)]()
+   EX2) Will ask user to select the input file while using all BRILIA parameters defined in a setting txt file (see [example setting file](https://github.com/BHSAI/BRILIA/blob/master/SettingFile.txt)).
 ```
-   >> BRILIA( 'InputFile.fa', 'SettingFile', 'SettingExample.txt' )    
+   >> BRILIA( 'InputFile.fa', 'SettingFile', 'SettingFile.txt' )    
 ```
    EX3) Will process a specified input file using the Human VDJ gene database and other settings specfied by Param-Value pairs.
 ```
    >> BRILIA( 'InputFile.fa', 'Species', 'human', Param, Value, ... )  
 ```
-   HINT) Look at the mouse heavy chain BRILIA test script found [here](https://github.com/BHSAI/BRILIA/blob/master/Examples/MouseH/testMouseH.m).
+   HINT) Look at the mouse heavy chain [BRILIA test script](https://github.com/BHSAI/BRILIA/blob/master/Examples/MouseH/testMouseH.m).
 ```
    >> testMouseH
 ```
 
 The program is distributed under the [GNU General Public License](http://www.gnu.org/licenses/gpl.html).  
 
-See BRILIA patch info [here](https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md). 
+See [BRILIA patch info](https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md). 
 
-See a list of ongoing developements or known issues [here](https://github.com/BHSAI/BRILIA/blob/master/OpenIssues.md).
+See a list of ongoing [developments and open issues](https://github.com/BHSAI/BRILIA/blob/master/OpenIssues.md).
