@@ -1,15 +1,18 @@
 ---------------------------------------------------------------------------
-##Patch notice for version 3.0.0
+##Patch notice for version 3.0.5
 
 Major changes
-- Reworked all BRILIA codes to handle paired heavy-light chain sequences. 
-- Rearranged data columns so that numeric values are grouped at the end and annotatoins are grouped closer to the beginning.
-- Column headers are labeled with either H- or L- to specify annotaiton for heavy or light chain.
-- Database files are all changed to include CDR1 and CDR2 information, along with heavy and light chain genes if available.
-- Reworked the way BRILIA can import IMGT standardized gene fasta format (with "." fillers)
-- Try and Catch statements are all removed and replaced with data checkers prior to attempt, This is faster.
+- Large sequence files will be processed in batches to prevent memory overload. (default is 1000 per batch, changeable using BatchSize parameter).
+- Linux and Windows binary files are provided for use in command line environments.
+- Lineage trees now starts form the distance to a germline V(D)J to the first sequence in the data set. Before, it started from the the most ancestral sequence.
+- Lineage trees now use hamming distance (%) instead of Brilia's internal shm distance metric.
+- BRILIA can process paired heavy-light chain sequences. The input files must be delimited and have the "H-Seq" and "L-Seq" column headers.
+- Data columns are rearranged so that numeric values are grouped at the end and annotatoins are grouped closer to the beginning.
+- Data headers are labeled with either H- or L- to specify annotation for heavy or light chain.
+- Reworked the way BRILIA can process fasta files downloaded from IMGT reference gene database, which includes "." gaps.
+- User can add custom IG fasta files into the Databases folder. The fasta files must be the same style as IMGT's reference sequence files, including the IMGT gap notation.
 - Added CDR1 and CDR2 information.
-- Fixed the way convolveSeq computed the "AllowedMiss" point mutations when calculating alignment scores. It now properly uses "MissRate", which is then used to computer AllowedMiss per each sequence aligned. 
+- Fixed the way sequence alignment computed the "AllowedMiss" point mutations when calculating alignment scores. It now properly uses "MissRate" percentage instead of absolute number of nts.
 
 * Due to these changes, version 3.0.0 will not work with lower version. Please uninstall old version and use latest version.
 

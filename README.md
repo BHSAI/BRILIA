@@ -109,4 +109,6 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in Matlab to check.
 
 The program is distributed under the [GNU General Public License](http://www.gnu.org/licenses/gpl.html).  
 
-See BRILIA patch info at [here](https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md). 
+See BRILIA patch info [here](https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md). 
+
+See a list of ongoing developements or known issues [here](https://github.com/BHSAI/BRILIA/blob/master/OpenIssues.md).
