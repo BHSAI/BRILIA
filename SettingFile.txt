@@ -1,0 +1,8 @@
+Species = 'mouse';
+Strain = 'C57BL';
+Ddirection = 'fwd';
+Vfunction = 'f';
+DevPerc = '5';
+FileType = '';
+CheckSeqDir = 'y';
+NumProc = '4';
