@@ -35,9 +35,9 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ## OUTPUT FILES (See [example output files](https://github.com/BHSAI/BRILIA/tree/master/Examples/MouseH/MouseH_Fasta)): 
 
   * Returns 3 delimited csv file:
-    * [output_file_name].BRILIAvX.csv : stores final annotation and phylogeny data of productive V(D)J sequences
-    * [output_file_name].BRILIAvX.Raw.csv : stores initial annotation of V(D)J sequences without lineage-base annotation correction. This is used as a save point for reclustering sequences. 
-    * [output_file_name].BRILIAvX.Err.csv : stores non-productive VDJ sequences and any sequences that could not be annotated fully.
+    * [output_file_name].BRILIAv3.csv : stores final annotation and phylogeny data of productive V(D)J sequences
+    * [output_file_name].BRILIAv3.Raw.csv : stores initial annotation of V(D)J sequences without lineage-base annotation correction. This is used as a save point for reclustering sequences. 
+    * [output_file_name].BRILIAv3.Err.csv : stores non-productive VDJ sequences and any sequences that could not be annotated fully.
   * If the output file is not specified, results will be stored in a subfolder with the same name as the input file. 
   * See output file header details [here](https://github.com/BHSAI/BRILIA/blob/master/Tables/DataHeaderInfo.csv).
 
@@ -80,10 +80,10 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 
 ## Running BRILIA in MATLAB 
 
-Note: Requires bioinformatics toolbox. Use `>> ver` command in Matlab to check.
+Note: Requires bioinformatics toolbox. Use `>> ver` command in MATLAB to check.
 1. Copy all codes into a folder called BRILIA, deleting any older BRILIA codes to prevent conflicts.
 2. Open MATLAB and set the working directory to the */BRILIA* folder.
-3. In the command line, add all BRILIA folders into the Matlab path using addAllPaths.  
+3. In the command line, add all BRILIA sub folders into the MATLAB path using `>> addAllPaths`.  
 4. To get details of the inputs and Param-Value pairs:
 ```
    >> help BRILIA 
