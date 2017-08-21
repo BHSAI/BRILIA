@@ -23,14 +23,15 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
   * Does not accept paired-end reads, so please assemble them using a 3rd party software.
   * Non-nucleotide letters are treated as wildcard "X" or "N" nucleotides.
   * For delimited files, make sure that:
-    * 1st row is the data header: "SeqName,H-Seq,L-Seq,TemplateCount"
+    * first row is the data header: "SeqName,H-Seq,L-Seq,TemplateCount"
     * data is stored in subsequent rows in the order of the data header. 
       * SeqName: the name of the sequence. Required.
       * H-Seq: heavy chain sequence. Optional IF doing Light chain only.
       * L-Seq: light chain sequence. Optional IF doing Heavy chain only.
       * TemplateCount: the number of sequence copies. Optional.
-  * Delimiter symbols cannot be used in places where they are not delimiters.
-  * NOTE: BRILIA will auto-detect the delimiter and heavy/light chain if formatted properly.
+    * delimiter symbols are not used in places where they are not delimiters.
+    
+    NOTE: BRILIA will auto-detect the delimiter and heavy/light chain if formatted properly.
 
 ## OUTPUT FILES (See [example output files](https://github.com/BHSAI/BRILIA/tree/master/Examples/MouseH/MouseH_Fasta)): 
 
