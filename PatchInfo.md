@@ -2,10 +2,10 @@
 ## Patch notice for version 3.0.5
 
 Major changes
-- Large sequence files will be processed in batches to prevent memory overload. (default is 1000 per batch, changeable using BatchSize parameter).
+- Large sequence files will be processed in batches to prevent memory overload. (default is 1000 per batch, changeable using the `BatchSize N` command input).
 - Linux and Windows binary files are provided for use in command line environments.
-- Lineage trees now starts form the distance to a germline V(D)J to the first sequence in the data set. Before, it started from the the most ancestral sequence.
-- Lineage trees now use hamming distance (%) instead of Brilia's internal shm distance metric.
+- Lineage trees now starts form the distance to a germline V(D)J to the first sequence in the data set. Before, it started from the most ancestral sequence.
+- Lineage trees now use hamming distance (%) instead of BRILIA's internal shm distance metric.
 - BRILIA can process paired heavy-light chain sequences. The input files must be delimited and have the "H-Seq" and "L-Seq" column headers.
 - Data columns are rearranged so that numeric values are grouped at the end and annotatoins are grouped closer to the beginning.
 - Data headers are labeled with either H- or L- to specify annotation for heavy or light chain.
@@ -14,7 +14,7 @@ Major changes
 - Added CDR1 and CDR2 information.
 - Fixed the way sequence alignment computed the "AllowedMiss" point mutations when calculating alignment scores. It now properly uses "MissRate" percentage instead of absolute number of nts.
 
-* Due to these changes, version 3.0.0 will not work with lower version. Please uninstall old version and use latest version.
+* Due to these changes, version 3 will not work with lower versions. Please uninstall old version and use the latest version.
 
 ---------------------------------------------------------------------------
 ## Patch notice for version 2.1.0
