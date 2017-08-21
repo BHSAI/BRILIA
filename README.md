@@ -25,10 +25,10 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
   * For delimited files, make sure that:
     * 1st row is the data header: "SeqName,H-Seq,L-Seq,TemplateCount"
     * data is stored in subsequent rows in the order of the data header. 
-      * SeqName: the name of the sequence. Required info.
+      * SeqName: the name of the sequence. Required.
       * H-Seq: heavy chain sequence. Optional IF doing Light chain only.
       * L-Seq: light chain sequence. Optional IF doing Heavy chain only.
-      * TemplateCount: the number of sequence copies. Optional if DNA template count or copy number is unknown.
+      * TemplateCount: the number of sequence copies. Optional.
   * Delimiter symbols cannot be used in places where they are not delimiters.
   * NOTE: BRILIA will auto-detect the delimiter and heavy/light chain if formatted properly.
 
