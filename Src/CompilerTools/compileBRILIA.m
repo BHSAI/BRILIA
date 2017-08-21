@@ -86,7 +86,7 @@ MatlabFiles = {'requiredMCRProducts.txt', 'mccExcludedFiles.log', 'readme.txt'};
 for j = 1:length(MatlabFiles)
     if exist(MatlabFiles{j}, 'file')
         try
-            movefile(MatlabFiles{j}, TargetDir);
+            delete(MatlabFiles{j});
         catch
         end
     end
