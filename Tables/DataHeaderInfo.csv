@@ -66,9 +66,9 @@ L-CDR2_Length,AA length of CDR2
 L-CDR3_Start,Location of Seq of CDR3 1st nt
 L-CDR3_End,Location of Seq of CDR3 last nt
 L-CDR3_Length,AA length of CDR3
-L-Length_V,Length of V seg
-L-Length_N,Length of N seg
-L-Length_J,Length of J seg
+L-Length_V,Length of V segment
+L-Length_N,Length of N segment
+L-Length_J,Length of J segment
 L-SHM_V,Number of V nts mutated from RefSeq
 L-SHM_N,Number of N nts mutated from RefSeq
 L-SHM_J,Number of J nts mutated from RefSeq
