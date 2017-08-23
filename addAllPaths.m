@@ -5,5 +5,7 @@
 %    This code will be removed in future release. It's kept now since
 %    it  helps with debugging and installing BRILIA paths quickly.
 function addAllPaths
-    addpath(genpath(cd))
+if ~isdeployed
+    addpath(genpath(cd));
 end
+

@@ -106,19 +106,21 @@ function varargout = BRILIA(varargin)
 Version = '3.0.6';
 %--------------------------------------------------------------------------
 %For running in matlab, make sure BRILIA paths are added correctly
-CurPaths = regexp(path, ';', 'split')';
-MainPath = mfilename('fullpath');
-SlashLoc = regexp(MainPath, '\\|\/');
-MainPath = MainPath(1:SlashLoc(end)-1);
-HavePath = 0;
-for p = 1:length(CurPaths)
-    if strcmp(CurPaths{p}, MainPath(1:end)) %Note that matlab does not save the final slash.
-        HavePath = 1;
-        break
+if ~isdeployed
+    CurPaths = regexp(path, ';', 'split')';
+    MainPath = mfilename('fullpath');
+    SlashLoc = regexp(MainPath, '\\|\/');
+    MainPath = MainPath(1:SlashLoc(end)-1);
+    HavePath = 0;
+    for p = 1:length(CurPaths)
+        if strcmp(CurPaths{p}, MainPath(1:end)) %Note that matlab does not save the final slash.
+            HavePath = 1;
+            break
+        end
     end
-end
-if HavePath == 0 %Matlab doesn't have path, so must add it
-    addpath(genpath(MainPath));
+    if HavePath == 0 %Matlab doesn't have path, so must add it
+        addpath(genpath(MainPath));
+    end
 end
 
 %--------------------------------------------------------------------------
