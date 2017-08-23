@@ -53,6 +53,7 @@
 %  OUTPUT
 %    Version: Version string in X.Y.Z
 %    P: default inputs of BRILIA returned as a structure
+%    SaveFileName: the final annotation file names
 %    [filename].Raw.csv: annotation only file, no lineage correction. Used for
 %    resuming from ('ResumeFrom') annotation file to lineage-corrected
 %    annotation file.
@@ -102,7 +103,7 @@
 %  Written by Donald Lee, dlee@bhsai.org
 
 function varargout = BRILIA(varargin)
-Version = '3.0.5';
+Version = '3.0.6';
 %--------------------------------------------------------------------------
 %For running in matlab, make sure BRILIA paths are added correctly
 CurPaths = regexp(path, ';', 'split')';
@@ -123,7 +124,8 @@ end
 %--------------------------------------------------------------------------
 %Handle various inputs from matlab or OS command lines
 P = inputParser;
-addOptional(P,  'InputFile', '', @(x) ischar(x) || iscell(x) || isempty(x));
+addOptional(P, 'InputFileT', '', @(x) ischar(x) || iscell(x) || isempty(x));
+addParameter(P, 'InputFile', '', @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'Chain', 'H', @(x) ismember({upper(x)}, {'H', 'L', 'HL'}));
 addParameter(P, 'CheckSeqDir', 'y', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
 addParameter(P, 'Ddirection', 'all', @(x) ischar(x) && ismember(lower(x), {'all', 'fwd', 'rev', ''}));
@@ -134,7 +136,7 @@ addParameter(P, 'NumProc', 'max', @(x) ischar(x) || isnumeric(x));
 addParameter(P, 'SettingFile', '', @ischar);
 addParameter(P, 'Species', '', @(x) ischar(x) && ismember(lower(x), {'human', 'mouse', 'macaque'}));
 addParameter(P, 'Strain', 'all', @ischar);
-addParameter(P, 'StatusHandle', [], @(x) ischar(x) || isnumeric(x));
+addParameter(P, 'StatusHandle', [], @(x) ishandle(x) || isempty(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
 addParameter(P, 'Vfunction', 'all', @(x) ischar(x) && min(ismember(regexpi(lower(x), ',', 'split'), {'all', 'f', 'p', 'orf', ''}))==1);
 addParameter(P, 'SeqRange', [1 Inf], @(x) isnumeric(x) || ischar(x));
 addParameter(P, 'Resume', 'n', @(x) ischar(x) && ismember(lower(x), {'y', 'n'})); %Resumes from known raw file
@@ -157,8 +159,13 @@ end
 
 [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
 if ReturnThis
+   Ps = rmfield(Ps, 'InputFileT');
    varargout = {Ps, Pu, ExpPs, ExpPu};
    return;
+end
+
+if ~isempty(Ps.InputFileT) && isempty(Ps.InputFile)
+    Ps.InputFile = Ps.InputFileT;
 end
 
 %Override defaults with what is in the SettingFile
@@ -247,7 +254,7 @@ for f = 1:length(InputFile)
 end
 InputFile(DelFiles) = [];
 if isempty(InputFile) %No valid files to process
-    return;
+   error('%s: No valid input files were provided.', mfilename);
 end
 
 %If no output files exists, assign one
@@ -349,7 +356,6 @@ for f = 1:length(InputFile)
         end
         
         %Copy over raw files into the TempDir
-        prepTempDir(TempDir);
         for q = 1:length(RawFileStruct)
             copyfile([ResumePath RawFileStruct(q).name], [TempDir RawFileStruct(q).name], 'f');
         end
@@ -597,14 +603,26 @@ for f = 1:length(InputFile)
         FinalFileList{q} = [TempDir FinalFileStruct(q).name];
     end
     if exist([TempDir OutputFileName], 'file') %If a real output file was interrupted and left in Temp folder, delete.
-        delete([TempDir OutputFileName]);
+        try
+            delete([TempDir OutputFileName]);
+        catch
+            warning('%s: Could not delete incomplete final file [ %s ].', mfilename, [TempDir OutputFileName]);
+        end
     end
     if length(FinalFileList) > 1
         combineSeqData(FinalFileList, [TempDir OutputFileName]);
-        movefile([TempDir OutputFileName], [OutputFilePath, OutputFileName], 'f');
-        delete(FinalFileList{:});
-    else
-        movefile(FinalFileList{1}, [OutputFilePath, OutputFileName], 'f');
+        try
+            movefile([TempDir OutputFileName], [OutputFilePath, OutputFileName], 'f');
+            delete(FinalFileList{:});
+        catch
+            warning('%s: Could not move Final files from [ %s ] to destination [ %s ].', mfilename, [TempDir OutputFileName], [OutputFilePath OutputFileName]);
+        end
+    elseif length(FinalFileList) == 1
+        try
+            movefile(FinalFileList{1}, [OutputFilePath, OutputFileName], 'f');
+        catch
+            warning('%s: Could not move Final files from [ %s ] to destination [ %s ].', mfilename, FinalFileList{1}, [OutputFilePath OutputFileName]);
+        end
     end
         
     %Combine raw annotations to a single file, then move to destination
@@ -614,21 +632,34 @@ for f = 1:length(InputFile)
         RawFileList{q} = [TempDir RawFileStruct(q).name];
     end
     if length(RawFileList) > 1
-        combineSeqData(RawFileList, [TempDir RawFileName]);
-        movefile([TempDir RawFileName], [OutputFilePath, RawFileName]);
-        delete(RawFileList{:});
-    else
-        movefile(RawFileList{1}, [OutputFilePath, RawFileName], 'f');
+        try
+            combineSeqData(RawFileList, [TempDir RawFileName]);
+            movefile([TempDir RawFileName], [OutputFilePath, RawFileName]);
+            delete(RawFileList{:});
+        catch
+            warning('%s: Could not move Raw files from [ %s ] to destination [ %s ].', mfilename, TempDir, [OutputFilePath RawFileName]);
+        end
+    elseif length(RawFileList) == 1
+        try
+            movefile(RawFileList{1}, [OutputFilePath, RawFileName], 'f');
+        catch
+            warning('%s: Could not move Raw files from [ %s ] to destination [ %s ].', mfilename, RawFileList{1}, [OutputFilePath RawFileName]);
+        end
     end
         
     %Move the err file out
     if exist([TempDir ErrFileName], 'file')
-        movefile([TempDir ErrFileName], [OutputFilePath, ErrFileName], 'f');
+        try
+            movefile([TempDir ErrFileName], [OutputFilePath, ErrFileName], 'f');
+        catch
+            warning('%s: Could not move Err files from [ %s ] to destination [ %s ].', mfilename, [TempDir ErrFileName], [OutputFilePath ErrFileName]);
+        end
     end
     
     %If isempty TempDir, delete
     prepTempDir(TempDir, 'delete');
 end
+varargout{1} = OutputFile;
 
 %Tries to evalues numbers, and remove leading dashes in field names (eg,
 %EX:  '-saveas' => 'saveas'
