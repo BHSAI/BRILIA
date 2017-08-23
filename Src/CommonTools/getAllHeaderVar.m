@@ -42,6 +42,8 @@ else
             varargout{1} = 'H';
         elseif L.SeqLoc > 0
             varargout{1} = 'L';
+        else
+            varargout{1} = 'none';
         end
         if nargout >= 4 %Return N
             varargout{2} = unique([Nh; Nl]);

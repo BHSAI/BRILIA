@@ -4,8 +4,8 @@ Msg = strrep(Msg, '\', '\\');
 if isempty(varargin)
     fprintf([Msg '\n']);
 else
-    if ishandle(varargin{1})
-        set(TextHandle,'String',Msg);        
+    if strcmpi(class(varargin{1}),'matlab.ui.control.UIControl')
+        set(varargin{1},'String',Msg);        
         pause(0.01); %Required short pause to update gui. Otherwise, will appear frozen.
     else
         fprintf([Msg '\n']);

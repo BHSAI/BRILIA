@@ -61,7 +61,7 @@
 %    This function will look in the directory ./Database_Manager/[Species]
 %    to load the sequences files stored in the csv file.
 
-function DB = getGeneDatabase(Species)
+function DB = getGeneDatabase(Species, varargin)
 %Locate the database path
 RootPath = findRoot();
 SlashType = RootPath(regexp(RootPath, '\\|\/', 'once'));
@@ -116,5 +116,8 @@ DatabaseFolder = [DBPath DatabaseNames{DatabaseIdx} SlashType];
 
 %Get DB and display reference acknowledgement
 DB = processIMGTfasta(DatabaseFolder);
-fprintf('Germline gene databases were downloaded from http://www.imgt.org.\n');
-fprintf('IMGT founder and director: Marie-Paule Lefranc, Montpellier, France\n');
+
+if isempty(varargin) || ~strcmpi(varargin{1}, 'suppress')
+    fprintf('Germline gene databases were downloaded from http://www.imgt.org.\n');
+    fprintf('IMGT founder and director: Marie-Paule Lefranc, Montpellier, France\n');
+end

@@ -54,6 +54,9 @@ Fields = Fields(MapLoc);
 AllStrainCell = {};
 for j = 1:length(Fields)
     Xmap = DB.(Fields{j});
+    if isempty(Xmap)
+        continue; 
+    end
     StrPat = repmat('%s;', 1, size(Xmap, 1));
     StrPat(end) = [];
     StrainName = sprintf(StrPat, Xmap{:, M.StrainLoc});   
@@ -66,7 +69,7 @@ if isempty(UnqStrain{1})
 end
 
 %Regroup strain names based on the first X condense letter.
-if N > 0
+if N > 0 && length(UnqStrain) > 1
     %Prepare the UnqStrain for doing pairwise hamming distance matching
     UnqStrainChar = char(UnqStrain);
     UnqStrainChar = UnqStrainChar(:, 1:N);

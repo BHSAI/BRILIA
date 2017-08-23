@@ -74,7 +74,12 @@ for k = 1:length(Chain)
         if isempty(CDR1eRef) || CDR1eRef == 0; continue; end
         
         %Compute location of CDRX from Vseq
-        CDR1aaRef = upper(nt2aa(Vseq(CDR1sRef:CDR1eRef),'ACGTonly','false'));
+        try
+            CDR1aaRef = upper(nt2aa(Vseq(CDR1sRef:CDR1eRef),'ACGTonly','false'));
+        catch
+            warning('%s: Error. Skipping.', mfilename);
+            continue
+        end
         
         %Compute location of CDRX from Seq
         Vshift = Vlen + Vdel - length(Vseq);

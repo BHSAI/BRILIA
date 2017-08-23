@@ -35,7 +35,7 @@ plotTree(VDJdata, VDJheader, 'SaveDir', SaveDir, 'SaveSubDir', 'Tree', 'SaveAs',
 MotifData = collectMotifData(VDJdata, VDJheader);
 HotMotifData = getHotMotifData(MotifData);
 
-SearchTable = cell(5, 3);
+SearchTable = cell(4, 3);
 SearchTable(1, :) = {'Title', 'Description', 'FileName'};
 j = 2;
 
@@ -66,14 +66,14 @@ catch
     error('%s: Could not run plotHotMotifBarGraph.', mfilename);
 end
 
-try
-    SearchTable{j, 3} = plotHotMotifDendrogram(HotMotifData, 'SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', 'HotMotifBarDendrogram.png', 'Visible', 'off');
-    SearchTable{j, 2} = 'Dendrogram of similarity in hotspot motifs'' mutation frequencies';
-    SearchTable{j, 1} = 'Hotspot Mutation Similarity Plot';
-    j = j+1;
-catch
-    error('%s: Could not run plotHotMotifDendrogram.', mfilename);
-end
+% try
+%     SearchTable{j, 3} = plotHotMotifDendrogram(HotMotifData, 'SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', 'HotMotifBarDendrogram.png', 'Visible', 'off');
+%     SearchTable{j, 2} = 'Dendrogram of similarity in hotspot motifs'' mutation frequencies';
+%     SearchTable{j, 1} = 'Hotspot Mutation Similarity Plot';
+%     j = j+1;
+% catch
+%     error('%s: Could not run plotHotMotifDendrogram.', mfilename);
+% end
 
 %--------------------------------------------------------------------------
 %Preparing search table for saving

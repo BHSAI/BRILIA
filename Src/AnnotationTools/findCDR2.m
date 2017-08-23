@@ -31,7 +31,7 @@ end
 
 for k = 1:length(Chain)
     %Decide what header locator to use
-    if Chain(k) == 'H';
+    if Chain(k) == 'H'
         B = H;
     else
         B = L;
@@ -74,7 +74,12 @@ for k = 1:length(Chain)
         if isempty(CDR2eRef) || CDR2eRef == 0; continue; end
         
         %Compute location of CDRX from Vseq
-        CDR2aaRef = upper(nt2aa(Vseq(CDR2sRef:CDR2eRef),'ACGTonly','false'));
+        try
+            CDR2aaRef = upper(nt2aa(Vseq(CDR2sRef:CDR2eRef),'ACGTonly','false'));
+        catch
+            warning('%s: Error. Skipping.', mfilename);
+            continue
+        end
         
         %Compute location of CDRX from Seq
         Vshift = Vlen + Vdel - length(Vseq);
