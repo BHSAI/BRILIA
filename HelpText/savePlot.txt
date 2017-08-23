@@ -3,13 +3,7 @@ param-value pairs.
 
   FileName = savePlot(Gx)
 
-  savePlot(Gx, Param, Value, ...)
-
-  SaveName = savePlot(Gx, Param, Value, ...)
-
-  P = savePlot('getinput')
-
-  [SaveVarargin, varargin] = savePlot('getvarargin', varargin)
+  FileName = savePlot(Gx, Param, Value, ...)
 
   INPUT
     Gx: figure handle to save
@@ -30,7 +24,8 @@ param-value pairs.
                                      extension. See notes.
       Format          'tif' 'png'  Image format type to save  figure as.
                       'jpg' 'fig'    Default is 'tif'.
-      DPI             Integer      Dots per square inch. Default is 300.
+      DPI             Integer      Dots per square inch. Default is 400,
+                                     which must be a square number.
 
   OUTPUT
     P: structure of default inputs of this function
@@ -45,8 +40,3 @@ param-value pairs.
     Tree2.png, Tree3.png... In this case, 'SavePre' is used as '1', '2',
     '3'... per each savePlot summon. It's used mainly to simplify having
     to parse and remake file names.
-
-    Use the 'getvarargin' to parse a varargin and extract param-value
-    fields for savePlot.
-
-  See also getSaveVarargin.

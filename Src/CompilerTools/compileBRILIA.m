@@ -13,7 +13,7 @@ end
 %Determine where to save the Bin files
 if ispc
     TargetDir = [RootDir 'Bin' SlashType 'Win' SlashType];
-else isunix
+elseif isunix
     TargetDir = [RootDir 'Bin' SlashType 'Linux' SlashType];
 end
 [Success, Msg] = mkdir(TargetDir);

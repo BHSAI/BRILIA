@@ -53,6 +53,7 @@ host, and if low-quality regions are trimmed away or replaced with "N" or
   OUTPUT
     Version: Version string in X.Y.Z
     P: default inputs of BRILIA returned as a structure
+    SaveFileName: the final annotation file names
     [filename].Raw.csv: annotation only file, no lineage correction. Used for
     resuming from ('ResumeFrom') annotation file to lineage-corrected
     annotation file.
