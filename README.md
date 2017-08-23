@@ -70,15 +70,16 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ```
   BRILIA]$  cd [some_path]/BRILIA
 ```
-    * Make sure BRILIA and run_BRILIA.sh have read (r) + execute (x) permissions. Add permissions if needed.
-    ```
+
+   Make sure BRILIA and run_BRILIA.sh have read (r) + execute (x) permissions. Add permissions if needed.
+   ```
       BRILIA]$ chmod +rx BRILIA
       BRILIA]$ chmod +rx run_BRILIA.sh
       BRILIA]$ ls -l
           total 28773
           -r-xr-xr-x. 1 username domain users 29641403 Aug 23 13:10 BRILIA
           -r-xr-xr-x. 1 username domain users      874 Aug 23 13:10 run_BRILIA.sh
-    ```
+   ```
 7. To process data, type:
 ```
   BRILIA]$  ./run_BRILIA.sh [mcr_library_path] [input_file] Species [species_name] Chain H
