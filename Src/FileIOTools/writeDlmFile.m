@@ -53,10 +53,9 @@ end
 
 %Write the CellData as a formated file
 TxtFormat = [repmat(['%s' Delimiter], 1, size(CellData, 2) - 1) '%s\n'];
-[FID, Msg] = fopen(OutputFile, WriteType);
+[FID, MSG] = fopen(OutputFile, WriteType);
 if FID < 0
-    disp(Msg);
-    return;
+    error('%s: Could not write to file [ %s ].\n  %s', mfilename, OutputFile, MSG);
 end
 try
     for j = 1:size(CellData, 1)

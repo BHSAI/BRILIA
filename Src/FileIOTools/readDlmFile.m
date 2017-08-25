@@ -40,28 +40,28 @@ SearchAt = []; %the nth column to look in
 DelThis = zeros(1, length(varargin), 'logical');
 for j = 1:length(varargin)
     if ischar(varargin{j})
-        if strcmpi(varargin{j}, 'Delimiter');
+        if strcmpi(varargin{j}, 'Delimiter')
             Delimiter = varargin{j+1};
             if ~ischar(Delimiter)
                 error('%s: Delimiter not valid', mfilename);
             end
             DelThis(j:j+1) = 1;
         end
-        if strcmpi(varargin{j}, 'LineRange');
+        if strcmpi(varargin{j}, 'LineRange')
             LineRange = varargin{j+1};
             if ~isnumeric(LineRange)
                 error('%s: LineRange not valid', mfilename);
             end
             DelThis(j:j+1) = 1;
         end
-        if strcmpi(varargin{j}, 'SearchFor');
+        if strcmpi(varargin{j}, 'SearchFor')
             SearchFor = varargin{j+1};
             if ~ischar(SearchFor)
                 error('%s: SearchFor must be a string.', mfilename);
             end
             DelThis(j:j+1) = 1;
         end
-        if strcmpi(varargin{j}, 'SearchAt');
+        if strcmpi(varargin{j}, 'SearchAt')
             SearchAt = varargin{j+1};
             if ~isnumeric(SearchAt)
                 error('%s: SearchAt not valid', mfilename);
@@ -84,10 +84,9 @@ if ~exist(InputFileName, 'file')
 end
 
 %Determine line count and the first two txt
-[FID, Msg] = fopen(InputFileName, 'r');
+[FID, MSG] = fopen(InputFileName, 'r');
 if FID < 0
-    disp(Msg);
-    return;
+    error('%s: Could not open file [ %s ].\n  %s', mfilename, InputFileName, MSG);
 end
 NumLines = 0;
 TextLine = fgetl(FID);

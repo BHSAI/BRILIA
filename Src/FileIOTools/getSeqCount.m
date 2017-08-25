@@ -17,7 +17,10 @@ end
 
 %Check to see if there is a file type override
 if strcmpi(InFileExt, '.fa') || strcmpi(InFileExt, '.fasta')
-    FID = fopen(FullFileName, 'r');
+    [FID, MSG] = fopen(FullFileName, 'r');
+    if FID < 0 
+        error('%s: Error opening fasta file [ %s ].\n  %s', mfilename, FullFileName, MSG);
+    end
     A = fgetl(FID);
     SeqCount = 0;
     while ischar(A)
@@ -27,7 +30,10 @@ if strcmpi(InFileExt, '.fa') || strcmpi(InFileExt, '.fasta')
         A = fgetl(FID);
     end
 elseif strcmpi(InFileExt, '.fastq')
-    FID = fopen(FullFileName, 'r');
+    [FID, MSG] = fopen(FullFileName, 'r');
+    if FID < 0 
+        error('%s: Error opening fastq file [ %s ].\n  %s', mfilename, FullFileName, MSG);
+    end
     A = fgetl(FID);
     SeqCount = 0;
     while ischar(A)
@@ -36,8 +42,11 @@ elseif strcmpi(InFileExt, '.fastq')
         end
         A = fgetl(FID);
     end
-elseif strcmpi(InFileExt, '.csv') || strcmpi(InFileExt, '.tsv')
-    FID = fopen(FullFileName, 'r');
+elseif ismember(lower(InFileExt), {'.csv', '.tsv', '.ssv'})
+    [FID, MSG] = fopen(FullFileName, 'r');
+    if FID < 0
+        error('%s: Error opening delimited file [ %s ].\n  %s', mfilename, FullFileName, MSG);
+    end
     A = fgetl(FID);
     SeqCount = -1; %For the header, start at -1
     while ischar(A)
@@ -45,5 +54,5 @@ elseif strcmpi(InFileExt, '.csv') || strcmpi(InFileExt, '.tsv')
         A = fgetl(FID);
     end
 else
-    error('FileType cannot be determined. Make sure file ext is correct');
+    error('FileType cannot be determined. Make sure file extension is correct');
 end
