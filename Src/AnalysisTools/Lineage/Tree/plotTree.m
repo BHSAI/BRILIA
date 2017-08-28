@@ -51,6 +51,8 @@
 %                                    IF no path is specified in SaveAs and
 %                                    input file is known, will save to that
 %                                    directory plotTree subfolder.
+%      ShowStatus      'y' 'n'     If y, will show how many trees are left
+%                                    for saving.
 %
 %  OUTPUT
 %   ImageGrpNums: group numbers that have tree images
@@ -85,6 +87,7 @@ addParameter(P, 'FigSpacer', 0.01, @(x) isnumeric(x) && x >= 0)
 addParameter(P, 'SaveAs', '', @(x) ischar(x) || isempty(x));
 addParameter(P, 'SaveDir', '', @(x) ischar(x) || isempty(x));
 addParameter(P, 'SaveSubDir', 'Tree', @(x) ischar(x) || isempty(x));
+addParameter(P, 'ShowStatus', 'y', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
 
 if ~(~isempty(varargin) && ischar(varargin{1}) && ismember(lower(varargin{1}), {'getinput', 'getinputs', 'getvarargin'}))
     [VDJdata, VDJheader, ~, FilePath, varargin] = getPlotVDJdata(varargin{:});
@@ -121,6 +124,7 @@ FigSpacer = Ps.FigSpacer;
 SaveAs = Ps.SaveAs;
 SaveDir = Ps.SaveDir;
 SaveSubDir = Ps.SaveSubDir;
+ShowStatus = Ps.ShowStatus;
 
 %Check if Min/Max values are valid
 if DotMinSize > DotMaxSize
@@ -165,8 +169,8 @@ drawnow;
 ImageNames = cell(length(UnqGrpNum), 1);
 ImageGrpNums = zeros(length(UnqGrpNum), 1);
 for y = 1:length(UnqGrpNum)
-    if mod(y, 5) == 0
-        fprintf('%s: Drawing Tree %d of %d\n', mfilename, y, length(UnqGrpNum));
+    if strcmpi(ShowStatus, 'y') && mod(y, 5) == 0
+        fprintf('    %s: Drawing Tree %d of %d\n', mfilename, y, length(UnqGrpNum));
     end
     
     %Get the tree data for the group

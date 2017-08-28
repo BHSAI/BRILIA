@@ -174,12 +174,15 @@ if ~isempty(varargin) && ischar(varargin{1}) && ismember(varargin{1}, {'getversi
     return;
 end
 
-%Determine if a using a subfunction
-if ~isempty(varargin) && ischar(varargin{1}) 
-    fh = str2func(varargin{1});
-    if isa(fh, 'function_handle')
-        fh(varargin{2:end});
-        return;
+%Determine if using a subfunction
+if ~isempty(varargin) && ischar(varargin{1})
+    if isempty(regexpi(varargin{1}, '[^\w\d\_]'))
+        try
+            fh = str2func(varargin{1});
+            fh(varargin{2:end});
+            return;
+        catch
+        end
     end
 end
 
