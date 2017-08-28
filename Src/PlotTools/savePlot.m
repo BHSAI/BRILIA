@@ -91,15 +91,16 @@ if strcmpi(Save, 'y')
         SaveFile = [SaveFile(1:DotLoc(end)-1) SavePre SaveFile(DotLoc(end):end)];
     end
     
-    %Assemble the full save name, and save depending on file ext
+    %Assemble the full save name, and save depending on file ext.
+    %NOTE: Use the painters renderer to prevent plot cutoff bugs in matlab.
     FullSaveName = [SavePath SaveFile];
     switch SaveExt
         case '.tif'
-            print(Gx, FullSaveName, '-dtiff', ['-r' num2str(DPI)]);
+            print(Gx, FullSaveName, '-dtiff', ['-r' num2str(DPI)], '-painters');
         case '.jpg'
-            print(Gx, FullSaveName, '-djpeg', ['-r' num2str(DPI)]);
+            print(Gx, FullSaveName, '-djpeg', ['-r' num2str(DPI)], '-painters');
         case '.png'
-            print(Gx, FullSaveName, '-dpng', ['-r' num2str(DPI)]);
+            print(Gx, FullSaveName, '-dpng', ['-r' num2str(DPI)], '-painters');
         case '.fig'
             saveas(Gx, FullSaveName);
     end

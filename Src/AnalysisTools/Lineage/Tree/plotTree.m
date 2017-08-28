@@ -11,11 +11,7 @@
 %
 %  plotTree(VDJdata, VDJheader, Param, Value, ...)
 %
-%  plotTree(Param, Value, ...)
-%
-%  [ImageGrpNums, ImageNames, TreeSearchTable] = plotTree(...)
-% 
-%  P = plotTree('getinput')
+% [ImageGrpNums, ImageNames, TreeSearchTable] = plotTree(...)
 %
 %  INPUT
 %    VDJdata: BRILIA output table
@@ -43,9 +39,7 @@
 %      Legend          'y', 'n'     Will draw a color-coded CDR3 legend.
 %                                    Default is y.
 %      LegendFontSize  10          Font size of the Legend
-%      Sort            'y', 'n'     Will sort the tree to cluster related
-%                                    branches together.
-%      Xmax            N > 0       X axis maximum value. Default 20.
+%      Xmax            N > 0       X axis maximum value.
 %      Yincr           N > 0       Vertical spacing between nodes. Default
 %                                    is 0.125".
 %      FigWidth        3.3         Width of the whole figure, inch
@@ -54,7 +48,7 @@
 %                                    file names as Tree.GrpN.png
 %                      filename    Will save to this file's folder(if any),
 %                                    and file names are SaveAs.GrpN.png
-%                                  IF no path is specified in SaveAs and
+%                                    IF no path is specified in SaveAs and
 %                                    input file is known, will save to that
 %                                    directory plotTree subfolder.
 %
@@ -73,27 +67,24 @@
 
 function varargout = plotTree(varargin)
 P = inputParser;
-addParameter(P, 'GetGrpNum', [], @(x) isempty(x) || isnumeric(x));
-addParameter(P, 'GetSeqNum', [], @(x) isempty(x) || isnumeric(x));
-addParameter(P, 'GetSizeRange', [], @(x) isempty(x) || isnumeric(x));
-addParameter(P, 'GetCDR3seq', [], @(x) isempty(x) || ischar(x) || iscell(x));
+addParameter(P, 'GrpMinSize', 2, @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'GrpMaxSize', Inf, @(x) isnumeric(x) && x >= 1);
 addParameter(P, 'DistanceUnit', 'hamperc', @(x) any(validatestring(lower(x), {'shm', 'ham', 'shmperc', 'hamperc'})));
 addParameter(P, 'DotMaxSize', 300, @(x) isnumeric(x) && x >= 1);
 addParameter(P, 'DotMinSize', 1, @(x) isnumeric(x) && x >= 1);
 addParameter(P, 'DotScalor', 5, @(x) isnumeric(x) && x >= 1);
 addParameter(P, 'DotColorMap', [], @(x) isempty(x) || (isnumeric(x) && size(x, 2) == 3));
 addParameter(P, 'Legend', 'y', @(x) any(validatestring(lower(x), {'y', 'n'})));
-addParameter(P, 'LegendFontSize', 10, @isnumeric)
-addParameter(P, 'Sort', 'y', @(x) any(validatestring(lower(x), {'y', 'n'})));
-addParameter(P, 'Xmax', 0, @isnumeric);
-addParameter(P, 'Yincr', 0.125, @isnumeric);
-addParameter(P, 'FigMaxHeight', 5, @isnumeric);
-addParameter(P, 'FigWidth', 3.3, @isnumeric);
+addParameter(P, 'LegendFontSize', 10, @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'Xmax', [], @(x) isempty(x) || (isnumeric(x) && x > 10));
+addParameter(P, 'Yincr', 0.125, @(x) isnumeric(x) && x > 0);
+addParameter(P, 'FigMaxHeight', 5, @(x) isnumeric(x) && x > 1);
+addParameter(P, 'FigWidth', 3.3, @(x) isnumeric(x) && x > 1);
 addParameter(P, 'Visible', 'off', @(x) ischar(x) && ismember(lower(x), {'on', 'off'}));
-addParameter(P, 'FigSpacer', 0, @(x) isnumeric(x) && x >= 0)
-addParameter(P, 'SaveAs', '', @ischar);
+addParameter(P, 'FigSpacer', 0.01, @(x) isnumeric(x) && x >= 0)
+addParameter(P, 'SaveAs', '', @(x) ischar(x) || isempty(x));
 addParameter(P, 'SaveDir', '', @(x) ischar(x) || isempty(x));
-addParameter(P, 'SaveSubDir', 'Analysis', @(x) ischar(x) || isempty(x));
+addParameter(P, 'SaveSubDir', 'Tree', @(x) ischar(x) || isempty(x));
 
 if ~(~isempty(varargin) && ischar(varargin{1}) && ismember(lower(varargin{1}), {'getinput', 'getinputs', 'getvarargin'}))
     [VDJdata, VDJheader, ~, FilePath, varargin] = getPlotVDJdata(varargin{:});
@@ -104,7 +95,6 @@ if ~(~isempty(varargin) && ischar(varargin{1}) && ismember(lower(varargin{1}), {
     [H, ~, ~] = getAllHeaderVar(VDJheader);
     GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
     UnqGrpNum = unique(GrpNum);
-    %VDJdata = filterVDJdata(VDJdata, VDJheader, varargin{:});
 end
 
 [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
@@ -113,75 +103,273 @@ if ReturnThis
    return;
 end
 
-%Check if P.DotMinSize <= P.DotMaxSize
-if Ps.DotMinSize > Ps.DotMaxSize
-    Ps.DotMinSize = Ps.DotMaxSize;
+GrpMinSize = Ps.GrpMinSize;
+GrpMaxSize = Ps.GrpMaxSize;
+DistanceUnit = Ps.DistanceUnit;
+DotMaxSize = Ps.DotMaxSize;
+DotMinSize = Ps.DotMinSize;
+DotScalor = Ps.DotScalor;
+DotColorMap = Ps.DotColorMap;
+Legend = Ps.Legend;
+LegendFontSize = Ps.LegendFontSize;
+Xmax = Ps.Xmax;
+Yincr = Ps.Yincr;
+FigMaxHeight = Ps.FigMaxHeight;
+FigWidth = Ps.FigWidth;
+Visible = Ps.Visible;
+FigSpacer = Ps.FigSpacer;
+SaveAs = Ps.SaveAs;
+SaveDir = Ps.SaveDir;
+SaveSubDir = Ps.SaveSubDir;
+
+%Check if Min/Max values are valid
+if DotMinSize > DotMaxSize
+    warning('%s: DotMinSize cannot be > DotMaxSize. Setting DotMinSize = DotMaxSize', mfilename)
+    DotMinSize = DotMaxSize;
 end
 
-%==========================================================================
+if GrpMinSize > GrpMaxSize
+    warning('%s: GrpMinSize cannot be > GrpMaxSize. Setting GrpMinSize = GrpMaxSize', mfilename)
+    GrpMinSize = GrpMaxSize;
+end
+
 %Determine where to save
-if isempty(Ps.SaveAs)
-    FullSaveName = prepSaveTarget('SaveDir', FilePath, 'SaveSubDir', Ps.SaveSubDir, 'SaveAs', 'Tree.png', 'MakeSaveDir', 'y');
-    Ps.SaveAs = FullSaveName;
+if isempty(SaveAs)
+    FullSaveName = prepSaveTarget('SaveDir', FilePath, 'SaveSubDir', SaveSubDir, 'SaveAs', 'Tree.png', 'MakeSaveDir', 'y');
 else
-    FullSaveName = prepSaveTarget('SaveDir', Ps.SaveDir, 'SaveSubDir', Ps.SaveSubDir, 'SaveAs', Ps.SaveAs, 'MakeSaveDir', 'y');
-    Ps.SaveAs = FullSaveName;
+    FullSaveName = prepSaveTarget('SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', SaveAs, 'MakeSaveDir', 'y');
 end
-ImageNames = cell(length(UnqGrpNum), 1);
-ImageGrpNums = zeros(length(UnqGrpNum), 1);
+SaveAs = FullSaveName;
 
+%--------------------------------------------------------------------------
 %Create a default figure
 DefaultFormat = {'FontName', 'Arial', 'FontSize', 10, ...
                  'TitleFontName', 'Arial', 'TitleFontSize', 12, ...
                  'TickLength', [0.005 0.005], 'TickDir', 'both' ...
-                 'YTickLabelMode', 'manual', 'YTickLabel', '', 'YTick', [], ...
+                 'YTickLabelMode', 'manual', 'YTickLabel', '',  ...
                  'XTickLabelMode', 'auto', ...
                  'box', 'on'};
-Gx = figure('Visible', Ps.Visible);
-Ax = axes(Gx);
-pause(0.05); %Wait 50ms for concurrency issues
-Gx = resizeFigure(Gx, 'FigWidth', Ps.FigWidth, 'FigHeight', Ps.FigMaxHeight, 'Recenter', 'y');
-XaxisName = [strrep(upper(Ps.DistanceUnit), 'PERC', ' %') ' Distance'];
-xlabel(Ax, XaxisName);
-set(Ax, 'Units', 'inches');
-setAxes(Ax, DefaultFormat{:}); 
-setAxes(Ax, ExpPu{:}); %Any axes setting will override defaults
+Gx = figure('Visible', Visible, 'renderer', 'painters', 'Units', 'inches');
+Ax = axes(Gx, 'Units', 'inches');
+drawnow;
 
+Gx = resizeFigure(Gx, 'FigWidth', FigWidth, 'FigHeight', FigMaxHeight, 'Recenter', 'n');
+XaxisName = [strrep(upper(DistanceUnit), 'PERC', ' %') ' Distance'];
+xlabel(Ax, XaxisName);
+setAxes(Ax, DefaultFormat{:});
+setAxes(Ax, ExpPu{:}); %Any axes setting will override defaults
+drawnow;
+
+%--------------------------------------------------------------------------
+%Begin drawing trees
+ImageNames = cell(length(UnqGrpNum), 1);
+ImageGrpNums = zeros(length(UnqGrpNum), 1);
 for y = 1:length(UnqGrpNum)
-    if mod(y, 100) == 0
-        fprintf('%s: Trees processed: %d of %d.\n', mfilename, y, length(UnqGrpNum));
+    if mod(y, 5) == 0
+        fprintf('%s: Drawing Tree %d of %d\n', mfilename, y, length(UnqGrpNum));
     end
     
-    %Isolate group data and name
+    %Get the tree data for the group
     GrpIdx = GrpNum == UnqGrpNum(y);
-    if sum(GrpNum) <= 1; continue; end
-    Tdata = VDJdata(GrpIdx, :);
-    [AncMapS, TreeName, CDR3Name, TemplateCount] = getTreeData(Tdata, VDJheader);
-    AncMap = AncMapS.(upper(Ps.DistanceUnit));
-    TreeCoord = calcTreeCoord(AncMap);    
-    
-    %Make the legend text and get default color scheme using CDR3
-    [CDR3legend, UnqCDR3seq] = makeTreeLegend_CDR3(CDR3Name);
-    [DotColor, UnqDotColor] = mapDotColor_CDR3(CDR3Name, UnqCDR3seq, 'ColorMap', Ps.DotColorMap);
-    
-    %Get dot sizes and resize dots if they exceed the min or max dot size.
-    DotSize = TemplateCount*Ps.DotScalor;
-    if min(DotSize(DotSize > 0)) < Ps.DotMinSize
-        DotSize = DotSize + Ps.DotMinSize - min(DotSize(DotSize >0));
+    GrpSize = sum(GrpIdx);
+    if GrpSize < GrpMinSize || GrpSize > GrpMaxSize; continue; end
+    [AncMapS, TreeName, CDR3Name, TemplateCount] = getTreeData(VDJdata(GrpIdx, :), VDJheader);
+    AncMap = AncMapS.(upper(DistanceUnit));
+    TreeCoord = calcTreeCoord(AncMap);
+    MaxHorzCoord = max(TreeCoord(:, 1));
+    MaxVertCoord = max(TreeCoord(:, 2));
+
+    %Determine the legend and colors
+    if strcmpi(Legend, 'y') && ~isempty(CDR3Name)
+        [CDR3legend, UnqCDR3seq] = makeTreeLegend_CDR3(CDR3Name);
+        [DotColor, UnqDotColor] = mapDotColor_CDR3(CDR3Name, UnqCDR3seq, 'ColorMap', DotColorMap);
     end
-    if max(DotSize) > Ps.DotMaxSize
-        DotSize = DotSize * Ps.DotMaxSize / max(DotSize);
+
+    %Clear and add title now. Required early to get the axes tight inset.
+    cla(Ax);
+    set(get(Ax, 'Title'), 'String', TreeName);
+
+    %----------------------------------------------------------------------
+    %Calculate the figure and axes heights
+    
+    TreeHeight = Yincr * (MaxVertCoord + 1);
+    
+    AxesBorder = get(Ax, 'TightInset') + ones(1, 4)*FigSpacer;
+    AxesBorder([1 3]) = max(AxesBorder([1 3]));
+    AxesBorderHeight = sum(AxesBorder([2 4]));
+    
+    LegendHeight = 0;
+    if strcmpi(Legend, 'y')
+        LegendFontHeight = (LegendFontSize + 1)/72; %Add a 1pt spacer
+        LegendHeight = LegendFontHeight * length(UnqCDR3seq);
     end
-    DotSize(TemplateCount <= 0) = 1;
+   
+    if LegendHeight > TreeHeight
+        AxesHeight = LegendHeight;
+    else
+        AxesHeight = TreeHeight;
+    end
+        
+    if (AxesHeight + AxesBorderHeight) > FigMaxHeight
+        AxesHeight = FigMaxHeight - AxesBorderHeight;
+        FigHeight = FigMaxHeight;
+    else
+        FigHeight = AxesHeight + AxesBorderHeight;
+    end
+    
+    Gx.Position(4) = FigHeight;
+    resizeSubplots(Gx, 'FigSpacer', FigSpacer);
+
+    %----------------------------------------------------------------------
+    %Calculate the X and Y limits.
+    
+    Xlim = [0, MaxHorzCoord];
+    Ylim = [0, MaxVertCoord + 1];  
+
+    %Calculate the XLim required to fit the legend without overlapping
+    if strcmpi(Legend, 'y') && ~isempty(CDR3legend{1})
+        ReqLegendTextHeight = AxesHeight / length(CDR3legend);
+        CurLegendTextHeight = (LegendFontSize + 1) / 72;
+        if CurLegendTextHeight < ReqLegendTextHeight
+            ReqLegendTextHeight = CurLegendTextHeight;
+        end
+        ReqLegendFontSize = round(ReqLegendTextHeight * 72) - 1; %Remember, 1 pt spacer rule
+        if ReqLegendTextHeight < (LegendFontSize + 1) / 72
+            if ReqLegendFontSize < 2
+                ReqLegendFontSize = 2;
+            end
+            ReqLegendTextHeight = (ReqLegendFontSize + 1) / 72;
+        end
+        
+        %Figure out what the text width would be
+        HorzSpacer = 0.01;
+        TempText = text(1, 1, CDR3legend{1}, 'FontName', 'Courier', 'FontSize', ReqLegendFontSize, 'Units', 'inches'); %Use courier for even spacing. Include spacing at end.
+        TextExt = get(TempText, 'Extent');
+        TextWidth = TextExt(3) + HorzSpacer; %inches, adding 0.01 in right side spacer
+        delete(TempText)
+        
+        Xlim(2) = Xlim(1) + (MaxHorzCoord - Xlim(1)) * Ax.Position(3) / (Ax.Position(3) - TextWidth); %Remember, dots can bleed into text.
+    end
     
     %----------------------------------------------------------------------
-    %Drawing the lineage tree
+    %Retain dots inside axes bounds by adjusting Ylim, Xlim, or DotScalor
 
-    cla(Ax);
-    delete(get(Ax, 'title'))
-    title(Ax, TreeName);
+    EdgePerc = 0.05; %Amount of left and right edge to preserve for X limit
+    DotSizes = TemplateCount * DotScalor;
+    DotRadii = (DotSizes / pi).^0.5 / 72;
+    InchPerX = (1 - EdgePerc*2) * Ax.Position(3) / diff(Xlim); %Remember, 5% of fig width are used for rescaling xlim
 
-    %Draw the lineage lines only
+    %Rescale xlim(2) if dots overlap with legend or right border
+    DotRights = InchPerX * (TreeCoord(:, 1) - Xlim(1)) + EdgePerc * Ax.Position(3) + DotRadii;
+    if strcmpi(Legend, 'y') && ~isempty(CDR3legend)
+        RightEdge = Ax.Position(3) - TextWidth;
+    else
+        RightEdge = Ax.Position(3);
+    end
+    ExpandRight = max(DotRights) - RightEdge;
+    if ExpandRight > 0
+        Xlim(2) = ((1 - EdgePerc) * Ax.Position(3) * Xlim(2) - ExpandRight * Xlim(1)) / ((1 - EdgePerc * 2) * Ax.Position(3) - ExpandRight);
+        InchPerX = (1 - EdgePerc*2) * Ax.Position(3) / diff(Xlim);
+    end
+    
+    %Checking how much to rescale dot due to overflow in left side
+    DotLefts = InchPerX * (TreeCoord(:, 1) - Xlim(1)) + EdgePerc * Ax.Position(3) - DotRadii;
+    ExpandLeft = -min(DotLefts);
+    if ExpandLeft > 0 %Go straight for rescaling dot sizes
+        LeftestDot = find(DotLefts == min(DotLefts));
+        LeftestDotRad = DotRadii(LeftestDot(1));
+        DotRadii = DotRadii * (LeftestDotRad - ExpandLeft) / LeftestDotRad;
+    end
+
+    InchPerY = Ax.Position(4) / diff(Ylim);
+    
+    %Rescale the axes height, if possible if dots go over top/bot
+    AvailExpHeight = FigMaxHeight - (AxesBorderHeight + Ax.Position(4));
+    DotHighs = InchPerY * (TreeCoord(:, 2) - Ylim(1)) + DotRadii;
+    ExpandTop = max(DotHighs) - Ax.Position(4);
+    if ExpandTop > 0 
+        HighestDot = find(DotHighs == max(DotHighs));
+        HighestDotRad = DotRadii(HighestDot(1));
+        if ExpandTop < AvailExpHeight
+            Gx.Position(4) = Gx.Position(4) + ExpandTop;
+            Ax.Position(4) = Ax.Position(4) + ExpandTop;
+            Ylim(2) = Ylim(2) + ExpandTop / InchPerY;
+            AvailExpHeight = AvailExpHeight - ExpandTop;
+        else
+            DotRadii = DotRadii * (HighestDotRad - ExpandTop) / HighestDotRad; 
+        end
+    end
+    
+    DotLows = InchPerY * (TreeCoord(:, 2) - Ylim(1)) - DotRadii;
+    ExpandBot = -min(DotLows);
+    if ExpandBot > 0 
+        LowestDot = find(DotLows == min(DotLows));
+        LowestDotRad = DotRadii(LowestDot(1));
+        if ExpandBot < AvailExpHeight
+            Ax.Position(4) = Ax.Position(4) + ExpandBot;
+            Ylim(1) = Ylim(1) - ExpandBot / InchPerY;
+        else
+            DotRadii = DotRadii * (LowestDotRad - ExpandBot) / LowestDotRad;
+        end
+    end
+    
+    DotSizes = round(pi * (DotRadii * 72).^2); % Final dot size to use
+    DotSizes(DotSizes == 0) = 1;
+    if TemplateCount(1) == 0 %Ensure inferred root DotSize is 1. Inferred Root has a 0 template count.
+        DotSizes(1) = 1;
+    end
+
+    %Rescale dots based on custom min/max sizes. WARNING: This can cause
+    %dots to go out of bounds of the plots.
+    RealMinDotSize = min(DotSizes(DotSizes > 0));
+    if RealMinDotSize < DotMinSize %Ensure lower DotSize >= DotMinSize
+        DotSizes = DotSizes + (DotMinSize - RealMinDotSize);
+    end
+    RealMaxDotSize = max(DotSizes(DotSizes > 0));
+    if RealMaxDotSize > DotMaxSize %Ensure upper DotSize <= DotMaxSize
+        DotScaleFactor = (DotMaxSize - DotMinSize) / (RealMaxDotSize - DotMinSize);
+        DotSizes = (DotSizes - DotMinSize) * DotScaleFactor + DotMinSize;
+    end
+    
+    %Center vertically
+    InchPerY = Ax.Position(4) / diff(Ylim);
+    DotHighs = InchPerY * (TreeCoord(:, 2) - Ylim(1)) + DotRadii;
+    DotLows = InchPerY * (TreeCoord(:, 2) - Ylim(1)) - DotRadii;
+    TopGap = Ax.Position(4) - max(DotHighs);
+    BotGap = min(DotLows);
+    if TopGap > BotGap
+        Yshift = -(((TopGap + BotGap) / 2) - BotGap) / InchPerY; %Negative means shift up
+    else
+        Yshift = +(((TopGap + BotGap) / 2) - TopGap) / InchPerY; %Positive means shift down
+    end
+    Ylim(1) = Ylim(1) + Yshift;
+    
+    %Adjust Xlim for aesthetically good locations
+    if ~isempty(Xmax)
+        Xlim(2) = Xmax;
+    end
+    if Xlim(2) < 10
+        Xlim(2) = 10;
+    end
+    Xlim(2) = ceil(Xlim(2) / 5) * 5; %Ensure ends at multiple of 5
+    Xlim = [(-EdgePerc*Xlim(2))  ((1+EdgePerc)*Xlim(2))]; %Ensure edges are constant 5% off the edge. Prevents X labels from going over too.
+        
+    %You want at most 10 values on X, and multiple of 5's if possible)
+    Xincr = ceil(ceil(Xlim(2)/10)/5)*5;
+    XTickVal = 0:Xincr:Xlim(2);
+    XTickLab = cell(size(XTickVal));
+    for w = 1:length(XTickLab)
+        XTickLab{w} = num2str(XTickVal(w), '%d');
+    end
+    
+    %Set axes prop BEFORE plotting to avoid some cutoff issues.
+    set(Ax, 'XLim', Xlim, 'YLim', Ylim, ...
+            'XTick', XTickVal, ...
+            'XTickLabel', XTickLab, ...
+            'XMinorTick', 'off', ...
+            'YTickLabel', '');
+
+    %Draw tree lines first
     hold(Ax, 'on')
     for j = 1:size(TreeCoord, 1)
         ParentLoc = AncMap(j, 2);
@@ -194,119 +382,45 @@ for y = 1:length(UnqGrpNum)
         Y1 = TreeCoord(j, 2);
         plot([X0 X0 X1], [Y0 Y1 Y1], 'k', 'LineWidth', 1)
     end
-
-    %Draw tree nodes and leaves
-    [~, IdxT] = sort(DotSize, 'descend'); %Sort to prevent covering up smaller dot
-    scatter(Ax, TreeCoord(IdxT, 1), TreeCoord(IdxT, 2), DotSize(IdxT, :), DotColor(IdxT, :), 'fill')
+    
+    %Draw tree nodes and leaves next
+    [~, IdxT] = sort(DotSizes, 'descend'); %Sort to prevent covering up smaller dot
+    if strcmpi(Legend, 'y') && ~isempty(CDR3Name)
+        scatter(Ax, TreeCoord(IdxT, 1), TreeCoord(IdxT, 2), DotSizes(IdxT, :), DotColor(IdxT, :), 'fill');
+    else
+        scatter(Ax, TreeCoord(IdxT, 1), TreeCoord(IdxT, 2), DotSizes(IdxT, :), [0 0 0], 'fill');
+    end
     hold(Ax, 'off')
-
-    %Reset the labels and axis lengths
-    MaxX = max(TreeCoord(:, 1));
-    MaxY = max(TreeCoord(:, 2));
-    set(Ax, 'Ylim', [0 MaxY+1]);
-    set(Ax, 'Xlim', [-2, MaxX+2]);
     
-    %----------------------------------------------------------------------
-    %Rescaling vertical components depending on legend
-
-    %Determine what the figure height should be
-    LegendTextHeight = (Ps.LegendFontSize + 1)/72;
-    TotalLegendHeight = length(CDR3legend) * LegendTextHeight;
-    if Ps.Yincr == 0
-        Ps.Yincr = TextHeight;
-    end
-    AxesHeight = (MaxY+1) * Ps.Yincr; %Height of all tree
-    AxesHeight = max(AxesHeight, TotalLegendHeight);
-    
-    %IF FigHeight > FigMaxHeight, recalc height of axes, figure, and legend 
-    AxesTights = get(Ax, 'TightInset');
-    VertTights = sum(AxesTights([2 4]));
-    FigHeight = AxesHeight + VertTights;
-    if FigHeight > Ps.FigMaxHeight
-        ScaleFactor = (Ps.FigMaxHeight - VertTights) / (FigHeight - VertTights);
-        AxesHeight = AxesHeight * ScaleFactor;
-        FigHeight = Ps.FigMaxHeight;
-    end
-    if AxesHeight < LegendTextHeight
-        LegendScaleFactor = (AxesHeight - length(CDR3legend)/72) / TotalLegendHeight;
-        Ps.LegendFontSize = floor(Ps.LegendFontSize * LegendScaleFactor);
-        if Ps.LegendFontSize < 4 %Otherwise it's too small
-            Ps.LegendFontSize = 4;
-        end
-    end
-    
-    resizeFigure(Gx, 'FigWidth', -1, 'FigHeight', FigHeight, 'Recenter', 'n');
-    resizeSubplots(Gx, 'FigSpacer', 0.01);
-
-    %----------------------------------------------------------------------
-    %Rescaling horizontal components depending on legend
-
-    if ~isempty(UnqCDR3seq{1}) && strcmpi(Ps.Legend, 'y')
-        %Figure out what the text width would be
-        HorzSpacer = 0.01;
-        TempText = text(1, 1, UnqCDR3seq{1}, 'FontName', 'Courier', 'FontSize', Ps.LegendFontSize, 'Units', 'inches'); %Use courier for even spacing. Include spacing at end.
-        TextExt = get(TempText, 'Extent');
-        TextWidth = TextExt(3) + HorzSpacer; %inches, adding 0.01 in right side spacer
-        delete(TempText)
-
-        %Need to adjust Xlim to make sure it doesn't cross into legend
-        PlotPosition = get(Ax, 'position');
-        Xlim = get(Ax, 'Xlim');
-        if isempty(Ps.Xmax) || Ps.Xmax == 0
-            NewXlim2 = Xlim(1) + (MaxX - Xlim(1)) * PlotPosition(3) / (PlotPosition(3) - TextWidth);
-            if NewXlim2 > Xlim(2)
-                Xlim(2) = ceil(NewXlim2/5)*5;
-            end
-        else %Override Xlim
-            if Ps.Xmax < Xlim(1)
-                Xlim(2) = Xlim(1) + 1;
-            else
-                Xlim(2) = Ps.Xmax;
-            end
-        end
-           
-        if Xlim(2) < 10
-            Xlim(2) = 10;
-        end
-        if mod(Xlim(2), 5) == 0
-            Xlim(2) = Xlim(2) + 2; %We do this to prevent xlabel from going out of bounds, which causes a plot size reshift.
-        end
-        Xlim(1) = 0 - 0.05*Xlim(2); %Ensures that 0 start consistent distance from left edge.
-
-        %You want at most 10 values on X, and multiple of 5's if possible)
-        Xincr = ceil(ceil(Xlim(2)/10)/5)*5;
-        XTickVal = 0:Xincr:Xlim(2);
-        XTickLab = cell(size(XTickVal));
-        for w = 1:length(XTickLab)
-            XTickLab{w} = num2str(XTickVal(w), '%d');
-        end
-        set(Ax, 'XLim', Xlim, ...
-                'XTick', XTickVal, ...
-                'XTickLabel', XTickLab, ...
-                'XMinorTick', 'off');
-
+    %Draw the legend
+    if strcmpi(Legend, 'y') && ~isempty(CDR3legend)
         %XY coordinate, right-aligned. Use inch, with resect to plot botleft corner.
         PlotPosition = get(Ax, 'Position');
-        XYcoor = zeros(size(UnqCDR3seq, 1), 2);
-        XYcoor(:, 2) = PlotPosition(4) - LegendTextHeight*(1:length(UnqCDR3seq)); %Vertical anchor points
+        XYcoor = zeros(size(CDR3legend, 1), 2);
+        if ReqLegendTextHeight * length(CDR3legend) < PlotPosition(4)
+            XYcoor(:, 2) = PlotPosition(4) - ReqLegendTextHeight * (1:length(CDR3legend)); %Vertical anchor points
+        elseif length(CDR3legend) == 1
+            XYcoor(1, 2) = PlotPosition(4) - ReqLegendTextHeight;
+        else
+            XYcoor(:, 2) = (PlotPosition(4) - ReqLegendTextHeight) - (PlotPosition(4) - ReqLegendTextHeight) / (length(CDR3legend) - 1) * (0:length(CDR3legend) - 1);
+        end
         XYcoor(:, 1) = PlotPosition(3) - HorzSpacer; %Horizontal anchor points, based from the right border of plot. With 0.01 in spacer.
 
         %Add the legend text on the plots
-        for j = 1:length(UnqCDR3seq)
+        for j = 1:length(CDR3legend)
             TextName = strrep(CDR3legend{j}, '_', '\_'); %Ensures any underscores prevent making subscripts
-            text(XYcoor(j, 1), XYcoor(j, 2), TextName, 'FontWeight', 'bold', 'HorizontalAlignment', 'Right', 'VerticalAlignment', 'bottom', 'FontName', 'Courier', 'FontSize', Ps.LegendFontSize, 'Color', UnqDotColor(j, :), 'Units', 'inch');
+            text(XYcoor(j, 1), XYcoor(j, 2), TextName, 'FontWeight', 'bold', 'HorizontalAlignment', 'Right', 'VerticalAlignment', 'bottom', 'FontName', 'Courier', 'FontSize', ReqLegendFontSize, 'Color', UnqDotColor(j, :), 'Units', 'inch');
         end
     end
     
     SavePre = sprintf('.Grp%d', UnqGrpNum(y));
-    FullSaveName = prepSaveTarget('SaveAs', Ps.SaveAs, 'SavePrefix', SavePre);
-    FullSaveName = savePlot(Gx, 'SaveAs', FullSaveName); %300dpi, png.
-
+    SuggestedSaveName = prepSaveTarget('SaveAs', SaveAs, 'SavePrefix', SavePre);
+    FullSaveName = savePlot(Gx, 'SaveAs', SuggestedSaveName, ExpPu{:});
     ImageGrpNums(y) = UnqGrpNum(y);
     ImageNames{y} = FullSaveName;
 end
-%Close plot if set to invisible
-if strcmpi(Ps.Visible, 'off') 
+
+if strcmpi(Visible, 'off') 
     close(Gx);
 end
 
@@ -314,13 +428,10 @@ end
 DelLoc = ImageGrpNums == 0;
 ImageGrpNums(DelLoc) = [];
 ImageNames(DelLoc) = [];
-
 TreeSearchTable = getTreeSearchTable(VDJdata, VDJheader);
 [~, ~, TableIdx] = intersect(ImageGrpNums, cell2mat(TreeSearchTable(2:end, 1)));
 TreeSearchTable = TreeSearchTable([1; TableIdx+1], :);
-
-%Remove the NewFilePath from the TreeFiles
-for j = 1:length(ImageNames)
+for j = 1:length(ImageNames) %Remove the NewFilePath from the TreeFiles
     [FilePath, FileName, ~] = parseFileName(ImageNames{j});
     ImageNames{j} = FileName;
 end
