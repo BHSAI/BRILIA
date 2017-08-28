@@ -159,6 +159,15 @@ if ~isempty(varargin) && ischar(varargin{1}) && ismember(varargin{1}, {'getversi
     return;
 end
 
+%Determine if a using a subfunction
+if ~isempty(varargin) && ischar(varargin{1}) 
+    fh = str2func(varargin{1});
+    if isa(fh, 'function_handle')
+        fh(varargin{2:end});
+        return;
+    end
+end
+
 [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
 if ReturnThis
    Ps = rmfield(Ps, 'InputFileT');
@@ -215,7 +224,7 @@ fprintf('Website: bhsai.org\n');
 
 %Get the full file names of input sequences
 if isempty(InputFile) %Ask user to choose
-    [FileNames, OutputFilePath] = uigetfile('*.fa;*.fast*;*.xls*;*.csv;*.tsv', 'Select the input sequence files', 'multiselect', 'on');
+    [FileNames, OutputFilePath] = uigetfile('*.fa*;*.*sv', 'Select the input sequence files', 'multiselect', 'on');
     if isnumeric(FileNames)
         return;
     end
