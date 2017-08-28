@@ -39,6 +39,12 @@ elseif strcmpi(InFileExt, '.fastq')
     while ischar(A)
         if ~isempty(A) && A(1) == '@'
             SeqCount = SeqCount + 1;
+            for j = 1:3
+                A = fgetl(FID);
+                if ~ischar(A)
+                    break
+                end
+            end
         end
         A = fgetl(FID);
     end
