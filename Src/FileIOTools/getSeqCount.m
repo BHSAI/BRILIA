@@ -1,4 +1,13 @@
-%Returns the number of entries in a sequence files
+%Returns the number of entries in a sequence files.
+%
+%  SeqCount = getSeqCount(FullFileName)
+%
+%  INPUT
+%    FullFileName: file name or path + file name of the sequence file
+%
+%  OUTPUT
+%    SeqCount: the number of sequences stored in the sequence file
+
 function SeqCount = getSeqCount(varargin)
 %Determine the file type here
 if isempty(varargin)
