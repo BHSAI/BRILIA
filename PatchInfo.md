@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------
+## Patch notice for version 3.0.7
+ - Fixed issues when lineage tree plots were cut off, caused when matlab opengl renderer saves high-res images. Using painters renderer.
+ - BRILIA now summons plotTree, runAnalysis, etc... within itself. Ex: BRILIA('plotTree', [BRILIA_file])
+ - Binary files only contains one main binary file, BRILIA(.exe) . See above note.
+ - Removed dependencies of getSeqCount on fastainfo and fastqinfo.
+ - Fixed lineage tree drawing to prevent dots and legend text to go off the the axes edges.
+
+---------------------------------------------------------------------------
 ## Patch notice for version 3.0.5
 
 Major changes
