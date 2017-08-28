@@ -11,11 +11,7 @@ directory where the BRILIA csv file is, or where it is specified using the
 
   plotTree(VDJdata, VDJheader, Param, Value, ...)
 
-  plotTree(Param, Value, ...)
-
-  [ImageGrpNums, ImageNames, TreeSearchTable] = plotTree(...)
- 
-  P = plotTree('getinput')
+ [ImageGrpNums, ImageNames, TreeSearchTable] = plotTree(...)
 
   INPUT
     VDJdata: BRILIA output table
@@ -43,9 +39,7 @@ directory where the BRILIA csv file is, or where it is specified using the
       Legend          'y', 'n'     Will draw a color-coded CDR3 legend.
                                     Default is y.
       LegendFontSize  10          Font size of the Legend
-      Sort            'y', 'n'     Will sort the tree to cluster related
-                                    branches together.
-      Xmax            N > 0       X axis maximum value. Default 20.
+      Xmax            N > 0       X axis maximum value.
       Yincr           N > 0       Vertical spacing between nodes. Default
                                     is 0.125".
       FigWidth        3.3         Width of the whole figure, inch
@@ -54,9 +48,11 @@ directory where the BRILIA csv file is, or where it is specified using the
                                     file names as Tree.GrpN.png
                       filename    Will save to this file's folder(if any),
                                     and file names are SaveAs.GrpN.png
-                                  IF no path is specified in SaveAs and
+                                    IF no path is specified in SaveAs and
                                     input file is known, will save to that
                                     directory plotTree subfolder.
+      ShowStatus      'y' 'n'     If y, will show how many trees are left
+                                    for saving.
 
   OUTPUT
    ImageGrpNums: group numbers that have tree images

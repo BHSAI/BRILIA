@@ -22,10 +22,10 @@ if Success == 0
 end
 
 %Compile the help text for command-line retrieval of help info
-fprintf('%s: %s.\n', mfilename, 'Compiling help texts.');
+fprintf('%s: %s\n', mfilename, 'Compiling help texts.');
 compileHelpText('Dir', RootDir, 'CheckSub', 'y', 'SaveTo', [RootDir 'HelpText' SlashType], 'Overwrite', 'y');
 
-fprintf('%s: %s.\n', mfilename, 'Compiling BRILIA.m.');
+fprintf('%s: %s\n', mfilename, 'Compiling BRILIA.m.');
 mcc -m ./BRILIA.m ...
     -a ./Databases/ ...
     -a ./Tables/ ...

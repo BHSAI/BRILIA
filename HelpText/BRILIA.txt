@@ -10,8 +10,15 @@ host, and if low-quality regions are trimmed away or replaced with "N" or
 
   BRILIA(InputFile, Param, Value, ...)
 
+  BRILIA(FunctionName, ...)
+
   INPUT
     InputFile: char or cell name(s) of the sequence file(s) to process
+    FunctionName: a BRILIA internal function that can be summoned, in
+    which following inputs are specific to this internal function. This
+    allows users to summon plotTree function via BRILIA's binary file. See
+    NOTE.
+
     Param, Value pairs are for specific setting as follows
       Param             Value                  This param-value sets:
       ---------------   ---------------------  -----------------------------
@@ -87,6 +94,14 @@ host, and if low-quality regions are trimmed away or replaced with "N" or
     subfolder called "BRILIA" where the input file is, and save the
     outputfile there, along with the [OutputFile].Raw.csv file and
     [OutputFile].csv.
+
+    Users can summon another function within BRILIA by inputting the
+    function name, which follows a lower-case camel naming convention such
+    as plotTree. Example: BRILIA('plotTree', BRILIA_OuputFile, 'DPI', 600)
+    will summon the plotTree function, open BRILIA_OutputFile, and save
+    images as 600 DPI to a default output folder specified by the plotTree
+    function. This capability was added to reduce the file size of BRILIA
+    as codes are redundant.
 
   EXAMPLE (MATLAB)
     >> BRILIA([], 'SettingFile', 'SettingFile.txt');
