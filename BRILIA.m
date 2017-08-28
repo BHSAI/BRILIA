@@ -118,7 +118,7 @@
 %  Written by Donald Lee, dlee@bhsai.org
 
 function varargout = BRILIA(varargin)
-Version = '3.0.6';
+Version = '3.0.7';
 %--------------------------------------------------------------------------
 %For running in matlab, make sure BRILIA paths are added correctly
 if ~isdeployed
