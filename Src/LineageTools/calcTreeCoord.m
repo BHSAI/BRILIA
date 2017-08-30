@@ -40,7 +40,7 @@ else
 end
 
 %Find the children of this parent
-ChildNum = find(ParentNum == AncMap(:, 2));
+ChildNum = findChild(AncMap, ParentNum);%find(ParentNum == AncMap(:, 2));
 
 %If it is a leaf (no child), update TreeCoord. If not, resummon until you do.
 if isempty(ChildNum) %Leaf
