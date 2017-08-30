@@ -41,9 +41,9 @@ self-to-self sequence distance from being the lowest distance.
     Seq = {'AAGGTG'; 'ACGCTG'; 'ACTCTG'}
     [PairDist, HamDist] = calcPairDist(Seq, 'shmham')
     PairDist =
-       255    5   20
-         6  255    3
-        21    3  255
+         0    5   20
+         6    0    3
+        21    3    0
     HamDist =
          0    2    3
          2    0    1

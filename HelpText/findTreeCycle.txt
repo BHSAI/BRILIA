@@ -1,3 +1,10 @@
 findTreeCycle will look for the AncMap entries that causes a cyclic loop.
 
   CycleLoc = findTreeCycle(AncMap)
+
+  INPUT
+    AncMap: ancestral map index from calcAncMap
+
+  OUTPUT
+    CycleLoc: logical array of size(AncMap, 1) marking members that have
+      parent-child-parent cyclic dependencies
