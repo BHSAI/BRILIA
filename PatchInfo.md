@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------
+## Patch notice for version 3.0.8
+ - Fixed tree cluster cutoff to work properly as a percentage hamming distance. Before, it was doing half of that.
+ - Fixed parallel processing of pairwise distance to be faster by splitting ONLY large jobs amongst workers, whereas small jobs are done in a single core.
+ - Code cleanup in the Src/LineageTools folder
+
+---------------------------------------------------------------------------
 ## Patch notice for version 3.0.7
  - Fixed issues when lineage tree plots were cut off, caused when matlab opengl renderer saves high-res images. Using painters renderer.
  - BRILIA now summons plotTree, runAnalysis, etc... within itself. Ex: BRILIA('plotTree', [BRILIA_file])
