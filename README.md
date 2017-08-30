@@ -46,7 +46,7 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ### General preparations and downloads
 1. Download the MATLAB Runtime Version R2017a (9.2) from the [MathWorks website](https://www.mathworks.com/products/compiler/mcr.html).
 2. Install the MRC library on your computer.
-3. Download the appropriate [BRILIA binary files](https://github.com/BHSAI/BRILIA/releases/tag/v3.0.6).
+3. Download the appropriate [BRILIA binary files](https://github.com/BHSAI/BRILIA/releases/tag/v3.0.8).
 4. Unzip the executable files into a folder called BRILIA.
 
 ### For WINDOWS
