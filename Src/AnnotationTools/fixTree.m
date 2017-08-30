@@ -81,7 +81,7 @@ for y = 1:length(UnqGrpNum)
     
     %Calculate the new ancestral map
     AncMap = calcRootedAncMap(PairDist);
-    Tdata = mapData2AncMap(Tdata, VDJheader, AncMap); %This will remap RefSeq to Seq based on AncMap
+    Tdata = setAncRefSeq(Tdata, VDJheader, AncMap); %This will remap RefSeq to Seq based on AncMap
 
     %Update the child count per parent
     ChildCt = zeros(size(AncMap, 1), 1);

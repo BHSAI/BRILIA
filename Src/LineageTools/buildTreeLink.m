@@ -162,7 +162,7 @@ while max(AncCycle) > 0
             
             %If there are multiple roots, choose shortest SHM dist to RefSeq, and then largest template count.
             if length(RootLoc) > 1
-                if ~isempty(strfind(Chain,'H'))
+                if contains(Chain,'H')
                     VDJscore = zeros(length(RootLoc),5);
                     for g = 1:length(RootLoc)
                         %Extract data needed to calculate scores
@@ -188,7 +188,7 @@ while max(AncCycle) > 0
                         VDJscore(g,:) = [Vscore Dscore Jscore TempCt RootLoc(g)];
                     end
                 end
-                if ~isempty(strfind(Chain,'L'))
+                if contains(Chain,'L')
                     VJscore = zeros(length(RootLoc),4);
                     for g = 1:length(RootLoc)
                         %Extract data needed to calculate scores

@@ -1,5 +1,4 @@
-%findChild will return the numbers for the parent of sequence.
+%findChild will return the location numbers for the parent of sequence.
 
-function ParentLoc = findParent(AncMap,ChildNum)
-ParentIdx = AncMap(:,1) == ChildNum;
-ParentLoc = AncMap(ParentIdx,2);
+function ParentLoc = findParent(AncMap, ChildNum)
+ParentLoc = AncMap(AncMap(:,1) == ChildNum, 2);
