@@ -100,13 +100,8 @@ for c = 1:length(Chain)
     MaxDist = MaxDist + length(Tdata{1,S.([Chain(c) 'SeqLoc'])}) ^ 2+length(Tdata{1,S.([Chain(c) 'SeqLoc'])});
     MaxSeqLen = MaxSeqLen + length(Tdata{1,S.([Chain(c) 'SeqLoc'])});
 end
-if MaxDist <= 2^8-1
-    Class = 'uint8';
-elseif MaxDist <= 2^16-1
-    Class = 'uint16';
-elseif MaxDist <= 2^32-1
-    Class = 'uint32';
-else
+Class = 'uint16';
+if MaxDist > 2^32-1
     Class = 'double';
 end
 
@@ -117,7 +112,7 @@ for c = 1:length(Chain) %Add H and L chain distances
 end
 
 %Compute the cutoff distance
-CutoffDist = ceil(MaxSeqLen*DevPerc/100);
+CutoffDist = ceil(MaxSeqLen*DevPerc/100) * 2; %Remember that the PairDist is DOUBLED!!!
 
 %Calculate the cutoff SHM distance, accounting for the fact that we must
 %double the value because pairwise SHM distance is doubled for memory

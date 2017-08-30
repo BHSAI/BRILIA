@@ -1,13 +1,13 @@
-%calcSHMHAMdist will calculate the adjusted hamming distance that has
-%reduced distance if mutations agree with SHM tendencies, and increased
+%calcSHMHAMdist will calculate the adjusted hamming distance that reduces
+%the distance if mutations agree with SHM tendencies, and increases the
 %distance for consecutively mismatched nts.
 %
 %Distance = sum(ContigMiss^2) - 0.5sum(FavoredMut) + 0.5sum(UnfavoredMut)
 %
-%where ContigMiss is the length of contiguously mismatched segments,
-%FavoredMut is the number of mutations that agree with SHM tendencies, and
-%UnfavoredMut is the number of mutations that disagree with SHM tendencies.
-%Neutral mutations do not have a favored/unfavored distance adjustment.
+%ContigMiss = length of a contiguously mismatched segments
+%FavoredMut = number of mutations that agree with SHM tendencies
+%UnfavoredMut = number of mutations that disagree with SHM tendencies
+%Neutral mutations do not have favored/unfavored distances
 %
 %The sum(ContigMiss)^2 term was added to increase the distance between
 %sequences with many contiguously mismatched nts that are more likely to
@@ -15,9 +15,9 @@
 %distance, they are likely to be cut off from the main tree and reassigned
 %a new germline annotation.
 %
-%  [PCdist, CPdist, HamDist] = calcSHMHAMdist(Seq1,Seq2)
+%  [PCdist, CPdist, HamDist] = calcSHMHAMdist(Seq1, Seq2)
 %
-%  [PCdist, CPdist, HamDist] = calcSHMHAMdist(Seq1,Seq2,SHMtendency)
+%  [PCdist, CPdist, HamDist] = calcSHMHAMdist(Seq1, Seq2, SHMtendency)
 %
 %  INPUT
 %    Seq1: 1st sequence, assumed parent seq
@@ -33,27 +33,33 @@
 %
 %  OUTPUT
 %    PCdist: distance if Seq1 is parent and Seq2 is child.
-%    CPdist: distance if Seq2 is parent and Seq1 is child.
+%    CPdist: distance if Seq1 is child and Seq2 is parent.
 %    HamDist: number of mismatched letters between Seq1 and Seq2.
 %
 %  NOTE
 %    'X' is a wildcard match.
 %
+%    Low-quality sequence reads can lead to arbitrarily high distances that
+%    prevent proper linking of sequences within the same lineage. Consider
+%    removing low-quality edges or replacing with wildcard 'X' before
+%    processing.
+%
 %  EXAMPLE
 %    Case when C->T and A->G high preference mutations
 %      Seq1 = 'ACGTAT' 
 %      Seq2 = 'ATGTGT'
-%      [PCdist CPdist HamDist] = calcSHMHAMdist(Seq1,Seq2)
+%      [PCdist CPdist HamDist] = calcSHMHAMdist(Seq1, Seq2)
 %         PCdist =
 %             1.0
 %         CPdist =
 %             1.5
 %         HamDist =
 %             2
-%   Case when there is a triple consec mismatch  
+%
+%   Case when there is a triple consecutive mismatch  
 %     Seq1 = 'ACGCTT' 
 %     Seq2 = 'ATTGTT'
-%     [PCdist CPdist HamDist] = calcSHMHAMdist(Seq1,Seq2)
+%     [PCdist CPdist HamDist] = calcSHMHAMdist(Seq1, Seq2)
 %        PCdist %3^2 - 0.5 + 0.5 + 0.5
 %            9.5
 %        CPdist %3^2 - 0.0 + 0.5 + 0.5
@@ -61,61 +67,74 @@
 %        HamDist = 
 %            3
 
-function [PCdist, CPdist, HamDist] = calcSHMHAMdist(Seq1,Seq2,varargin)
-%Probability matrix
+function [PCdist, CPdist, HamDist] = calcSHMHAMdist(Seq1, Seq2, varargin)
+%Need Seq1 to be char
+if iscell(Seq1)
+    Seq1 = Seq1{1};
+end
+
+%Want Seq2 to be cell 
+if ischar(Seq2) 
+    Seq2 = {Seq2};
+end
+
+%Use default or custom SHM tendency matrix
 if isempty(varargin) || isempty(varargin{1})
-    %Values obtained from BRILIA paper
     SHMtendency = [...
         0 -1  1 -1;
         0  0 -1  0;
         1 -1  0 -1;
-        1  1 -1  0];
+        1  1 -1  0]; %From BRILIA orig paper
 else
     SHMtendency = varargin{1};
     if sum(size(SHMtendency) == [4 4]) ~= 2
-        error('Error: input probability matrix should be 4x4');
+        error('%s: the SHMtendency matrix should be a 4x4 matrix.', mfilename);
     end
 end
 
-%Locating the mismatched nts
-MissLoc = ~((Seq1 == Seq2) | (Seq1 == 'X') | (Seq2 == 'X'));
+PCdist = zeros(length(Seq2), 1);
+CPdist = zeros(length(Seq2), 1);
+HamDist = zeros(length(Seq2), 1);
 
-%Find max consec mismatch, and add that.
-PenScore = 0; %Penalty score
-MissCount = 0;
-for k = 1:length(MissLoc)-1
-    if MissLoc(k) && MissLoc(k+1)
-        if MissCount == 0
-            MissCount = 2;
-        else
-            MissCount = MissCount+1;
-        end
+for j = 1:length(Seq2)
+    MinLen = min(length(Seq1), length(Seq2{j}));
+    MissLoc = ~(Seq1(1:MinLen) == Seq2{j}(1:MinLen) | Seq1 == 'X' | Seq2{j} == 'X'); %Oddly, redoing Seq1=='X' is faster than doing it once... 
+
+    if max(MissLoc) == 0
+        continue;
     else
-        if MissCount > 0
-            PenScore = MissCount.^2 + PenScore - MissCount; %You are subtracting MissCount, since at the end, you don't want to double count the Miss Count AND Ham Dist.
-            MissCount = 0;
+        %Find max consec mismatch, and add that.
+        Penalty = 0;
+        Misses = 0;
+        for k = 1:length(MissLoc)-1
+            if MissLoc(k) && MissLoc(k+1)
+                if Misses == 0
+                    Misses = 2;
+                else
+                    Misses = Misses + 1;
+                end
+            else
+                if Misses > 0
+                    Penalty = Penalty + Misses.^2 - Misses; %You are subtracting Misses, since at the end, you don't want to double count the Misses AND Hamming dist.
+                    Misses = 0;
+                end
+            end
         end
+        if Misses > 0 %Final Iteration, in case mismatch occurs at end
+            Penalty = Misses.^2 + Penalty - Misses;
+        end
+
+        RefNT = nt2int(Seq1(MissLoc));
+        SamNT = nt2int(Seq2{j}(MissLoc));
+        KeepNT = RefNT < 5 & SamNT < 5; %Prevents wildcard matching
+        IdxF = sub2ind([4 4], SamNT(KeepNT), RefNT(KeepNT));
+        IdxR = sub2ind([4 4], RefNT(KeepNT), SamNT(KeepNT));
+
+        %Calculate the score
+        PF = sum(SHMtendency(IdxF));
+        PR = sum(SHMtendency(IdxR));
+        PCdist(j) = length(IdxF) - 0.5*PF + Penalty;
+        CPdist(j) = length(IdxR) - 0.5*PR + Penalty;     
+        HamDist(j) = length(IdxF); %Same as hamming distance
     end
-end
-if MissCount > 0 %Final Iteration, in case mismatch occurs at end
-    PenScore = MissCount.^2 + PenScore - MissCount;
-end
-
-if sum(MissLoc) == 0 %Exact match 
-    PCdist = 0;
-    CPdist = 0;
-    HamDist = 0;
-else
-    RefNT = nt2int(Seq1(MissLoc));
-    SamNT = nt2int(Seq2(MissLoc));
-    KeepNT = RefNT <= 4 & SamNT <= 4; %Prevents wildcard matching
-    IdxF = sub2ind([4 4],SamNT(KeepNT),RefNT(KeepNT));
-    IdxR = sub2ind([4 4],RefNT(KeepNT),SamNT(KeepNT));
-
-    %Calculate the score
-    PF = sum(SHMtendency(IdxF));
-    PR = sum(SHMtendency(IdxR));
-    PCdist = length(IdxF) - 0.5*PF + PenScore;
-    CPdist = length(IdxF) - 0.5*PR + PenScore; 
-    HamDist = length(IdxF);
-end
+end    

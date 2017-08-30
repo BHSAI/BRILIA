@@ -41,15 +41,15 @@
 %    Seq = {'AAGGTG'; 'ACGCTG'; 'ACTCTG'}
 %    [PairDist, HamDist] = calcPairDist(Seq, 'shmham')
 %    PairDist =
-%       255    5   20
-%         6  255    3
-%        21    3  255
+%         0    5   20
+%         6    0    3
+%        21    3    0
 %    HamDist =
 %         0    2    3
 %         2    0    1
 %         3    1    0
 function [PairDist, varargout] = calcPairDist(Seq, DistMode, varargin)
-%Convert Seq cells to char array
+%Convert Seq to a cell array
 if ischar(Seq)
     SeqT = Seq;
     Seq = cell(size(SeqT, 1), 1);
@@ -60,54 +60,20 @@ if ischar(Seq)
 end
 m = length(Seq);
 
-%Ensure DistMode is valid
-if ~ismember(DistMode, {'ham', 'shmham', 'identity'})
-    error('%s: Unknown DistMode as input.', mfilename);
+if m <= 1
+    PairDist = zeros(m);
+    varargout = cell(1, nargout - 1);
+    return
 end
 
-%See if there is a processor number spec in varargin
-NumProc = 1;
+%Use 16-bit for distance metrics since it's hard to have > 65535 SHMs.
+Class = 'uint16';
+N = 50; %Number of jobs required to switch from single to parallel core
 for j = 1:length(varargin)
-    if isnumeric(varargin{j})
-        NumProc = varargin{j};
-        varargin(j) = [];
-    elseif strcmpi(varargin{j}, 'max')
-        NumProc = varargin{j};
-        varargin(j) = [];
-    end
-end
-
-%Prevent parfor from triggering auto parallel processing
-try
-    ps = parallel.Settings;
-    ps.Pool.AutoCreate = false;
-catch
-end
-
-%Setup parallel processing
-if NumProc > 1 && ~strcmpi(DistMode, 'ham')
-    setParallelProc(NumProc)
-end
-if NumProc == 1 && ~strcmpi(DistMode, 'ham') && length(Seq) > 100
-    disp('Speed up calcPairDist by specifying number of processors > 1')
-end
-
-%Determine maximum distance value possible given SeqLength
-if isempty(varargin)
-    MaxDist = length(Seq{1})^2+length(Seq{1}); %full mismatch that all disagree with SHM tendencies
-    if MaxDist <= 2^8-1
-        Class = 'uint8';
-    elseif MaxDist <= 2^16-1
-        Class = 'uint16';
-    elseif MaxDist <= 2^32-1
-        Class = 'uint32';
-    else
-        Class = 'double';
-    end
-else
-    Class = lower(varargin{1});
-    if ~ismember(Class, {'uint8', 'uint16', 'uint32', 'double'})
-        error('%s: Unknown class as input', mfilename);
+    if ischar(varargin{j}) && ismember(lower(varargin{j}), {'uint8', 'uint16', 'uint32', 'double'})
+        Class = varargin{j};
+    elseif isnumeric(varargin{j})
+        N = varargin{j};
     end
 end
 
@@ -115,41 +81,60 @@ end
 switch lower(DistMode)
     case 'ham' %Hamming distance (symmetric matrix)
         PairDist = zeros(1, length(Seq)*(length(Seq)-1)/2, Class);
-        for c = 1:length(Seq)-1
-            S2 = c*(m-1-(c-1)/2);
-            S1 = S2 - (m-c) + 1;
-            PairDist(S1:S2) = calcHAMdist(Seq(c), Seq(c+1:end));
+        if length(Seq) < N %Single core is faster for small jobs
+            for r = 1:length(Seq)-1
+                S2 = r*(m-1-(r-1)/2);
+                S1 = S2 - (m-r) + 1;
+                PairDist(S1:S2) = calcHAMdist(Seq{r}, Seq(r+1:end));
+            end
+        else
+            PairDistCell = cell(1:length(Seq) - 1);
+            parfor r = 1:length(PairDistCell)
+                SeqT = Seq;
+                PairDistCell{r} = calcHAMdist(SeqT{r}, SeqT(r+1:end));
+            end
+            for r = 1:length(Seq)-1
+                S2 = r*(m-1-(r-1)/2);
+                S1 = S2 - (m-r) + 1;
+                PairDist(S1:S2) = PairDistCell{r};
+            end
         end
         PairDist = squareform(PairDist);
         HamDist = PairDist; %They are the same
     
     case 'shmham' %SHM distance (asymmetric matrix)
-        PairDist1 = zeros(length(Seq), Class);
-        PairDist2 = zeros(length(Seq), Class);
-        HamDist1 = zeros(length(Seq), Class);
-        HamDist2 = zeros(length(Seq), Class);
-        for r = 1:length(Seq)
-            %fprintf('%s: %d of %d\n', mfilename, r, length(Seq));
-            SeqRow = Seq{r};
-            parfor c = 1:r-1
-                SeqCol = Seq{c};
-                [Par2Child, Child2Par, HD] = calcSHMHAMdist(SeqRow, SeqCol);
-                PairDist1(r, c) = Par2Child*2; %Multiplying by 2, because calcSHMHAMdist gives you a fraction, and that won't work with uint.
-                PairDist2(c, r) = Child2Par*2;
-                HamDist1(r, c) = HD;
-                HamDist2(c, r) = HD;
+        PairDist = zeros(length(Seq), Class);
+        HamDist = zeros(length(Seq), Class);
+        if length(Seq) < N %Single core is faster for small jobs
+            for r = 1:length(Seq)-1
+                [PCD, CPD, HD] = calcSHMHAMdist(Seq{r}, Seq(r+1:end));
+                PairDist(r+1:end, r) = CPD*2; %Remember calcSHMHAMdist gives you a half unit, and you want full integers
+                PairDist(r, r+1:end) = PCD*2; 
+                HamDist(r+1:end, r) = HD;
+                HamDist(r, r+1:end) = HD;
+            end
+        else %Multiple cores are better for larger jobs
+            PairDistCell = cell(1, length(Seq) - 1); %Slicable
+            parfor r = 1:length(PairDistCell)
+                SeqT = Seq; %Just to confirm that Seq should be given to all workers.
+                [PCD, CPD, HD] = calcSHMHAMdist(SeqT{r}, SeqT(r+1:end));
+                PairDistCell{r} = [PCD*2 CPD*2 HD]; %Remember you want full integer units for PairDist, but true dist has fractions.
+            end
+            for r = 1:length(Seq) - 1
+                PairDist(r, r+1:end) = PairDistCell{r}(:, 1); 
+                PairDist(r+1:end, r) = PairDistCell{r}(:, 2); 
+                HamDist(r, r+1:end)  = PairDistCell{r}(:, 3);
+                HamDist(r+1:end, r)  = PairDistCell{r}(:, 3);
             end
         end
-        PairDist = PairDist1 + PairDist2;
-        HamDist = HamDist1 + HamDist2;
-
+        
     case 'identity' %  #missed/lengthofshorterseq
         PairDist = zeros(1, length(Seq)*(length(Seq)-1)/2, 'double');
         HamDist = zeros(1, length(Seq)*(length(Seq)-1)/2, 'uint16');
-        for c = 1:length(Seq)-1
+        for r = 1:length(Seq)-1
             %fprintf('%s: %d of %d\n', mfilename, c, length(Seq));
-            Seq1 = Seq{c};
-            Seq2 = Seq(c+1:end);
+            Seq1 = Seq{r};
+            Seq2 = Seq(r+1:end);
             Dist = zeros(length(Seq2), 1, 'double');
             HDist = zeros(length(Seq2), 1, 'uint16');
             parfor j = 1:length(Seq2)
@@ -158,13 +143,15 @@ switch lower(DistMode)
                 Dist(j) = 1 - Score(1)/MinLen;
                 HDist(j) = MinLen - Score(1);
             end
-            S2 = c*(m-1-(c-1)/2);
-            S1 = S2 - (m-c) + 1;
+            S2 = r*(m-1-(r-1)/2);
+            S1 = S2 - (m-r) + 1;
             PairDist(S1:S2) = Dist;
             HamDist(S1:S2) = HDist;
         end
         PairDist = squareform(PairDist);
         HamDist = squareform(HamDist);
+    otherwise
+        error('%s: Unrecognized DistMode option.', mfilename);
 end
 
 if nargout == 2

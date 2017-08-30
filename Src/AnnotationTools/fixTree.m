@@ -68,13 +68,8 @@ for y = 1:length(UnqGrpNum)
     for c = 1:length(Chain)
         MaxDist = MaxDist + length(Tdata{1, SeqLoc(c)})^2 + length(Tdata{1, SeqLoc(c)})^2;
     end
-    if MaxDist <= 2^8-1
-        Class = 'uint8';
-    elseif MaxDist <= 2^16-1
-        Class = 'uint16';
-    elseif MaxDist <= 2^32-1
-        Class = 'uint32';
-    else
+    Class = 'uint16';
+    if MaxDist > 2^32-1
         Class = 'double';
     end
 

@@ -27,11 +27,11 @@ else %Determine what to do
         end
     else %If user input a number, ensure it's a reasonable value
         NumProc = round(NumProc); %Must be integer
-        if NumProc < 1; %Can't be less than 1
+        if NumProc < 1 %Can't be less than 1
             warning('setParallelProc: NumProc must be >= 1. Setting to 1.');
             NumProc = 1; 
         end 
-        if NumProc > feature('numCores'); %Can't be more than Max
+        if NumProc > feature('numCores') %Can't be more than Max
             warning('setParallelProc: NumProc is greater than max cores. Setting to max cores.');
             NumProc = feature('numCores'); 
         end 

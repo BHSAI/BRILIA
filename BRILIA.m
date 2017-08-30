@@ -119,6 +119,7 @@
 
 function varargout = BRILIA(varargin)
 Version = '3.0.7';
+
 %--------------------------------------------------------------------------
 %For running in matlab, make sure BRILIA paths are added correctly
 if ~isdeployed
@@ -140,6 +141,8 @@ end
 
 %--------------------------------------------------------------------------
 %Handle various inputs from matlab or OS command lines
+varargout = cell(1, nargout);
+
 P = inputParser;
 addOptional(P, 'InputFileT', '', @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'InputFile', '', @(x) ischar(x) || iscell(x) || isempty(x));
@@ -178,8 +181,8 @@ end
 if ~isempty(varargin) && ischar(varargin{1})
     if isempty(regexpi(varargin{1}, '[^\w\d\_]'))
         try
-            fh = str2func(varargin{1});
-            fh(varargin{2:end});
+            FH = str2func(varargin{1});
+            FH(varargin{2:end});
             return;
         catch
         end
@@ -440,7 +443,7 @@ for f = 1:length(InputFile)
             end
 
             %If nothing is left, might be due to wrong delimiter choice
-            if isempty(VDJdata); 
+            if isempty(VDJdata)
                 warning('%s: No sequences. Might have incorrect delimiter. Currently using %s.', mfilename, Delimiter');
                 continue; 
             end 
