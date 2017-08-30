@@ -20,13 +20,12 @@
 %    unchanged. Just purely renumbering 1st and 2nd column.
 %
 %  EXAMPLE
-%    AncMap1 =  [1 0 2;  3 1 1;  5 3 4;  7 3 5];
-%    AncMap2 = renumberAncMap(AncMap)
-%    AncMap1 =
-%          1     0     2
-%          3     1     1
-%          5     3     4
-%          7     3     5 
+%    AncMap1 = [
+%          1     0     2;
+%          3     1     1;
+%          5     3     4;
+%          7     3     5];
+%    AncMap2 = renumberAncMap(AncMap1)
 %    AncMap2 =
 %          1     0     2
 %          2     1     1
@@ -35,7 +34,6 @@
 
 
 function AncMap = renumberAncMap(AncMap)
-
 %Make sure that AncMap is numbered 1 to N on first column.
 for j = 1:size(AncMap,1)
     ParRelLoc = find(AncMap(j,2) == AncMap(:,1)); %this parent is the nth entry in AncMap.
