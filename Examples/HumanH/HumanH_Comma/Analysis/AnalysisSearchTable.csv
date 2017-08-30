@@ -2,4 +2,3 @@ Title,Description,FileName
 Trinucleotide Mutability Data,Table of 3-nt motifs' mutation frequencies from nt X to nt Y.,Mutability.csv
 Normalized Trinucleotide Mutability Data,Table of 3-nt motifs' normalized mutation frequencies from nt X to nt Y.,NormMutability.csv
 Hotspot Mutation Frequencies Plot,Bar charts of hotspot motifs' normalized mutation frequencies from nt X to nt Y.,HotMotifBarGraph.png
-Hotspot Mutation Similarity Plot,Dendrogram of similarity in hotspot motifs' mutation frequencies,HotMotifBarDendrogram.png

@@ -73,7 +73,7 @@ if N > 0 && length(UnqStrain) > 1
     %Prepare the UnqStrain for doing pairwise hamming distance matching
     UnqStrainChar = char(UnqStrain);
     UnqStrainChar = UnqStrainChar(:, 1:N);
-    UnqStrainChar(UnqStrainChar == 'X') = '@'; %Ham dist calc assumes x is wildcard, so go and change these X out
+    UnqStrainChar(UnqStrainChar == 'X') = '@'; %Ham dist calc assumes x is wildcard, so go and change these X out arbitrarily to @ symbol
     UnqStrainChar(UnqStrainChar == 'x') = '@'; 
     UnqStrainChar(UnqStrainChar == ' ') = 'X'; %Assume empty spaces are wildcards
     
