@@ -74,6 +74,13 @@ for j = 1:size(ClustStr, 1)
 end
 [~, ~, CrudeClustIdx] = unique(ClustStr, 'stable');
 
+%Determine weighted progress data
+CalcPerClust = zeros(1, max(CrudeClustIdx));
+for j = 1:max(CrudeClustIdx)
+    CalcPerClust(j) = sum(CrudeClustIdx == j)^2;
+end
+CalcPerClust = cumsum(CalcPerClust / sum(CalcPerClust)) * 100;
+
 %Perform finer clustering per unique crude cluster
 GrpNumCt = 0; %buildTreeLink will provide a group number clust from 1 to N
 S = buildTreeLink('getheadervar', VDJheader); %For speed, get custom header naming struct S
@@ -82,7 +89,9 @@ for j = 1:max(CrudeClustIdx)
     %Perform fine clustering on crude clusters
     ClustIdx = CrudeClustIdx == j;
     Tdata = VDJdata(ClustIdx, :);
-    fprintf('    %s: Cluster %d of %d, size = %d\n', mfilename, j, max(CrudeClustIdx), size(Tdata, 1));
+    if mod(j, 5) == 0
+        showStatus(sprintf('Clustering %d / %d (%0.1f%%)', j, max(CrudeClustIdx), CalcPerClust(j)));
+    end
 
     %If only 1-member, skip everything and update group number only
     if size(Tdata, 1) == 1
@@ -119,4 +128,5 @@ for j = 1:max(CrudeClustIdx)
     Tdata(:, H.GrpNumLoc) = num2cell(GrpNum2); %Fix the group number
     VDJdata(ClustIdx, :) = Tdata;
 end
+
 VDJdata(DelIdx, :) = []; %Delete those that has been reduced from duplicate seq

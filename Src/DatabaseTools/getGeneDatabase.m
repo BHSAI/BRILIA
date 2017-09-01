@@ -118,6 +118,7 @@ DatabaseFolder = [DBPath DatabaseNames{DatabaseIdx} SlashType];
 DB = processIMGTfasta(DatabaseFolder);
 
 if isempty(varargin) || ~strcmpi(varargin{1}, 'suppress')
-    fprintf('Germline gene databases were downloaded from http://www.imgt.org.\n');
-    fprintf('IMGT founder and director: Marie-Paule Lefranc, Montpellier, France\n');
+    fprintf('  Germline gene databases were downloaded from http://www.imgt.org.\n');
+    fprintf('  IMGT founder and director: Marie-Paule Lefranc, Montpellier, France\n');
+    fprintf('\n');
 end

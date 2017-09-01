@@ -33,8 +33,8 @@ else
     error('readFasta: input file not specified correctly');
 end
 
-fprintf('%s: Fasta FileName: %s\n', mfilename, InputFileName);
-fprintf('%s: SeqRange: %d to %d\n', mfilename, SeqRange(1), SeqRange(2));
+% fprintf('%s: Fasta FileName: %s\n', mfilename, InputFileName);
+% fprintf('%s: SeqRange: %d to %d\n', mfilename, SeqRange(1), SeqRange(2));
 
 %Determine number of sequences first
 FID = fopen(InputFileName,'r');
@@ -53,7 +53,7 @@ while 1
     end
 end
 fseek(FID,0,'bof');
-fprintf('%s: Num of seq: %d\n', mfilename, NumLines);
+%fprintf('%s: Num of seq: %d\n', mfilename, NumLines);
 
 if SeqRange(1) < 1; SeqRange(1) = 1; end
 if SeqRange(2) > NumLines; SeqRange(2) = NumLines; end
@@ -84,8 +84,8 @@ while CurLine <= SeqRange(2)
         while TextLine(1) ~= '>' %Get the sequence
             SeqStr = cat(2,SeqStr,TextLine);
             TextLine = fgetl(FID);
-            if isnumeric(TextLine); break; end;
-            if isempty(TextLine); break; end;
+            if isnumeric(TextLine); break; end
+            if isempty(TextLine); break; end
         end
         Sequence{j} = strrep(SeqStr,' ','');
         j = j+1;

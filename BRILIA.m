@@ -118,7 +118,7 @@
 %  Written by Donald Lee, dlee@bhsai.org
 
 function varargout = BRILIA(varargin)
-Version = '3.0.8';
+Version = '3.0.9';
 
 %--------------------------------------------------------------------------
 %For running in matlab, make sure BRILIA paths are added correctly
@@ -236,9 +236,11 @@ Vfunction = Ps.Vfunction;
 
 %--------------------------------------------------------------------------
 %Display credits, etc.
-fprintf('Running BRILIA version %s\n', Version);
-fprintf('Developed at BHSAI\n');
-fprintf('Website: bhsai.org\n');
+fprintf('\n');
+fprintf('  Running BRILIA version %s\n', Version);
+fprintf('  Developed at BHSAI\n');
+fprintf('  Website: bhsai.org\n');
+fprintf('\n');
 
 %--------------------------------------------------------------------------
 %Check the input and output files
@@ -309,7 +311,6 @@ end
 %RunTime = zeros(length(InputFile), 1); %How long it takes per file
 
 %Load databases and filter reference genes according to specifications
-showStatus('Loading germline sequence database ...', StatusHandle);
 if nargin <= 1 %User certainly did not specify species and chain. Assume full guide is needed.
     [~, ~, FileExt] = parseFileName(InputFile{1});
     if ~isempty(FileExt) && ismember(lower(FileExt), {'.fa', '.fasta', '.fastq'})
@@ -358,6 +359,7 @@ showStatus('Setting up parallel computing ...', StatusHandle);
 setParallelProc(NumProc);
 
 for f = 1:length(InputFile)
+    tic
     %----------------------------------------------------------------------
     
     %Specify the folder and name for the Raw and Err annotation file, and
@@ -420,6 +422,8 @@ for f = 1:length(InputFile)
         end
     
         %Part 1 performs initial annotations in batches
+        [~, FileNameOnly, ~] = parseFileName(InputFile{f});
+        showStatus(sprintf('Opening %s ...', FileNameOnly), StatusHandle); 
         for j = 1:BatchSize:SeqCount
             %Determine the seq range
             SeqRange = [j j+BatchSize-1];
@@ -431,11 +435,10 @@ for f = 1:length(InputFile)
             end
 
             %Open the file and get the sequences within range
-            showStatus(sprintf('Processing %d to %d of %s ...', SeqRange(1), SeqRange(end), InputFile{f}), StatusHandle);
+            showStatus(sprintf('Processing sequences %d to %d (total = %d) ...', SeqRange(1), SeqRange(end), SeqCount), StatusHandle);
             [VDJdata, VDJheader] = convertInput2VDJdata(InputFile{f}, 'FileType', FileType, 'Delimiter', Delimiter, 'Chain', Chain, 'SeqRange', SeqRange);
 
             %Check input sequence for bad characters
-            showStatus('Cleaning sequences ...', StatusHandle);
             [VDJdata, BadIdx] = fixInputSeq(VDJdata, VDJheader);
             if max(BadIdx) ~= 0
                 saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
@@ -458,15 +461,13 @@ for f = 1:length(InputFile)
             VDJdata = seedCDR3position(VDJdata, VDJheader, DB, 'Jk, Jl', 3, 14, 'n');
 
             %Search for initial VDJ alignment matches
-            showStatus('Finding initial-guess VDJ annotations ...', StatusHandle)
+            showStatus('Finding initial-guess V(D)J annotations ...', StatusHandle)
             [VDJdata, BadIdx] = findVDJmatch(VDJdata, VDJheader, DB, 'Update', 'Y');
             if max(BadIdx) ~= 0
                 saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
                 VDJdata(BadIdx, :) = [];
             end
-
             %Search for initial VJ alignment matches
-            showStatus('Finding initial-guess VJ annotations ...', StatusHandle)
             [VDJdata, BadIdx] = findVJmatch(VDJdata, VDJheader, DB, 'Update', 'Y');
             if max(BadIdx) ~= 0
                 saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
@@ -540,8 +541,6 @@ for f = 1:length(InputFile)
     GrpNumStart = 0 ;
     FileList = dir([TempDir '*Raw.csv']);
     for t = 1:length(FileList)
-        showStatus(sprintf('Correcting files %d of %d ...', t, length(FileList)), StatusHandle);
-        
         %Check if a Final.csv file already exists to skip
         TempRawFileName = FileList(t).name;
         TempOutputFileName = strrep(TempRawFileName, 'Raw.csv', 'Final.csv');
@@ -550,23 +549,23 @@ for f = 1:length(InputFile)
         end
         
         %Reload the sequence file with same-length CDR3s
-        showStatus(sprintf('Reopening %s ...', TempRawFileName), StatusHandle);
+        showStatus(sprintf('Processing %s ...', TempRawFileName), StatusHandle);
         [VDJdata, VDJheader] = openSeqData([TempDir TempRawFileName]);
 
         %Fix insertion/deletion in V framework
-        showStatus('Fixing indels in V segment ...', StatusHandle)
+        showStatus('Fixing indels in V genes ...', StatusHandle)
         VDJdata = fixGeneIndel(VDJdata, VDJheader, DB);
 
         %Remove pseudogenes from degenerate annotations containing functional ones.
-        showStatus('Removing P and ORF genes if F genes exist ...', StatusHandle)
+        showStatus('Accepting F genes over ORF/P ...', StatusHandle)
         VDJdata = fixDegenVDJ(VDJdata, VDJheader, DB);
 
         %Insure that V and J segments cover the CDR3 region.
-        showStatus('Ensuring V and J segments include 104C and 118W ...', StatusHandle)
+        showStatus('Anchoring 104C and 118W/F ...', StatusHandle)
         VDJdata = constrainGeneVJ(VDJdata, VDJheader, DB);
 
         %Cluster the data based variable region and hamming dist of DevPerc%.
-        showStatus('Performing lineage tree clustering ...', StatusHandle)
+        showStatus('Clustering by lineage ...', StatusHandle)
         [VDJdata, BadVDJdataT] = clusterGene(VDJdata, VDJheader, DevPerc);
         if size(BadVDJdataT, 1) ~= 0
             saveSeqData([TempDir ErrFileName], BadVDJdataT, VDJheader, 'append');
@@ -581,11 +580,11 @@ for f = 1:length(InputFile)
         GrpNumStart = max(GrpNums); 
         
         %Set all groups to have same annotation and VMDNJ lengths.
-        showStatus('Conforming VDJ annotations within clusters ...', StatusHandle)
+        showStatus('Correcting annotations by lineage ...', StatusHandle)
         VDJdata = conformGeneGroup(VDJdata, VDJheader, DB);
 
         %Get better D match based on location of consensus V J mismatches.
-        showStatus('Refining D annotations within clusters ...', StatusHandle)
+        showStatus('Refining D annotations ...', StatusHandle)
         VDJdata = findBetterD(VDJdata, VDJheader, DB);
 
         %Trim V, D, J edges and extract better N regions
@@ -593,7 +592,7 @@ for f = 1:length(InputFile)
         VDJdata = trimGeneEdge(VDJdata, VDJheader, DB);
 
         %Fix obviously incorrect trees.
-        showStatus('Fixing obvious errors in lineage trees ...', StatusHandle)
+        showStatus('Rerooting lineage trees ...', StatusHandle)
         VDJdata = fixTree(VDJdata, VDJheader);
 
         %Finalize VDJdata details and CDR 1, 2, 3 info
@@ -690,6 +689,8 @@ for f = 1:length(InputFile)
     
     %If isempty TempDir, delete
     prepTempDir(TempDir, 'delete');
+    
+    showStatus(sprintf('Finished in %0.1f sec.', toc), StatusHandle);
 end
 varargout{1} = OutputFile;
 

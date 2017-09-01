@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------
+## Patch notice for version 3.0.9
+ - Cleaned up the status text outputs in BRILIA.
+
+
+---------------------------------------------------------------------------
 ## Patch notice for version 3.0.8
  - Fixed tree cluster cutoff to work properly as a percentage hamming distance. Before, it was doing half of that.
  - Fixed parallel processing of pairwise distance to be faster by splitting ONLY large jobs amongst workers, whereas small jobs are done in a single core.

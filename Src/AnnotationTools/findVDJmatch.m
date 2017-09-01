@@ -57,7 +57,7 @@ BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
 
 %Place VDJheader into separate variables due to parfor broadcast issues
 H = getHeavyHeaderVar(VDJheader);
-if H.SeqLoc == 0; %Make sure header exists for right chain
+if H.SeqLoc == 0 %Make sure header exists for right chain
     if nargout >=2
         varargout{1} = BadIdx;
     end
