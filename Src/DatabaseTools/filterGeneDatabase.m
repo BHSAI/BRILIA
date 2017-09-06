@@ -17,8 +17,7 @@
 %      are set to empty ''. This prevents the shifting of Map numbering
 %      schemes required by the software to perform.
  
-function [DB, varargout] = filterRefGene(DB, varargin)
-%Determine the inputs
+function [DB, varargout] = filterGeneDatabase(DB, varargin)
 P = inputParser;
 addParameter(P, 'Strain', '', @ischar); %For mouse, select strain(s)
 addParameter(P, 'Ddirection', '', @ischar); %Inv, fwd, or all direction
@@ -41,12 +40,15 @@ if ~isempty(regexpi(DB.FilePath, 'mouse'))
         disp('What mouse strain is it? ')
         dispList(UnqStrain)
         StrainNum = -1;
+        Attempt = 0;
         while StrainNum < 1 || StrainNum > length(UnqStrain)
-            StrainNum = input('Select Option: ');
+            StrainNum = input('Select option: ');
             if isempty(StrainNum)
                 StrainNum = 1;
                 break
             end
+            Attempt = Attempt + 1;
+            if Attempt >= 5; break; end
         end
     else %Determine which unq strain matches with user input
         StrainNum = findCell(UnqStrain, P.Strain, 'MatchCase', 'Any', 'MatchWord', 'Partial');
@@ -58,12 +60,15 @@ if ~isempty(regexpi(DB.FilePath, 'mouse'))
             disp('Multiple strains possible. What mouse strain is it? ')
             dispList(UnqStrain(StrainNum))
             StrainNumT = -1; 
+            Attempt = 0;
             while StrainNumT < 1 || StrainNumT > length(StrainNum)
-                StrainNumT = input('Select Option: ');
+                StrainNumT = input('Select option: ');
                 if isempty(StrainNumT)
                     StrainNumT = 1;
                     break
                 end
+                Attempt = Attempt + 1;
+                if Attempt >= 5; break; end
             end
             StrainNum = StrainNum(StrainNumT);
         end
@@ -102,8 +107,11 @@ if isempty(P.Ddirection) %Ask user to determine which direction D to search
     if isempty(SearchDopt)
         SearchDopt = 1;
     end
+    Attempt = 0;
     while SearchDopt < 1 || SearchDopt > 3
         SearchDopt = input('Select option: ');
+        Attempt = Attempt + 1;
+        if Attempt >= 5; break; end
     end
 else %Search of user selection
     SearchDopt = findCell(DsearchOptions, P.Ddirection, 'MatchCase', 'any', 'MatchWord', 'partial');
@@ -134,6 +142,7 @@ if isempty(P.Vfunction) %Ask user to determine which direction D to search
     disp('Which V gene functionality do you want? Can list multiple via comma (EX: 2, 3)');
     dispList(FunctOptions);
     FunctOpt = -1;
+    Attempt = 0;
     while min(FunctOpt) < 1 || max(FunctOpt) > length(FunctOptions)
         FunctOpt = input('Select option: ', 's');
         if isempty(FunctOpt); FunctOpt = '1'; end
@@ -142,6 +151,8 @@ if isempty(P.Vfunction) %Ask user to determine which direction D to search
         else
             FunctOpt = -1;
         end
+        Attempt = Attempt + 1;
+        if Attempt >= 5; break; end
     end
 else
     Vfunction = regexp(P.Vfunction, ',', 'split');

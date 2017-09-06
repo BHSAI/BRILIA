@@ -61,7 +61,7 @@
 %    This function will look in the directory ./Database_Manager/[Species]
 %    to load the sequences files stored in the csv file.
 
-function DB = getGeneDatabase(Species, varargin)
+function DB = getGeneDatabase(varargin)
 %Locate the database path
 RootPath = findRoot();
 SlashType = RootPath(regexp(RootPath, '\\|\/', 'once'));
@@ -90,9 +90,35 @@ DBFolders(DelLoc) = [];
 DatabaseNames = struct2cell(DBFolders);
 DatabaseNames = DatabaseNames(1, :)';
 
-if strcmpi(Species, 'getlist')
+if ~isempty(varargin) && ischar(varargin{1}) && strcmpi(varargin{1}, 'getlist')
     DB = DatabaseNames;
     return;
+end
+
+if isempty(varargin) || isempty(varargin{1})
+    SpeciesList = getGeneDatabase('getList');
+    fprintf('What species is it?\n');
+    dispList(SpeciesList);
+    Attempt = 0;
+    while 1
+        Selection = input('Select option: ', 's');
+        try 
+            Selection = round(eval(Selection));
+            if Selection > 0 && Selection <= length(SpeciesList)
+                Species = SpeciesList{Selection};
+                break;
+            end
+        catch
+        end
+        Attempt = Attempt + 1;
+        if Attempt >= 5 
+            error('%s: Did not choose correct option.', mfilename);
+        end
+    end
+elseif ~isempty(varargin)
+    Species = varargin{1};
+else    
+    error('%s: Input is incorrect.', mfilename);
 end
 
 %Determine which folder the user is specifying

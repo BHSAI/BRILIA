@@ -123,13 +123,13 @@ Version = '3.0.9';
 %--------------------------------------------------------------------------
 %For running in matlab, make sure BRILIA paths are added correctly
 if ~isdeployed
-    CurPaths = regexp(path, ';', 'split')';
+    CurPaths = regexp(path, pathsep, 'split')';
     MainPath = mfilename('fullpath');
-    SlashLoc = regexp(MainPath, '\\|\/');
+    SlashLoc = regexp(MainPath, filesep);
     MainPath = MainPath(1:SlashLoc(end)-1);
     HavePath = 0;
     for p = 1:length(CurPaths)
-        if strcmp(CurPaths{p}, MainPath(1:end)) %Note that matlab does not save the final slash.
+        if strcmp(CurPaths{p}, MainPath) %Note that matlab does not save the final slash.
             HavePath = 1;
             break
         end
@@ -141,8 +141,6 @@ end
 
 %--------------------------------------------------------------------------
 %Handle various inputs from matlab or OS command lines
-varargout = cell(1, nargout);
-
 P = inputParser;
 addOptional(P, 'InputFileT', '', @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'InputFile', '', @(x) ischar(x) || iscell(x) || isempty(x));
@@ -165,27 +163,28 @@ addParameter(P, 'OutputFile', [], @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'BatchSize', 1000, @(x) isnumeric(x) && x >= 1);
 
 varargin = cleanCommandLineInput(varargin{:});
+varargout = cell(1, nargout);
 
 %Get and show the version number
 if ~isempty(varargin) && ischar(varargin{1}) && ismember(varargin{1}, {'getversion', 'version'})
     if nargout == 0
-        fprintf('BRILIA VERSION %s\n', Version);
-        fprintf('\n');
+        fprintf('BRILIA VERSION %s\n\n', Version);
     else
         varargout{1} = Version;
     end
     return;
 end
 
-%Determine if using a subfunction
-if ~isempty(varargin) && ischar(varargin{1})
-    if isempty(regexpi(varargin{1}, '[^\w\d\_]'))
-        try
-            FH = str2func(varargin{1});
-            FH(varargin{2:end});
-            return;
-        catch
-        end
+%Determine if using a BRILIA subfunction
+if ~isempty(varargin) && ~isempty(varargin{1}) && ischar(varargin{1}) && ... %Is a word
+    isempty(regexpi(varargin{1}, '[^\w\d\_]')) && ... %No odd symbol
+    varargin{1}(1) == lower(varargin{1}(1)) %lowerCamel    
+    try
+        FH = str2func(varargin{1});
+        FH(varargin{2:end});
+        return;
+    catch ME
+        rethrow(ME);
     end
 end
 
@@ -237,7 +236,7 @@ Vfunction = Ps.Vfunction;
 %--------------------------------------------------------------------------
 %Display credits, etc.
 fprintf('\n');
-fprintf('  Running BRILIA version %s\n', Version);
+fprintf('  Running BRILIA v%s\n', Version);
 fprintf('  Developed at BHSAI\n');
 fprintf('  Website: bhsai.org\n');
 fprintf('\n');
@@ -247,20 +246,20 @@ fprintf('\n');
 
 %Get the full file names of input sequences
 if isempty(InputFile) %Ask user to choose
-    [FileNames, OutputFilePath] = uigetfile('*.fa*;*.*sv', 'Select the input sequence files', 'multiselect', 'on');
-    if isnumeric(FileNames)
+    [InputFileNames, InputFilePath] = openFileDialog('*.fa*;*.*sv', 'Select the input sequence files', 'multiselect', 'on');
+    if isnumeric(InputFileNames) || isempty(InputFileNames)
         return;
     end
-    if ischar(FileNames)
-        FileNames = {FileNames};
+    if ischar(InputFileNames)
+        InputFileNames = {InputFileNames};
     end
-    InputFile = cell(length(FileNames), 1);
-    for f = 1:length(FileNames)
-        InputFile{f} = [OutputFilePath, FileNames{f}];
+    InputFile = cell(length(InputFileNames), 1);
+    for f = 1:length(InputFileNames)
+        InputFile{f} = [InputFilePath, InputFileNames{f}];
     end
 elseif ischar(InputFile) %Store single file as cell too
-    [OutputFilePath, OutputFileName, ~] = parseFileName(InputFile, 'ignorefilecheck'); %Ignore file check for now, as that's done next.
-    InputFile = {[OutputFilePath OutputFileName]}; %Ensure file path is always there
+    [InputFilePath, InFileName, ~] = parseFileName(InputFile, 'ignorefilecheck'); %Ignore file check for now, as that's done next.
+    InputFile = {[InputFilePath InFileName]}; %Ensure file path is always there
 end
 
 %Make sure same number of output files as input files are specified
@@ -268,9 +267,8 @@ if ~isempty(OutputFile)
     if ischar(OutputFile)
         OutputFile = {OutputFile};
     end
-    %Make sure equal number of input and output files
     if length(OutputFile) ~= length(InputFile)
-        error('%s: Number of input files specified differs from number of output files specified.');
+        error('%s: Mismatched number of input (%d) and output files (%d).', mfilename, length(InputFile), length(OutputFile));
     end
 end
 
@@ -281,9 +279,9 @@ for f = 1:length(InputFile)
         DelFiles(f) = 1;
         continue;
     end
-    [~, OutputFileName, FileExt] = parseFileName(InputFile{f});
-    if ~ismember(lower(FileExt), {'.fa', '.fasta', '.fastq', '.xls', '.xlsx', '.csv', '.tsv'})
-        warning('%s: Unfamiliar FileType for file = "%s". \n  -> Can still process if the FileType and Delimiter parameters are set correctly.', mfilename, OutputFileName);
+    [~, FileName, FileExt] = parseFileName(InputFile{f});
+    if ~ismember(lower(FileExt), {'.fa', '.fasta', '.fastq', '.csv', '.tsv', '.ssv', '.txt'})
+        warning('%s: Unfamiliar file type (%s) for file (%s). \n  -> Can still process if the "FileType" and "Delimiter" parameters are set.', mfilename, FileExt, FileName);
     end
 end
 InputFile(DelFiles) = [];
@@ -296,9 +294,8 @@ if isempty(OutputFile)
     OutputFile = cell(size(InputFile));
     for f = 1:length(OutputFile)
         [OutputFilePath, OutputFileName, ~] = parseFileName(InputFile{f});
-        SlashType = OutputFilePath(end);
         DotLoc = find(OutputFileName == '.');
-        SaveFilePath = [OutputFilePath OutputFileName(1:DotLoc(end)-1) SlashType];
+        SaveFilePath = [OutputFilePath OutputFileName(1:DotLoc(end)-1) filesep];
         OutputFileName = [OutputFileName(1:DotLoc(end)-1) '.BRILIAv' Version(1) '.csv'];
         OutputFile{f} = [SaveFilePath OutputFileName];
     end
@@ -307,20 +304,24 @@ else
 end
 
 %==========================================================================
-%BRILIA processing begins here (GUI option cannot do multiple files yet).
-%RunTime = zeros(length(InputFile), 1); %How long it takes per file
+%BRILIA processing begins 
 
 %Load databases and filter reference genes according to specifications
-if nargin <= 1 %User certainly did not specify species and chain. Assume full guide is needed.
+if nargin <= 1 %User did not specify species and chain, so ask user.
     [~, ~, FileExt] = parseFileName(InputFile{1});
+    
+    %Select the straing
     if ~isempty(FileExt) && ismember(lower(FileExt), {'.fa', '.fasta', '.fastq'})
         ChainList = {'H', 'L'};
+        fprintf('Note: only delimited files can do H+L chains.\n'); 
     else
         ChainList = {'H', 'L', 'HL'};
     end
+    fprintf('What IG chain is it?\n');
     dispList(ChainList);
+    Attempt = 0;
     while 1
-        Selection = input('Select Heavy or Light IG chain. Only delimited files can do H+L chains. :  ', 's');
+        Selection = input('Select option: ', 's');
         if isempty(Selection)
             Selection = '1';
         end
@@ -332,23 +333,16 @@ if nargin <= 1 %User certainly did not specify species and chain. Assume full gu
             end
         catch
         end
-    end
-    
-    SpeciesList = getGeneDatabase('getList');
-    dispList(SpeciesList);
-    while 1
-        Selection = input('Select the species. ', 's');
-        try 
-            Selection = round(eval(Selection));
-            if Selection > 0 && Selection <= length(SpeciesList)
-                Species = SpeciesList{Selection};
-                break;
-            end
-        catch
+        Attempt = Attempt + 1;
+        if Attempt >= 5
+            error('%s: Did not choose correct option.', mfilename);
         end
     end
-    Strain = ''; %Setting to empty will force filterGeneDatabse to ask users what to filter.
-    Ddirection = '';
+    
+    %Set these to empty to make the next functions ask the user.
+    Species = '';
+    Strain = ''; 
+    Ddirection = ''; 
     Vfunction = '';
 end
 DB = getGeneDatabase(Species);
@@ -361,35 +355,35 @@ setParallelProc(NumProc);
 for f = 1:length(InputFile)
     tic
     %----------------------------------------------------------------------
+    %File Management
     
-    %Specify the folder and name for the Raw and Err annotation file, and
-    %Temp dir for storing files while annotating
-    [OutputFilePath, OutputFileName, ~] = parseFileName(OutputFile{f});
-    SlashType = OutputFilePath(end);
+    %Specify the Temp folder and Raw and Err annotation files
+    [OutputFilePath, OutputFileName, ~] = parseFileName(OutputFile{f}, 'ignorefilecheck');
     DotLoc = find(OutputFileName == '.');
     ErrFileName = [OutputFileName(1:DotLoc(end)) 'Err.csv'];
     RawFileName = [OutputFileName(1:DotLoc(end)) 'Raw.csv'];
-    TempDir = [OutputFilePath 'Temp' SlashType];
+    TempDir = [OutputFilePath 'Temp' filesep];
  
-    %If a ResumeFrom folder name is provided, assume you're resuming and
-    %try to move Raw.csv into the TempDir.
+    %If using ResumeFrom, try to move Raw.csv into the TempDir.
     if ~isempty(ResumeFrom)
         %Get just the folder path in case user specified a file instead
         [ResumePath, ResumeName, ResumeExt] = parseFileName(ResumeFrom);
         if isempty(ResumePath)
-            error('%s: Could not find folder to resume from [%s].', mfilename, ResumePath);
+            error('%s: Could not find folder to resume from. \n  "%s"', mfilename, ResumePath);
         end
         if isempty(ResumeExt)
-            ResumePath = cat(2, ResumePath, ResumeName, SlashType);
+            ResumePath = cat(2, ResumePath, ResumeName, filesep);
         end
+        showStatus(sprintf('Resuming from %s ...', ResumePath), StatusHandle); 
         
         %If *Raw.csv files exist, copy it to temp dir and resume.
         RawFileStruct = dir([ResumePath '*Raw.csv']); 
         if isempty(RawFileStruct)
-            error('%s: Could not find Raw file needed for resuming from at [%s]', mfilename, ResumePath);
+            error('%s: Could not find Raw file needed for resuming from at "%s"', mfilename, ResumePath);
         end
         
         %Copy over raw files into the TempDir
+        prepTempDir(TempDir);
         for q = 1:length(RawFileStruct)
             copyfile([ResumePath RawFileStruct(q).name], [TempDir RawFileStruct(q).name], 'f');
         end
@@ -399,7 +393,7 @@ for f = 1:length(InputFile)
     %If Resume = 'y', make sure temp dir is not empty
     if strcmpi(Resume, 'y') 
         if ~exist(TempDir, 'dir') || (exist(TempDir, 'dir') && isempty(dir([TempDir '*Raw.csv'])))
-            warning('%s: Could not resume BRILIA from a incomplete job because could not find TempDir = "%s" with valid *Raw.csv files.', mfilename, TempDir); 
+            warning('%s: Could not resume. Cannot find temp dir with *Raw.csv files at "%s".', mfilename, TempDir); 
             Resume = 'n';
         end
     end
