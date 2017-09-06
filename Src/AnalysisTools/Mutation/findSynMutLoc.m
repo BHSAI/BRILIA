@@ -57,7 +57,7 @@ end
 SynLoc = zeros(1, length(RefSeq), 'logical');
 NonsynLoc = zeros(1, length(RefSeq), 'logical');
 MutLoc = RefSeq ~= Seq;
-if max(MutLoc) == 0; %Nothing to mark
+if max(MutLoc) == 0 %Nothing to mark
     if nargout == 2
         varargout{1} = NonsynLoc;
     end
@@ -67,8 +67,8 @@ end
 %For each codon, check if there's different nt
 for j = Frame:3:length(RefSeq)-2
     if max(MutLoc(j:j+2)) == 1 %There is a mutation, so check
-        if ~isempty(strfind(RefSeq(j:j+2), 'N')); continue; end
-        if ~isempty(strfind(Seq(j:j+2), 'N')); continue; end
+        if contains(RefSeq(j:j+2), 'N'); continue; end
+        if contains(Seq(j:j+2), 'N'); continue; end
         AA1 = nt2aa(RefSeq(j:j+2), 'ACGTonly', false);
         AA2 = nt2aa(Seq(j:j+2), 'ACGTonly', false);
         if AA1 ~= AA2 %Replacement

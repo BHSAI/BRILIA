@@ -2,14 +2,16 @@
 %occuring around the various 2- or 3- nucleotid motifs, storing also the
 %relative mutation frequencies from X -> Y. This is computed per
 %parent-child relationship.
-function MotifData = collectMotifData(varargin)
-[VDJdata, VDJheader, ~, ~, varargin] = getPlotVDJdata(varargin{:});
-
-%Parse the input
+function varargout = collectMotifData(varargin)
 P = inputParser;
 addParameter(P, 'Chain', '', @(x) ismember({upper(x)}, {'H', 'L', 'HL', ''}));
 addParameter(P, 'MutType', 'All', @(x) ismember({upper(x)}, {'All', 'S', 'N'}));
-parse(P, varargin{:})
+[VDJdata, VDJheader, ~, ~, varargin] = getPlotVDJdata(varargin{:});
+[Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
+if ReturnThis
+   varargout = {Ps, Pu, ExpPs, ExpPu};
+   return;
+end
 Chain = P.Results.Chain;
 MutType = P.Results.MutType;
 
@@ -31,7 +33,7 @@ MotifData.Data = [];
 
 %Determine which chain datat to extract
 [H, L, ChainT] = getAllHeaderVar(VDJheader);
-if ~isempty(Chain) && isempty(strfind(ChainT, Chain))
+if ~isempty(Chain) && ~contains(ChainT, Chain)
     warning('%s: No data for this Ig chain - %s', mfilename, Chain);
     return
 else
@@ -50,7 +52,6 @@ else
     SeqLoc = [H.SeqLoc, L.SeqLoc];
     CDR3sLoc = [H.CDR3Loc(3), L.CDR3Loc(3)];
 end
-
 
 %Create the mutation matrix
 for j = 1:size(VDJdata,1)
@@ -93,3 +94,5 @@ for j = 1:size(VDJdata,1)
     end
 end
 MotifData.Data = RelMutCell;
+
+varargout{1} = MotifData;

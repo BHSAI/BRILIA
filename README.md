@@ -59,10 +59,11 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ```
   \BRILIA>  BRILIA.exe [input_file] Species [species_name] Chain H
 ```
-8. To plot lineage trees, type the following:
+8. To plot lineage trees, type:
 ```
   \BRILIA>  BRILIA.exe plotTree [BRILIA_output_file]
 ```
+  Trees will be saved in a folder called "Tree" in the same folder where the output file is.
 
 ### For LINUX
 5. Open up the linux terminal.
@@ -84,10 +85,12 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ```
   BRILIA]$  ./run_BRILIA.sh [mcr_library_path] [input_file] Species [species_name] Chain H
 ```
-8. To plot lineage tree, type:
+8. To plot lineage trees, type:
 ```
   BRILIA]$  ./run_BRILIA.sh [mcr_library_path] plotTree [BRILIA_output_file]
 ```
+  Trees will be saved in a folder called "Tree" in the same folder where the output file is.
+
 
 ## Running BRILIA in MATLAB 
 

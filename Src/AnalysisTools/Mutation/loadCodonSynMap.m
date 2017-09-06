@@ -16,7 +16,7 @@
 %      0     1     0   %ACT -> AAT changes AA
 %      1     0     0   %ACT -> CCT changes AA
 %      1     1     0   %ACT -> GGT changes AA
-%      1     1     0   
+%      1     1     0   %ACT -> TTT changes AA
 function codonSRMap = loadCodonSynMap()
 
 %Generate 64 codons and it's silent/replacement mutation matrix SRM 

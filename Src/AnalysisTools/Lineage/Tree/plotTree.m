@@ -88,8 +88,6 @@ addParameter(P, 'SaveAs', '', @(x) ischar(x) || isempty(x));
 addParameter(P, 'SaveDir', '', @(x) ischar(x) || isempty(x));
 addParameter(P, 'SaveSubDir', 'Tree', @(x) ischar(x) || isempty(x));
 addParameter(P, 'StatusHandle', [], @(x) ishandle(x) || isempty(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
-% 
-% addParameter(P, 'ShowStatus', 'y', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
 
 if ~(~isempty(varargin) && ischar(varargin{1}) && ismember(lower(varargin{1}), {'getinput', 'getinputs', 'getvarargin'}))
     [VDJdata, VDJheader, ~, FilePath, varargin] = getPlotVDJdata(varargin{:});
@@ -126,7 +124,6 @@ FigSpacer = Ps.FigSpacer;
 SaveAs = Ps.SaveAs;
 SaveDir = Ps.SaveDir;
 SaveSubDir = Ps.SaveSubDir;
-% ShowStatus = Ps.ShowStatus;
 StatusHandle = Ps.StatusHandle;
 
 %Check if Min/Max values are valid
