@@ -25,14 +25,11 @@ if ischar(FileName)
     FileName = {FileName};
 end
 
-if ~isempty(regexp(FileName{1},'\\|\/','once'))
+if ~isempty(regexp(FileName{1}, filesep, 'once'))
    FullFileName = FileName;
 else
     if ~exist('FilePath','var')
-        FilePath = cd;
-        SlashLoc = regexp(FilePath,'\\|\/');
-        SlashType = FilePath(SlashLoc(end));
-        FilePath = [FilePath SlashType];
+        FilePath = [cd filesep];
     end
     FullFileName = cell(length(FileName),1);
     for f = 1:length(FileName)
@@ -60,7 +57,7 @@ for f = 1:length(FullFileName)
     Im = MaxVal - Im;
     DotLoc = find(FileName == '.');
     SaveName = [FileName(1:DotLoc(end)) 'inv' FileExt];
-    imwrite(Im,[FilePath SaveName])
+    imwrite(Im, [FilePath SaveName])
 end
 
 

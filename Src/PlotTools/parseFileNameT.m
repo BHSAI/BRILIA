@@ -44,7 +44,7 @@ FileName = [];
 FileExt = [];
 
 %Case when no file path is given, assume cd is file path
-SlashLoc = regexp(FullName,'\\|\/'); %Location of fwd or bwd slashes
+SlashLoc = regexp(FullName, filesep);
 if isempty(SlashLoc)
     FileName = FullName;
     DotLoc = find(FileName == '.');
@@ -53,13 +53,9 @@ if isempty(SlashLoc)
             FileExt = FileName(DotLoc(end):end);
         end
     end
-    %Assume FilePath is cd for now
-    if ispc
-        FilePath = [cd '\'];
-    else
-        FilePath = [cd '/'];
-    end
+    
     %Make sure the file does exist before specifying the file path as cd
+    FilePath = [cd filesep]; %Assume FilePath is cd for now
     if ~exist([FilePath FileName], 'file') && CheckFileExists == 'y'
         FilePath = [];
         %warning('%s: File path unknown for %s', mfilename, FileName);

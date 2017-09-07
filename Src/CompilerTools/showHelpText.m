@@ -13,16 +13,15 @@
 
 function showHelpText(Name, varargin)
 CurDir = cd;
-SlashType = CurDir(regexpi(CurDir, '\\|\/', 'once'));
 
 %If HelpDir is given, see if it exists
 HelpDir = '';
 if ~isempty(varargin) && ischar(varargin{1})
     HelpDir = varargin{1};
-    if HelpDir(end) ~= SlashType
-        HelpDir = cat(2, HelpDir, SlashType);
+    if HelpDir(end) ~= filesep
+        HelpDir = cat(2, HelpDir, filesep);
     end
-    if ~exist(HelpDir, 'dir');
+    if ~exist(HelpDir, 'dir')
         HelpDir = '';
     end
 end
@@ -63,8 +62,8 @@ if ~exist([HelpDir HelpTextName], 'file') %Need to search for a valid HelpDir
     SelectLoc = PotentialLoc(HelpDirLoc(PotentialLoc) == min(HelpDirLoc(PotentialLoc)));
     SelectLoc = SelectLoc(1);
     HelpDir = SubDir{SelectLoc};
-    if HelpDir(end) ~= SlashType
-        HelpDir = cat(2, HelpDir, SlashType);
+    if HelpDir(end) ~= filesep
+        HelpDir = cat(2, HelpDir, filesep);
     end
 end
 

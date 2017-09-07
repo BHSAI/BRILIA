@@ -68,4 +68,5 @@ fprintf('%s: labelSubplots(gcf, ''shift'', 0.01, -0.01)\n', mfilename);
 labelSubplots(gcf, 'shift', 0.01, -0.01)
 pause(1);
 
+fprintf('%s: invertFigColor(gcf)\n', mfilename);
 invertFigColor(gcf)

@@ -27,19 +27,18 @@ end
 if isempty(P.Dir)
     P.Dir = cd;
 end
-SlashType = P.Dir(regexp(P.Dir, '\\|\/', 'once'));
-if ~strcmp(P.Dir(end),SlashType)
-    P.Dir = [cd SlashType];
+if ~strcmp(P.Dir(end), filesep)
+    P.Dir = [cd filesep];
 end
 
 %Determine the save directory
 if isempty(P.SaveTo)
-    P.SaveTo = [P.Dir 'HelpText' SlashType];
+    P.SaveTo = [P.Dir 'HelpText' filesep];
 else
     [FilePath, FileName, FileExt] = parseFileName(P.SaveTo, 'ignorefilecheck');
     if isempty(FileExt) 
         if ~isempty(FileName)
-            FilePath = cat(2, FilePath, FileName, SlashType);
+            FilePath = cat(2, FilePath, FileName, filesep);
         end
     else
         error('%s: SaveTo should be a folder, not a file name', mfilename);
@@ -65,8 +64,8 @@ if strcmpi(P.CheckSub(1), 'y')
     end
     %Add the '\'
     for j = 1:length(P.Dir)
-        if ~strcmp(P.Dir{j}(end), SlashType)
-            P.Dir{j} = [P.Dir{j} SlashType];
+        if ~strcmp(P.Dir{j}(end), filesep)
+            P.Dir{j} = [P.Dir{j} filesep];
         end
     end
 else

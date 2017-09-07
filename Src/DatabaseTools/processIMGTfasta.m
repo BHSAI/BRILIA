@@ -57,23 +57,21 @@ function DB = processIMGTfasta(varargin)
 %Find the folder where the database is stored
 if isempty(varargin) || isempty(varargin{1})
     DatabaseFolder = uigetdir(cd, 'Select directory storing fasta files');
-    SlashLoc = regexpi(DatabaseFolder, '\\|\/', 'once');
-    SlashType = DatabaseFolder(SlashLoc);
-    DatabaseFolder = [DatabaseFolder SlashType];
 else
     DatabaseFolder = varargin{1};
-    SlashLoc = regexpi(DatabaseFolder, '\\|\/', 'once');
-    SlashType = DatabaseFolder(SlashLoc);
+end
+if strcmpi(DatabaseFolder(end), filesep)
+    DatabaseFolder = [DatabaseFolder filesep];
 end
 
 %Determine the species name based on the folder name
-SlashLoc = regexpi(DatabaseFolder, '\\|\/');
+SlashLoc = regexpi(DatabaseFolder, filesep);
 SpeciesName = DatabaseFolder(SlashLoc(end-1)+1:SlashLoc(end)-1);
 SpeciesName = strrep(SpeciesName, ' ', '_');
 
 %Find the GeneTable folder and file if it exists.
 if exist([DatabaseFolder 'GeneTable'], 'dir') > 0
-    GeneTableFiles = dir([DatabaseFolder 'GeneTable' SlashType '*.csv']);
+    GeneTableFiles = dir([DatabaseFolder 'GeneTable' filesep '*.csv']);
 else
     GeneTableFiles = [];
 end
@@ -97,7 +95,7 @@ for j = 1:length(FastaFiles)
             IGname = upper(IGname{1});
             CellLoc = findCell(FileOrder, IGname, 'MatchCase', 'Any');
             if CellLoc(1) > 0
-                DBlist{CellLoc, 2} = [DatabaseFolder 'GeneTable' SlashType GeneTableFiles(j).name];
+                DBlist{CellLoc, 2} = [DatabaseFolder 'GeneTable' filesep GeneTableFiles(j).name];
             end
         end
     end

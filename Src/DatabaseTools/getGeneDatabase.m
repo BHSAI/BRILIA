@@ -64,8 +64,7 @@
 function DB = getGeneDatabase(varargin)
 %Locate the database path
 RootPath = findRoot();
-SlashType = RootPath(regexp(RootPath, '\\|\/', 'once'));
-DBPath = [RootPath 'Databases' SlashType];
+DBPath = [RootPath 'Databases' filesep];
 if ~exist(DBPath, 'dir')
     error('%s: Could not locate the "Databases" folder at [ %s ]', mfilename, DBPath);
 end
@@ -79,8 +78,8 @@ for j = 1:length(DelLoc)
     elseif strcmpi(DBFolders(j).name, '.') || strcmpi(DBFolders(j).name, '..')
             DelLoc(j) = 1;
     else %Check if there is a fa or csv file inside
-        FastaFiles = dir([DBPath DBFolders(j).name SlashType '*.fa']);
-        CsvFiles = dir([DBPath DBFolders(j).name SlashType '*.csv']);
+        FastaFiles = dir([DBPath DBFolders(j).name filesep '*.fa']);
+        CsvFiles = dir([DBPath DBFolders(j).name filesep '*.csv']);
         if isempty(FastaFiles) && isempty(CsvFiles)
             DelLoc(j) = 1;
         end
@@ -138,7 +137,7 @@ elseif length(DatabaseIdx) > 1
     error('%s: Multiple databases found for this species. Be more specific, or use exact folder name\n.', mfilename);
 end
 
-DatabaseFolder = [DBPath DatabaseNames{DatabaseIdx} SlashType];
+DatabaseFolder = [DBPath DatabaseNames{DatabaseIdx} filesep];
 
 %Get DB and display reference acknowledgement
 DB = processIMGTfasta(DatabaseFolder);

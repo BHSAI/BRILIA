@@ -7,9 +7,8 @@
 function RootDir = findRoot
 %Get the file name and segment by slash locations
 [FilePath, ~, ~] = parseFileName(mfilename('fullpath'));
-SlashType = FilePath(regexp(FilePath, '\\|\/', 'once'));
-SlashLoc = regexp(FilePath, '\\|\/');
-FilePathParts = regexp(FilePath, SlashType, 'split');
+SlashLoc = regexp(FilePath, filesep);
+FilePathParts = regexp(FilePath, filesep, 'split');
 
 %Identify the locations of either the main folder or Src folder (in case
 %the user renamed the folder).

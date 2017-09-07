@@ -92,13 +92,12 @@ end
 if isempty(FileName) 
     error('%s: The SaveAs name [ %s ] is not valid', mfilename, SaveAs);
 end
-SlashType = FilePath(regexpi(FilePath, '\\|\/', 'once'));
 
 %Override the file path IF SaveAs does not have a file path slash
-if ~isempty(SaveDir) && isempty(regexpi(SaveAs, '\\|\/', 'once'))
+if ~isempty(SaveDir) && isempty(regexpi(SaveAs, filesep, 'once'))
     FilePath = SaveDir;
-    if FilePath(end) ~= SlashType
-        FilePath(end+1) = SlashType;
+    if FilePath(end) ~= filesep
+        FilePath = [FilePath filesep];
     end
 end
 
@@ -126,8 +125,8 @@ if ~isempty(SaveSubDir)
         error('%s: SaveSubDir [ %s ]cannot have double slashes.', mfilename, SaveSubDir);
     end
     %Convert wrong-direction slashes and remove 1st and last slashes
-    SlashLoc = regexpi(SaveSubDir, '\\|\/');
-    SaveSubDir(SlashLoc) = SlashType;
+    SlashLoc = regexpi(SaveSubDir, filesep);
+    SaveSubDir(SlashLoc) = filesep;
     FirstLastLoc = intersect(SlashLoc, [1 length(SaveSubDir)]);
     SaveSubDir(FirstLastLoc) = [];
     %Remove invalid char, which are non-letter, non-underscore, non-slash
@@ -138,7 +137,7 @@ if ~isempty(SaveSubDir)
         warning('%s: SaveSubDir name is [ %s ]', mfilename, SaveSubDir);
     end
     if ~isempty(SaveSubDir)
-        FilePath = [FilePath SaveSubDir SlashType];
+        FilePath = [FilePath SaveSubDir filesep];
     end
 end
 

@@ -15,17 +15,16 @@
 %    'delete': will delete the TempDir ONLY if it is empty
 
 function prepTempDir(TempDir, varargin)
-SlashType = TempDir(regexp(TempDir, '\\|\/', 'once'));
-if isempty(SlashType)
-    error('%s: TempDir should have a slash in its name', mfilename);
+if isempty(regexp(TempDir, filesep, 'once'))
+    error('%s: TempDir "%s" should have "%s" in it.', mfilename, TempDir, filesep);
 end
-if TempDir(end) ~= SlashType
-    TempDir = cat(2, TempDir, SlashType);
+if TempDir(end) ~= filesep
+    TempDir = [TempDir filesep];
 end
 
 %Deletes empty Temp dir
 if ~isempty(varargin) && ischar(varargin{1}) && strcmpi(varargin{1}, 'delete')
-    if ~exist(TempDir, 'dir'); 
+    if ~exist(TempDir, 'dir')
         return; 
     end
     FileContents = dir([TempDir '*.*']);

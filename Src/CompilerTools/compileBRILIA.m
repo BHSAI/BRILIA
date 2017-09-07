@@ -4,7 +4,6 @@
 function compileBRILIA()
 %Make sure this is running from root, and change current directy if needed
 RootDir = findRoot();
-SlashType = RootDir(end);
 cd(RootDir);
 if ~strcmpi(RootDir(1:end-1), cd)
     error('%s: Run this from the BRILIA root dir [ %s]', mfilename, RootDir);
@@ -12,9 +11,9 @@ end
 
 %Determine where to save the Bin files
 if ispc
-    TargetDir = [RootDir 'Bin' SlashType 'Win' SlashType];
+    TargetDir = [RootDir 'Bin' filesep 'Win' filesep];
 elseif isunix
-    TargetDir = [RootDir 'Bin' SlashType 'Linux' SlashType];
+    TargetDir = [RootDir 'Bin' filesep 'Linux' filesep];
 end
 [Success, Msg] = mkdir(TargetDir);
 if Success == 0
@@ -23,7 +22,7 @@ end
 
 %Compile the help text for command-line retrieval of help info
 fprintf('%s: %s\n', mfilename, 'Compiling help texts.');
-compileHelpText('Dir', RootDir, 'CheckSub', 'y', 'SaveTo', [RootDir 'HelpText' SlashType], 'Overwrite', 'y');
+compileHelpText('Dir', RootDir, 'CheckSub', 'y', 'SaveTo', [RootDir 'HelpText' filesep], 'Overwrite', 'y');
 
 fprintf('%s: %s\n', mfilename, 'Compiling BRILIA.m.');
 mcc -m ./BRILIA.m ...
