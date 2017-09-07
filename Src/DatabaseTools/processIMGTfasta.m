@@ -60,7 +60,7 @@ if isempty(varargin) || isempty(varargin{1})
 else
     DatabaseFolder = varargin{1};
 end
-if strcmpi(DatabaseFolder(end), filesep)
+if ~strcmpi(DatabaseFolder(end), filesep)
     DatabaseFolder = [DatabaseFolder filesep];
 end
 
