@@ -1,6 +1,6 @@
 %readFasta will read a fasta file and return 2 cells containing the
-%sequence name and the sequence itself. [Not used as MATLAB has the
-%fastaread function]
+%sequence name and the sequence itself. Similar to matlab "fastaread"
+%but can handle files with empty line spacers.
 %
 %  [Header, Seq] = readFasta(FileName);
 %
