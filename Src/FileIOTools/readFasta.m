@@ -2,13 +2,17 @@
 %sequence name and the sequence itself. Similar to matlab "fastaread"
 %but can handle files with empty line spacers.
 %
+%  [Header, Seq] = readFasta();
+%
 %  [Header, Seq] = readFasta(FileName);
 %
-%  [Header, Seq] = readFasta();
+%  [Header, Seq] = readFasta(FileName, 'SeqRange', Range)
 %
 %  INPUT
 %    FileName: file name of the fasta file. If empty, will ask user to
-%    select the file.
+%      select the file.
+%    Range: 2-element integer vector specifying first and last sequence
+%      to read.
 %
 %  OUTPUT
 %    Header: Nx1 cell of sequence header information
@@ -23,6 +27,7 @@ if any(RangeOptLoc)
     if length(SeqRange) == 1
         SeqRange = SeqRange * [1 1];
     end
+    SeqRange(SeqRange < 1) = 1;
     varargin(RangeIdx(1)-1:end) = [];
 end
 
