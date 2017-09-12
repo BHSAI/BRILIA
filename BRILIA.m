@@ -118,7 +118,7 @@
 %  Written by Donald Lee, dlee@bhsai.org
 
 function varargout = BRILIA(varargin)
-Version = '3.0.9';
+Version = '3.0.11';
 
 %--------------------------------------------------------------------------
 %For running in matlab, make sure BRILIA paths are added correctly
@@ -239,6 +239,7 @@ fprintf('\n');
 fprintf('  Running BRILIA v%s\n', Version);
 fprintf('  Developed at BHSAI\n');
 fprintf('  Website: bhsai.org\n');
+fprintf('  Written by: Donald Lee\n');
 fprintf('\n');
 
 %--------------------------------------------------------------------------
@@ -587,6 +588,7 @@ for f = 1:length(InputFile)
 
         %Fix obviously incorrect trees.
         showStatus('Rerooting lineage trees ...', StatusHandle)
+        VDJdata = removeDupSeq(VDJdata, VDJheader);
         VDJdata = fixTree(VDJdata, VDJheader);
 
         %Finalize VDJdata details and CDR 1, 2, 3 info

@@ -19,20 +19,22 @@
 %      LeafStatus is 1 if this child ends the tree as a leaf.
 %
 %  NOTE
-%    This uses recusion to fill in TreeCoord, hence TreeCoord is a hidden
+%    This uses recursion to fill in TreeCoord, hence TreeCoord is a hidden
 %    input to the function that shouldn't be used by the user.
 
 function TreeCoord = calcTreeCoord(AncMap, varargin)
-%Determine if it's the initial or recursive function summon
-if isempty(varargin)
-    %Renumber AncMap the first time to ensure ChildNum is sequential
+if isempty(varargin) %Initial summon
     AncMap = renumberAncMap(AncMap);
+    CycleLoc = findTreeCycle(AncMap);
+    if max(CycleLoc) > 0
+        error('%s: Cyclic dependency in AncMap.', mfilename);
+    end
     TreeCoord = zeros(size(AncMap, 1), 3);
     ParentNum = AncMap(1, 2);
     if ParentNum <= 0
         ParentNum = 1;
     end
-else
+else %Recursive summon
     TreeCoord = varargin{1};
     if length(varargin) == 2
         ParentNum = varargin{2};
