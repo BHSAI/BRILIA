@@ -89,8 +89,8 @@ for j = 1:max(CrudeClustIdx)
     %Perform fine clustering on crude clusters
     ClustIdx = CrudeClustIdx == j;
     Tdata = VDJdata(ClustIdx, :);
-    if mod(j, 5) == 0
-        showStatus(sprintf('Clustering %d / %d (%0.1f%%)', j, max(CrudeClustIdx), CalcPerClust(j)));
+    if ~mod(j, 20)
+        showStatus(sprintf('  Clustering %d / %d (%0.1f%%)', j, max(CrudeClustIdx), CalcPerClust(j)));
     end
 
     %If only 1-member, skip everything and update group number only

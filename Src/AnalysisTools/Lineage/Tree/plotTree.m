@@ -179,13 +179,22 @@ for y = 1:length(UnqGrpNum)
     if GrpSize < GrpMinSize || GrpSize > GrpMaxSize; continue; end
     [AncMapS, TreeName, CDR3Name, TemplateCount] = getTreeData(VDJdata(GrpIdx, :), VDJheader);
     AncMap = AncMapS.(upper(DistanceUnit));
-    TreeCoord = calcTreeCoord(AncMap);
+    try
+        TreeCoord = calcTreeCoord(AncMap);
+    catch
+        warning('%s: Skipping due to cyclic dependency for group %d.', mfilename, UnqGrpNum(y));
+        continue;
+    end
     MaxHorzCoord = max(TreeCoord(:, 1));
     MaxVertCoord = max(TreeCoord(:, 2));
 
     %Determine the legend and colors
     if strcmpi(Legend, 'y') && ~isempty(CDR3Name)
-        [CDR3legend, UnqCDR3seq] = makeTreeLegend_CDR3(CDR3Name);
+        try
+            [CDR3legend, UnqCDR3seq] = makeTreeLegend_CDR3(CDR3Name);
+        catch
+            save('debug_clusterGene.mat')
+        end
         [DotColor, UnqDotColor] = mapDotColor_CDR3(CDR3Name, UnqCDR3seq, 'ColorMap', DotColorMap);
     end
 
