@@ -119,23 +119,21 @@
 
 function varargout = BRILIA(varargin)
 Version = '3.0.11';
+varargout = cell(1, nargout);
 
 %--------------------------------------------------------------------------
 %For running in matlab, make sure BRILIA paths are added correctly
 if ~isdeployed
     CurPaths = regexp(path, pathsep, 'split')';
-    MainPath = mfilename('fullpath');
-    SlashLoc = regexp(MainPath, filesep);
-    MainPath = MainPath(1:SlashLoc(end)-1);
-    HavePath = 0;
-    for p = 1:length(CurPaths)
-        if strcmp(CurPaths{p}, MainPath) %Note that matlab does not save the final slash.
-            HavePath = 1;
-            break
+    PathParts = regexp(mfilename('fullpath'), filesep, 'split');
+    MainPath = fullfile(PathParts{1:end-2});
+    if ~any(strcmp(CurPaths, MainPath))
+        if strcmpi(input('Add BRILIA path to matlab? y or n: ', 's'), 'y')
+            fprintf('Adding BRILIA path to Matlab.\n');
+            addpath(genpath(MainPath));
+        else
+            return;
         end
-    end
-    if HavePath == 0 %Matlab doesn't have path, so must add it
-        addpath(genpath(MainPath));
     end
 end
 
@@ -163,7 +161,6 @@ addParameter(P, 'OutputFile', [], @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'BatchSize', 1000, @(x) isnumeric(x) && x >= 1);
 
 varargin = cleanCommandLineInput(varargin{:});
-varargout = cell(1, nargout);
 
 %Get and show the version number
 if ~isempty(varargin) && ischar(varargin{1}) && ismember(varargin{1}, {'getversion', 'version'})
@@ -172,17 +169,16 @@ if ~isempty(varargin) && ischar(varargin{1}) && ismember(varargin{1}, {'getversi
     else
         varargout{1} = Version;
     end
-    return;
+    return
 end
 
 %Determine if using a BRILIA subfunction
-if ~isempty(varargin) && ~isempty(varargin{1}) && ischar(varargin{1}) && ... %Is a word
-    isempty(regexpi(varargin{1}, '[^\w\d\_]')) && ... %No odd symbol
-    varargin{1}(1) == lower(varargin{1}(1)) %lowerCamel    
+SubFuncNames = {'plotTree', 'runAnalysis'};
+if ~isempty(varargin) && ischar(varargin{1}) && ismember(varargin{1}, SubFuncNames)
     try
         FH = str2func(varargin{1});
         FH(varargin{2:end});
-        return;
+        return
     catch ME
         rethrow(ME);
     end

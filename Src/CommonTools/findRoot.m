@@ -3,30 +3,16 @@
 %starting root. The root path is found relative to the this function,
 %by looking for where "Src" or "BRILIAvX.Y.Z" folder is.
 %
-%  RootDir = findRoot()
+%  RootDir = findRoot
 function RootDir = findRoot
-%Get the file name and segment by slash locations
-[FilePath, ~, ~] = parseFileName(mfilename('fullpath'));
-SlashLoc = regexp(FilePath, filesep);
-FilePathParts = regexp(FilePath, filesep, 'split');
-
-%Identify the locations of either the main folder or Src folder (in case
-%the user renamed the folder).
-MainPart = 0;
-SrcPart = 0;
-for j = length(FilePathParts):-1:1
-    if ~isempty(regexpi(FilePathParts{j}, 'Src', 'once'))
-        SrcPart = j;
-    end
-    if ~isempty(regexpi(FilePathParts{j}, 'BRILIA.\d+.\d+.\d+', 'once'))
-        MainPart = j;
-        break
-    end
+FilePath = fileparts(mfilename('fullpath'));
+PathParts = regexp(FilePath, filesep, 'split');
+SrcLoc = find(cellfun(@(x)strcmp(x, 'Src'), PathParts));
+MainLoc = cellfun(@(x)~isempty(regexpi(x, 'BRILIA.\d+.\d+.\d+')), PathParts);
+if ~isempty(SrcLoc)
+    RootDir = fullfile(PathParts{1:SrcLoc(end)-1}, filesep);
+elseif ~isempty(MainLoc)
+    RootDir = fullfile(PathParts{1:MainLoc(end)}, filesep); 
+else
+    error('%s: Could not find BRILIA root dir relative to "%s".', mfilename, FilePath);
 end
-if MainPart == 0 && SrcPart > 0
-    MainPart = SrcPart - 1;
-end
-if MainPart <= 0
-    error('%s: Could not find the root BRILIA folder relative to %s.\nMake sure you do not change the structure of the BRILIA folder,\nas it looks for folder names "BRILIAvX.Y.Z" or "Src".', mfilename, FilePath);
-end
-RootDir = FilePath(1:SlashLoc(MainPart));
