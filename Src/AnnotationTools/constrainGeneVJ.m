@@ -130,5 +130,5 @@ end
 if max(UpdateIdx) > 0 
     VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), VDJheader, DB, Chain, 'germline', 'first');
     VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), VDJheader, DB);
-    fprintf('%s: Corrected %d V or J ends \n', mfilename, sum(UpdateIdx));
+    showStatus(sprintf('  Corrected %d V or J ends', sum(UpdateIdx)));
 end

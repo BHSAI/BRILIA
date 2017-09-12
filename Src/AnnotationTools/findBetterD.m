@@ -34,6 +34,10 @@ GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 UpdateIdx = zeros(size(VDJdata, 1), 1, 'logical');
 for y = 1:length(UnqGrpNum)
+    if ~mod(y, 200)
+        showStatus(sprintf('  Refining D gene  %d / %d.', y, length(UnqGrpNum)));
+    end
+    
     %Identify group, if any. For single, check all mutations.
     IdxLoc = find(UnqGrpNum(y) == GrpNum);
     Tdata = VDJdata(IdxLoc, :);
