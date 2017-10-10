@@ -246,16 +246,9 @@ fprintf('\n');
 
 %Get the full file names of input sequences
 if isempty(InputFile) %Ask user to choose
-    [InputFileNames, InputFilePath] = openFileDialog('*.fa*;*.*sv', 'Select the input sequence files', 'multiselect', 'on');
-    if isnumeric(InputFileNames) || isempty(InputFileNames)
-        return;
-    end
-    if ischar(InputFileNames)
-        InputFileNames = {InputFileNames};
-    end
-    InputFile = cell(length(InputFileNames), 1);
-    for f = 1:length(InputFileNames)
-        InputFile{f} = [InputFilePath, InputFileNames{f}];
+    InputFile = openFileDialog('*.fa*;*.*sv', 'Select the input sequence files', 'multiselect', 'on');
+    if isempty(InputFile)
+        return
     end
 elseif ischar(InputFile) %Store single file as cell too
     [InputFilePath, InFileName, ~] = parseFileName(InputFile, 'ignorefilecheck'); %Ignore file check for now, as that's done next.
