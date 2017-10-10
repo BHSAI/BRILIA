@@ -7,6 +7,9 @@
 function RootDir = findRoot
 FilePath = fileparts(mfilename('fullpath'));
 PathParts = regexp(FilePath, filesep, 'split');
+if ~isempty(PathParts) && isempty(PathParts{1})
+    PathParts{1} = filesep;
+end
 SrcLoc = find(cellfun(@(x)strcmp(x, 'Src'), PathParts));
 MainLoc = cellfun(@(x)~isempty(regexpi(x, 'BRILIA.\d+.\d+.\d+')), PathParts);
 if ~isempty(SrcLoc)

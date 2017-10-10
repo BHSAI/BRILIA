@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
-## Patch notice for version 3.0.11
+## Patch notice for version 3.0.12
  - Fixed problem with plotTree creating an infinite recursion if multiple copies of a germline sequence exist.
  - Improved speed of readFasta.m for reading fasta files.
  - Moved BRILIA.m into the Src folder so that all m files required for BRILIA are together. The test script m files in the Examples folder are left there as these are specific to the example file.

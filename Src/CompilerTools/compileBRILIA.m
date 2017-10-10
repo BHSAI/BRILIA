@@ -22,10 +22,10 @@ mcc('-m', fullfile(RootDir, 'Src', 'BRILIA.m'), ...
     '-a', fullfile(RootDir, 'Databases'));
 if ~strcmp(TargetDir, cd)
     if ispc
-        movefile('BRILIA.exe', TargetDir);
+        movefile('BRILIA.exe', TargetDir, 'f');
     elseif isunix
-        movefile('BRILIA', TargetDir);
-        movefile('run_BRILIA.sh', TargetDir);
+        movefile('BRILIA', TargetDir, 'f');
+        movefile('run_BRILIA.sh', TargetDir, 'f');
     end
 end
 

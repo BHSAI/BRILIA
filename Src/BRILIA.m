@@ -118,7 +118,7 @@
 %  Written by Donald Lee, dlee@bhsai.org
 
 function varargout = BRILIA(varargin)
-Version = '3.0.11';
+Version = '3.0.12';
 varargout = cell(1, nargout);
 
 %--------------------------------------------------------------------------
@@ -126,6 +126,9 @@ varargout = cell(1, nargout);
 if ~isdeployed
     CurPaths = regexp(path, pathsep, 'split')';
     PathParts = regexp(mfilename('fullpath'), filesep, 'split');
+    if ~isempty(PathParts) && isempty(PathParts{1})
+        PathParts{1} = filesep;
+    end
     MainPath = fullfile(PathParts{1:end-2});
     if ~any(strcmp(CurPaths, MainPath))
         if strcmpi(input('Add BRILIA path to matlab? y or n: ', 's'), 'y')

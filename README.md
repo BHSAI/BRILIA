@@ -1,4 +1,4 @@
-# BRILIA  v3.0.11
+# BRILIA  v3.0.12
 ## (B-cell repertoire inductive lineage and immunosequence annotator)
 
 ## REFERENCE:
@@ -117,6 +117,24 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in MATLAB to check.
    ```
       >> testMouseH
    ```
+
+## Resuming BRILIA after a crash
+
+Sometime, jobs must be killed before completion due to a server crash / outage. In such case, BRILIA saves most of the time-consuming steps in a temp directory located in a folder name the same as the sequence name. To resume, follow these steps:
+
+0. (Optional) Make a copy of the temp dir, which should be where the sequence file is with the same name of that file. EX: if the file is user\data\mouse.fa, then temp dir is \user\data\mouse\Temp .
+1. Retype the entire command you used to call this job (See above instructions), BUT add " Resume y " to the end.
+   
+   EX: will assume default temp dir for resuming
+   ```
+      > BRILIA InputFile.fa SettingFile SettingFile.txt Resume y 
+   ```
+
+   EX: will use a different temp dir for resuming
+   ```
+      > BRILIA InputFile.fa SettingFile SettingFile.txt ResumeFrom \this\other\TempDir 
+   ```
+   
 
 The program is distributed under the [GNU General Public License](http://www.gnu.org/licenses/gpl.html).  
 

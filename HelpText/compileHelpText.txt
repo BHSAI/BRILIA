@@ -1,4 +1,3 @@
 compileHelpText will search through all m files and directories, pull out
 the help text, and save it to a \HelpText\mfilename.txt. This is used with
-showHelpText(mfilename) to show the help file in a command line
-environment.
+showHelp(mfilename) to show the help file in a command line environment.

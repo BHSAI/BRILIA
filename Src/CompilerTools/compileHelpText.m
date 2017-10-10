@@ -23,15 +23,12 @@ end
 
 %Format the directory name, to ensure it ends with slash
 if isempty(P.Dir)
-    P.Dir = cd;
-end
-if ~strcmp(P.Dir(end), filesep)
-    P.Dir = [cd filesep];
+    P.Dir = findRoot;
 end
 
 %Determine the save directory
 if isempty(P.SaveTo)
-    P.SaveTo = [P.Dir 'HelpText' filesep];
+    P.SaveTo = fullfile(P.Dir, 'HelpText', filesep);
 else
     [FilePath, FileName, FileExt] = parseFileName(P.SaveTo, 'ignorefilecheck');
     if isempty(FileExt) 
@@ -44,7 +41,7 @@ else
     P.SaveTo = FilePath;
 end
 [Success, Msg] = mkdir(P.SaveTo);
-assert(Success > 0, '%s: Could not create HelpText folder at "%s".\n  %s', mfilename, TargetDir, Msg)
+assert(Success > 0, '%s: Could not create HelpText folder at "%s".\n  %s', mfilename, P.SaveTo, Msg)
 
 %Collect subfolder folder into P.Dir, which is now a cell array of folders
 if strcmpi(P.CheckSub(1), 'y')
