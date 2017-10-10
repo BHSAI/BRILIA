@@ -6,6 +6,7 @@
  - Cleaned up the status text outputs in BRILIA.
  - Parallel processing no longer automatically shuts down after being idle for 60 min.
  - If BRILIA is stopped abruptly for a non-logical error (example: job was killed), then jobs can be resumed using the 'ResumeFrom' setting that points to the TempDir, or 'Resume' 'y' command option that will attempt to find the temp dir in the default location.
+ - Removed usage of evals in BRILIA source codes.
 
 ---------------------------------------------------------------------------
 ## Patch notice for version 3.0.8

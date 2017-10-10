@@ -193,7 +193,6 @@ end
 
 [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
 if ReturnThis
-   Ps = rmfield(Ps, 'InputFileT');
    varargout = {Ps, Pu, ExpPs, ExpPu};
    return;
 end
@@ -201,17 +200,6 @@ end
 %Override defaults with what is in the SettingFile
 if ~isempty(Ps.SettingFile)
     Ps = readSettingFile(Ps.SettingFile, Ps);
-end
-
-%Evaluate all those that are numerical
-FieldNames = fieldnames(Ps);
-for j = 1:length(FieldNames)
-    if ~isempty(Ps.(FieldNames{j}))         
-        try 
-            Ps.(FieldNames{j}) = eval(Ps.(FieldNames{j}));
-        catch
-        end
-    end
 end
 
 BatchSize = Ps.BatchSize;
@@ -319,7 +307,7 @@ if nargin <= 1 %User did not specify species and chain, so ask user.
             Selection = '1';
         end
         try 
-            Selection = round(eval(Selection));
+            Selection = round(str2double(Selection));
             if Selection > 0 && Selection <= length(ChainList)
                 Chain = ChainList{Selection};
                 break;
@@ -682,34 +670,3 @@ for f = 1:length(InputFile)
     showStatus(sprintf('Finished in %0.1f sec.', toc), StatusHandle);
 end
 varargout{1} = OutputFile;
-
-%Tries to evalues numbers, and remove leading dashes in field names (eg,
-%EX:  '-saveas' => 'saveas'
-%EX:  '[1,3]'   =>  [1 3]
-function varargin = cleanCommandLineInput(varargin)
-%Basic trial-error interpretation of number inputs
-for j = 1:length(varargin)
-    if ischar(varargin{j}) && ~isempty(varargin{j})
-        InputStr = varargin{j};
-        if isempty(regexpi(InputStr, '[^0-9\,\.\:\[\]\(\)]', 'once'))
-            BrackLoc = regexpi(InputStr, '\[\]\(\)');
-            if ~(InputStr(1) == '.') %In case users inputs a '.3' prefix as a string, skip.
-                InputStr(BrackLoc) = [];
-                try
-                    varargin{j} = eval(['[' InputStr ']']);
-                    continue;
-                catch
-                end
-            end
-        end
-        
-        if InputStr(1) == '-'
-            NonDashLoc = 1;
-            while InputStr(NonDashLoc) == '-'
-                NonDashLoc = NonDashLoc + 1;
-            end
-            varargin{j} = InputStr(NonDashLoc:end);
-            continue;
-        end
-    end
-end

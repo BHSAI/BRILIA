@@ -34,59 +34,36 @@
 %  See also makeSettingFile
 
 function P = readSettingFile(FileName,varargin)
-%Extract the setting that exists
-FID = fopen(FileName,'r');
-if FID < 0
-    error('Could not open setting file')
-end
+%Read the setting file 
+FID = fopen(FileName, 'r');
+assert(FID > 0, '%s: Could not open setting file "%s".', mfilename, FileName);
+T = textscan(FID, '%s', 'delimiter', '\n');
+fclose(FID);
 
-%Get the parsed P input, which stores the current file names
+%Get current parsed input
 if ~isempty(varargin)
     P0 = varargin{1};
 else
     P0 = BRILIA('getinput');
 end
 
-%Remove the field name search for file names, as you want the inpuuted one.
-SettingNames = fieldnames(P0);
-DelLoc = findCell(SettingNames,'FullFileNames'); %Do no mess with file names from setting files
-if DelLoc(1) > 0
-    SettingNames(DelLoc) = [];
-end
+%Clean setting file to get setting string and value
+S = cellfun(@(x) regexpi(x, '\s*=\s*', 'split'), T{1}, 'UniformOutput', false);
+Sstr = cellfun(@(x) x{1}, S, 'UniformOutput', false);
+Sval = cellfun(@(x) strrep(strrep(x{2}, '''', ''), ';', ''), S, 'UniformOutput', false);
+SettingNames = fieldnames(BRILIA('getinput'));
+[~, Idx, ~] = intersect(lower(Sstr), lower(SettingNames));
 
-%Read the setting file and fill in P based on setting file data
-P = P0; %The final setting structure
-while feof(FID) == 0
-    S = fgetl(FID);
-    for j = 1:length(SettingNames)
-        SearchPat = [SettingNames{j} '[\s*]='];
-        MatchStart = regexpi(S,SearchPat,'end')+1;
-        if ~isempty(MatchStart)
-            MatchEnd = regexpi(S,';')-1;
-            MatchEnd = MatchEnd(end);
-        else
+%Save new values to P structured input
+P = P0;
+for k = 1:length(Idx)
+    try
+        NumVal = convStr2Num(Sval{Idx(k)});
+        if ~isempty(NumVal)
+            P.(Sstr{Idx(k)}) = NumVal;
             continue
         end
-
-        Value = S(MatchStart:MatchEnd);
-        Value = strrep(Value,'''',''); %Replace ' from strings       
-        try  %Try converting to numerical value
-            Value = eval(Value);
-        catch %If you can't, just remove the spaces from here
-            Value = strrep(Value,' ','');
-        end        
-        P.(SettingNames{j}) = Value;
-        
-        break
-    end
-end
-fclose(FID);
-
-%Convert field value of numbers to numbers
-for j = 1:length(SettingNames)
-    Value = P.(SettingNames{j});
-    try
-        P.(SettingNames{j}) = eval(Value);
     catch
     end
+    P.(Sstr{Idx(k)}) = Sval{Idx(k)};
 end
