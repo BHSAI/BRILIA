@@ -33,7 +33,7 @@ P.SeqRange = double(P.SeqRange); %For some reason, this is uint64. So change to 
 %Determine the file type here
 if isempty(P.FullFileName)
     [InFileName, InFilePath] = uigetfile('*.fa*;*.*sv', 'Select the input sequence file', 'MultiSelect', 'off');
-    if isempty(InFileName);
+    if isempty(InFileName)
         error('%s: No file was selected.', mfilename);
     end
     P.FullFileName = [InFilePath InFileName];
