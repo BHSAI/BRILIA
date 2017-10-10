@@ -1,8 +1,8 @@
-%showHelpText will display a m file's help text on the command line, which
+%showHelp will display a m file's help text on the command line, which
 %should be stored in a 'HelpText' folder. This is a workaround solution for
 %matlab's inability to show help text in compiled codes.
 %
-%  showHelpText('Name', Name, 'HelpTextDir', HelpTextDir)
+%  showHelp('Name', Name, 'HelpTextDir', HelpTextDir)
 %
 %  INPUT
 %    Name: the name of the function or m file (without the .m)
@@ -11,7 +11,7 @@
 %
 %  See also compileHelpText
 
-function showHelpText(Name, varargin)
+function showHelp(Name, varargin)
 CurDir = cd;
 
 %If HelpDir is given, see if it exists

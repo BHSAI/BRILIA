@@ -140,7 +140,6 @@ end
 %--------------------------------------------------------------------------
 %Handle various inputs from matlab or OS command lines
 P = inputParser;
-addOptional(P, 'InputFileT', '', @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'InputFile', '', @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'Chain', 'H', @(x) ismember({upper(x)}, {'H', 'L', 'HL'}));
 addParameter(P, 'CheckSeqDir', 'y', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
@@ -162,25 +161,33 @@ addParameter(P, 'BatchSize', 1000, @(x) isnumeric(x) && x >= 1);
 
 varargin = cleanCommandLineInput(varargin{:});
 
-%Get and show the version number
-if ~isempty(varargin) && ischar(varargin{1}) && ismember(varargin{1}, {'getversion', 'version'})
-    if nargout == 0
-        fprintf('BRILIA VERSION %s\n\n', Version);
-    else
-        varargout{1} = Version;
-    end
-    return
-end
-
-%Determine if using a BRILIA subfunction
-SubFuncNames = {'plotTree', 'runAnalysis'};
-if ~isempty(varargin) && ischar(varargin{1}) && ismember(varargin{1}, SubFuncNames)
-    try
-        FH = str2func(varargin{1});
-        FH(varargin{2:end});
+%Special parsing of first input
+if ~isempty(varargin) && ischar(varargin{1})
+    %Getting version
+    if ismember(varargin{1}, {'getversion', 'version'})
+        if nargout == 0
+            fprintf('BRILIA VERSION %s\n\n', Version);
+        else
+            varargout{1} = Version;
+        end
         return
-    catch ME
-        rethrow(ME);
+    end
+    
+    %Redirect to BRILIA subfunction
+    SubFuncNames = {'plotTree', 'runAnalysis', 'showHelp'}; %For security, only accept allowed function calls!
+    if ismember(varargin{1}, SubFuncNames)
+        try
+            FH = str2func(varargin{1});
+            FH(varargin{2:end});
+            return
+        catch ME
+            rethrow(ME);
+        end
+    end
+    
+    %Check it's a file, correct varargin for parm-value parsing later.
+    if exist(varargin{1}, 'file') || exist(fullfile(pwd, varargin{1}), 'file')
+        varargin = ['InputFile' varargin];
     end
 end
 
@@ -189,10 +196,6 @@ if ReturnThis
    Ps = rmfield(Ps, 'InputFileT');
    varargout = {Ps, Pu, ExpPs, ExpPu};
    return;
-end
-
-if ~isempty(Ps.InputFileT) && isempty(Ps.InputFile)
-    Ps.InputFile = Ps.InputFileT;
 end
 
 %Override defaults with what is in the SettingFile
@@ -347,7 +350,8 @@ DB = filterGeneDatabase(DB, 'Strain', Strain, 'Ddirection', Ddirection, 'Vfuncti
 
 %Set the number of processors to use
 showStatus('Setting up parallel computing ...', StatusHandle);
-setParallelProc(NumProc);
+[~, NumWorkers] = setCores(NumProc);
+showStatus(sprintf('  Using %d cores.', NumWorkers), StatusHandle);
 
 for f = 1:length(InputFile)
     tic

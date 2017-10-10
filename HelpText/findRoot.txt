@@ -3,4 +3,4 @@ directory name, ending with the forward or reverse slash, for BRILIA
 starting root. The root path is found relative to the this function,
 by looking for where "Src" or "BRILIAvX.Y.Z" folder is.
 
-  RootDir = findRoot()
+  RootDir = findRoot

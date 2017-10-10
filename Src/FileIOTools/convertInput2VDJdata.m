@@ -92,7 +92,7 @@ elseif strcmpi(P.FileType, 'delimited')
     if InSeqNameLoc == 0; InSeqNameLoc = 1; end %Assume.
 
     InTemplateLoc = max([Htemp.TemplateLoc Ltemp.TemplateLoc]);
-    if InTemplateLoc == 0 && size(InputData, 2) >= 4; 
+    if InTemplateLoc == 0 && size(InputData, 2) >= 4
         InTemplateLoc = 4; %Assume this
     end 
 
@@ -103,7 +103,7 @@ elseif strcmpi(P.FileType, 'delimited')
         InSeqLocL = Ltemp.SeqLoc;
         if InSeqLocL == 0; InSeqLoc = 3; end %Assume this
     else
-        InSeqLoc = max([Htemp.SeqLoc Ltemp.SeqLoc]);
+        InSeqLoc = min([Htemp.SeqLoc Ltemp.SeqLoc]);
         if InSeqLoc == 0; InSeqLoc = 2; end %Assume this
     end        
 end

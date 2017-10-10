@@ -19,5 +19,5 @@ recursively, given AncMap (the ancestry mapping matrix).
       LeafStatus is 1 if this child ends the tree as a leaf.
 
   NOTE
-    This uses recusion to fill in TreeCoord, hence TreeCoord is a hidden
+    This uses recursion to fill in TreeCoord, hence TreeCoord is a hidden
     input to the function that shouldn't be used by the user.

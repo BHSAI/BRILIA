@@ -4,6 +4,8 @@
  - Improved speed of readFasta.m for reading fasta files.
  - Moved BRILIA.m into the Src folder so that all m files required for BRILIA are together. The test script m files in the Examples folder are left there as these are specific to the example file.
  - Cleaned up the status text outputs in BRILIA.
+ - Parallel processing no longer automatically shuts down after being idle for 60 min.
+ - If BRILIA is stopped abruptly for a non-logical error (example: job was killed), then jobs can be resumed using the 'ResumeFrom' setting that points to the TempDir, or 'Resume' 'y' command option that will attempt to find the temp dir in the default location.
 
 ---------------------------------------------------------------------------
 ## Patch notice for version 3.0.8

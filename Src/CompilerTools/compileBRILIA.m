@@ -2,42 +2,33 @@
 %for the OS (Windows or Linux) being used.
 
 function compileBRILIA()
-%Make sure this is running from root, and change current directy if needed
-RootDir = findRoot();
-cd(RootDir);
-if ~strcmpi(RootDir(1:end-1), cd)
-    error('%s: Run this from the BRILIA root dir [ %s]', mfilename, RootDir);
-end
-
-%Determine where to save the Bin files
+RootDir = findRoot;
 if ispc
-    TargetDir = [RootDir 'Bin' filesep 'Win' filesep];
+    TargetDir = fullfile(RootDir, 'Bin', 'Win');
 elseif isunix
-    TargetDir = [RootDir 'Bin' filesep 'Linux' filesep];
+    TargetDir = fullfile(RootDir, 'Bin', 'Linux');
 end
 [Success, Msg] = mkdir(TargetDir);
-if Success == 0
-    fprintf('%s: Could not move exe files to [ %s ].\n%s\n', mfilename, TargetDir, Msg);
-end
+assert(Success > 0, '%s: Could not move files to "%s".\n  %s', mfilename, TargetDir, Msg)
 
-%Compile the help text for command-line retrieval of help info
 fprintf('%s: %s\n', mfilename, 'Compiling help texts.');
-compileHelpText('Dir', RootDir, 'CheckSub', 'y', 'SaveTo', [RootDir 'HelpText' filesep], 'Overwrite', 'y');
+compileHelpText('Dir', RootDir, 'CheckSub', 'y', 'SaveTo', fullfile(RootDir, 'HelpText'), 'Overwrite', 'y');
 
 fprintf('%s: %s\n', mfilename, 'Compiling BRILIA.m.');
-mcc -m ./BRILIA.m ...
-    -a ./Databases/ ...
-    -a ./Tables/ ...
-    -a ./Src/ ...
-    -a ./HelpText/
-if ispc
-    movefile('BRILIA.exe', TargetDir);
-elseif isunix
-    movefile('BRILIA', TargetDir);
-    movefile('run_BRILIA.sh', TargetDir);
+mcc('-m', fullfile(RootDir, 'Src', 'BRILIA.m'), ...
+    '-a', fullfile(RootDir, 'Src'), ...
+    '-a', fullfile(RootDir, 'Tables'), ...
+    '-a', fullfile(RootDir, 'HelpText'), ...
+    '-a', fullfile(RootDir, 'Databases'));
+if ~strcmp(TargetDir, cd)
+    if ispc
+        movefile('BRILIA.exe', TargetDir);
+    elseif isunix
+        movefile('BRILIA', TargetDir);
+        movefile('run_BRILIA.sh', TargetDir);
+    end
 end
 
-%Delete the other files
 MatlabFiles = {'requiredMCRProducts.txt', 'mccExcludedFiles.log', 'readme.txt'};
 for j = 1:length(MatlabFiles)
     if exist(MatlabFiles{j}, 'file')

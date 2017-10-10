@@ -1,10 +1,8 @@
 %compileHelpText will search through all m files and directories, pull out
 %the help text, and save it to a \HelpText\mfilename.txt. This is used with
-%showHelpText(mfilename) to show the help file in a command line
-%environment.
+%showHelp(mfilename) to show the help file in a command line environment.
 
 function compileHelpText(varargin)
-%Prepare the parameter inputs
 P = inputParser;
 addParameter(P, 'Dir', '', @ischar);
 addParameter(P, 'CheckSub', 'y', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
@@ -45,20 +43,13 @@ else
     end
     P.SaveTo = FilePath;
 end
-
 [Success, Msg] = mkdir(P.SaveTo);
-if Success == 0
-    error('%s: Could not create the HelpText folder [ %s ].\n%s', mfilename, P.SaveTo, Msg);
-end
+assert(Success > 0, '%s: Could not create HelpText folder at "%s".\n  %s', mfilename, TargetDir, Msg)
 
 %Collect subfolder folder into P.Dir, which is now a cell array of folders
 if strcmpi(P.CheckSub(1), 'y')
     SubDir = genpath(P.Dir);
-    if ispc %PC uses ;
-        P.Dir = regexp(SubDir,';', 'split')';
-    else %Linux uses :
-        P.Dir = regexp(SubDir,':', 'split')';
-    end
+    P.Dir = regexp(SubDir, pathsep, 'split')';
     if isempty(P.Dir{end})
         P.Dir(end) = [];
     end
