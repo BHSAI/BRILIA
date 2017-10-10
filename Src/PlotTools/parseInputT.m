@@ -44,7 +44,7 @@ P.KeepUnmatched = 1;
 P.PartialMatching = 0;
 P.StructExpand = 1;
 
-varargin = cleanCommandLineInput(varargin{:});
+varargin = cleanCommandLineInputT(varargin{:});
 
 Pu = [];
 ExpPs = [];
