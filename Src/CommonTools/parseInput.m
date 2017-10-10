@@ -71,34 +71,3 @@ Fields = fieldnames(StructInput);
 Values = struct2cell(StructInput);
 CellInput = [Fields'; Values'];
 CellInput = CellInput(:)';
-
-%Tries to evalues numbers, and remove leading dashes in field names (eg,
-%EX:  '-saveas' => 'saveas'
-%EX:  '[1,3]'   =>  [1 3]
-function varargin = cleanCommandLineInput(varargin)
-%Basic trial-error interpretation of number inputs
-for j = 1:length(varargin)
-    if ischar(varargin{j}) && ~isempty(varargin{j})
-        InputStr = varargin{j};
-        if isempty(regexpi(InputStr, '[^0-9\,\.\:\[\]\(\)]', 'once'))
-            BrackLoc = regexpi(InputStr, '\[\]\(\)');
-            if ~(InputStr(1) == '.') %In case users inputs a '.3' prefix as a string, skip.
-                InputStr(BrackLoc) = [];
-                try
-                    varargin{j} = eval(['[' InputStr ']']);
-                    continue;
-                catch
-                end
-            end
-        end
-        
-        if InputStr(1) == '-'
-            NonDashLoc = 1;
-            while InputStr(NonDashLoc) == '-'
-                NonDashLoc = NonDashLoc + 1;
-            end
-            varargin{j} = InputStr(NonDashLoc:end);
-            continue;
-        end
-    end
-end

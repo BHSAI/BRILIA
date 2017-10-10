@@ -25,13 +25,13 @@
 %    Num =
 %        -3   1   2   3   4   5
 
-function Num = convStr2Num(Str, Option)
-GetUnq = 0;
+function Num = convStr2NumT(Str, Option)
+GetUnq = false;
 if nargin == 2 && strcmpi(Option, 'unique')
-    GetUnq = 1;
+    GetUnq = true;
 end
 
-Vec = sscanf(Str(1:end),'%f%c');
+Vec = sscanf([Str ','],'%f%c');
 if isempty(Vec)
     Num = [];
     return

@@ -147,7 +147,7 @@ if isempty(P.Vfunction) %Ask user to determine which direction D to search
         FunctOpt = input('Select option: ', 's');
         if isempty(FunctOpt); FunctOpt = '1'; end
         if min(isstrprop(strrep(FunctOpt, ',', ''), 'digit')) == 1
-            FunctOpt = eval(['[' FunctOpt ']']);
+            FunctOpt = convStr2Num(['[' FunctOpt ']']);
         else
             FunctOpt = -1;
         end

@@ -28,7 +28,7 @@ for k = 1:length(CharLoc)
     InputStr = CellStr{CharLoc(k)};
     NonDashLoc = regexp(InputStr, '[^-]', 'once');
     if isempty(sscanf(InputStr(NonDashLoc), '%f'))
-        CellStr{k} = InputStr(NonDashLoc:end);
+        CellStr{CharLoc(k)} = InputStr(NonDashLoc:end);
         continue
     end
     
@@ -37,7 +37,7 @@ for k = 1:length(CharLoc)
         try
             NumVal = convStr2Num(InputStr);
             if ~isempty(NumVal)
-                CellStr{k} = NumVal;
+                CellStr{CharLoc(k)} = NumVal;
                 continue;
             end
         catch

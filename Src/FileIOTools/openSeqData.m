@@ -69,8 +69,9 @@ VDJdata = readDlmFile(FullName, 'Delimiter', P.Delimiter, 'LineRange', [2 Inf], 
 [~, ~, ~, NumLoc, ~] = getAllHeaderVar(VDJheader);
 for j = 1:length(NumLoc)
     for r = 1:size(VDJdata, 1)
+        if isnumeric(VDJdata{r, NumLoc(j)}); continue; end
         try 
-            VDJdata{r, NumLoc(j)} = eval(VDJdata{r, NumLoc(j)});
+            VDJdata{r, NumLoc(j)} = convStr2Num(VDJdata{r, NumLoc(j)});
         catch 
         end
     end

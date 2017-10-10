@@ -24,12 +24,23 @@
 %        -3   1   2   3   4   5
 
 function Num = convStr2Num(Str, Option)
-GetUnq = 0;
-if nargin == 2 && strcmpi(Option, 'unique')
-    GetUnq = 1;
+if isempty(Str)
+    Num = [];
+    return;
 end
 
-Vec = sscanf(Str(1:end),'%f%c');
+GetUnq = false;
+if nargin == 2 && strcmpi(Option, 'unique')
+    GetUnq = true;
+end
+
+if strcmp(Str(1), '[')
+    s1 = 2;
+else
+    s1 = 1;
+end
+
+Vec = sscanf([Str(s1:end) ','],'%f%c');
 if isempty(Vec)
     Num = [];
     return
