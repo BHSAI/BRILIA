@@ -1,4 +1,0 @@
-convertVDJdata2Fasta will ask  users to select multiple files of the
-VDJdata format, and then convert them to corresponding FASTA files for
-processing. By default, sequence will be named according to the "SeqNum"
-column if  it exists. if not, it will do a simple numerical ordering.

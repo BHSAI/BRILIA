@@ -1,2 +1,0 @@
-combineImages will take a list of image files, and then concantenate them.
-Useful for making collages. Will align by top.

@@ -1,2 +1,0 @@
-plotGeneFamilyCombo will plot a VDJ gene usage scatter plot instead of
-histograms. 

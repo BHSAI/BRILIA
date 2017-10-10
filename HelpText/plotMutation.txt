@@ -1,2 +1,0 @@
-analyzeMutation will take the VDJdata file, look at the nT mutations, and
-plot the frequence of what NTs are added/deleeted.

@@ -1,5 +1,0 @@
-function condenseGeneMap will convert a large DB into a smaller one for
-improved alignment speed. For instance, there is no need to do 400 V gene
-alignements if 200 of them are very similar to another one or are alleles.
-This cuts down the alignment time, though the actual V must be determine
-using the full sequence.

@@ -1,5 +1,0 @@
-plotGeneMods will take a cell array of numbers Ndata, and plot the
-histograms.
-
-plotGeneMods(Ndata,Edges,Headers) will force and header
-returns the plot bar handle

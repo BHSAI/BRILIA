@@ -1,6 +1,0 @@
-plotDensity will plot a density plot using images. Default resolution =
-500x500 pixels.
- X = [1 1 1 1 1 1 1 2 2 2 2 2]
- Y = [1 1 1 1 2 2 1 2 3 4 2 3]
- Xlim = [0 500]
- Ylim = [0 500]

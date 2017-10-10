@@ -1,8 +1,0 @@
-buildVDJalignment will return the VDJ alignment results for each sequence.
-An "-" is a match with the germline gene, a lower case are deleted nts
-from the germline gene, and a capital letter is a mismatch with the
-germline gene, and an "|" marks where the germline gene was deleted.
-
-  VDJdata = buildVDJalignment(VDJdata, VDJheader)
-
-  VDJdata = buildVDJalignment(VDJdata, VDJheader, DB)
