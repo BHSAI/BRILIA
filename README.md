@@ -123,7 +123,7 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in MATLAB to check.
 If your job stopped before completion (ex: due to a server crash), then you could recover some of the work. BRILIA saves most of the time-consuming steps in a Temp directory located within the output folder name, which by default is the same as the sequence file name. To resume, follow these steps:
 
 0. (Optional) Make a copy of the Temp dir, which should be where the sequence file is with the same name of that file. EX: if the file is /user/data/MouseH.fa, then the temp dir is /user/data/MouseH/Temp.
-1. Retype the ENTIRE command you used to call this job as shown above, BUT ADD *" Resume y "* to the end. If you used a non-default output folder, then use *"ResumeFrom output_dir_path"* instead.
+1. Retype the ENTIRE command you used to call this job as shown above, BUT ADD **`Resume y`** to the end. If you used a non-default output folder, then use **`ResumeFrom  [output_dir_path]`** instead.
    
    EX: when using the default output folder that stores the Temp dir
    ```
