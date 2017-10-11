@@ -89,7 +89,7 @@ end
 
 %Translate set to AA if needed
 if strcmpi(Alphabet,'aa')
-    SeedSeq = nt2aa(SeedSeq,'ACGTOnly','false');
+    SeedSeq = convNT2AA(SeedSeq,'ACGTOnly','false');
 end
 
 %Get only unique seeds

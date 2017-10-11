@@ -75,7 +75,7 @@ for k = 1:length(Chain)
         
         %Compute location of CDRX from Vseq
         try
-            CDR2aaRef = upper(nt2aa(Vseq(CDR2sRef:CDR2eRef),'ACGTonly','false'));
+            CDR2aaRef = upper(convNT2AA(Vseq(CDR2sRef:CDR2eRef),'ACGTonly',false));
         catch
             warning('%s: Error. Skipping.', mfilename);
             continue
@@ -88,7 +88,7 @@ for k = 1:length(Chain)
         if min([CDR2s CDR2e]) <= 0 %Need to CDRX of the V ref seq
             CDR2aa = CDR2aaRef;
         else %Need to get CDRX of the real seq
-            CDR2aa = nt2aa(Seq(CDR2s:CDR2e),'ACGTonly','false');
+            CDR2aa = convNT2AA(Seq(CDR2s:CDR2e),'ACGTonly',false);
             CDR2aa(CDR2aa ~= CDR2aaRef) = lower(CDR2aa(CDR2aa ~= CDR2aaRef)); %Make SHMs lowercase
         end
 

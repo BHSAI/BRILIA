@@ -69,8 +69,8 @@ for j = Frame:3:length(RefSeq)-2
     if max(MutLoc(j:j+2)) == 1 %There is a mutation, so check
         if contains(RefSeq(j:j+2), 'N'); continue; end
         if contains(Seq(j:j+2), 'N'); continue; end
-        AA1 = nt2aa(RefSeq(j:j+2), 'ACGTonly', false);
-        AA2 = nt2aa(Seq(j:j+2), 'ACGTonly', false);
+        AA1 = convNT2AA(RefSeq(j:j+2), 'ACGTonly', false);
+        AA2 = convNT2AA(Seq(j:j+2), 'ACGTonly', false);
         if AA1 ~= AA2 %Replacement
             NonsynLoc(j:j+2) = MutLoc(j:j+2);
         else

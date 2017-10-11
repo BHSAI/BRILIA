@@ -42,7 +42,7 @@ end
 
 for k = 1:length(Chain)
     %Decide what header locator to use
-    if Chain(k) == 'H';
+    if Chain(k) == 'H'
         B = H;
     else
         B = L;
@@ -98,11 +98,7 @@ for k = 1:length(Chain)
             else
                 CDR3nt = Seq(CDR3s:CDR3e);
             end
-
-            %Replace any ambiguous characters as N, then translate CDR3
-            AmbigLoc = regexpi(CDR3nt,'[^ACGTU]');
-            CDR3nt(AmbigLoc) = 'N';
-            CDR3aa = nt2aa(CDR3nt,'ACGTonly','false');
+            CDR3aa = convNT2AA(CDR3nt,'ACGTonly',false);
         end
         
         %If the default option of IMGT is selected, need to shift positions

@@ -296,9 +296,9 @@ while SeqNum <= SeqCount
             if mod(Wloc-Cloc+1, 3) ~= 0; continue; end %Not in-frame
             if ((Wloc - Cloc + 1) / 3) < 5; continue; end %Too short CDR3
             ReadFrame = mod(Cloc + 2, 3) + 1;
-            AASeq = nt2aa(Seq, 'frame', ReadFrame);
+            AASeq = convNT2AA(Seq, 'frame', ReadFrame);
             if ~isempty(regexpi(AASeq, '\*', 'once')); continue; end %Stop codon   
-            CDR3seq = nt2aa(Seq(Cloc:Wloc));
+            CDR3seq = convNT2AA(Seq(Cloc:Wloc));
             ValidH = 1;
         end
 
@@ -359,9 +359,9 @@ while SeqNum <= SeqCount
             if mod(Wloc-Cloc+1, 3) ~= 0; continue; end %Not in-frame
             if ((Wloc - Cloc + 1) / 3) < 5; continue; end %Too short
             ReadFrame = mod(Cloc + 2, 3) + 1;
-            AASeq = nt2aa(Seq, 'frame', ReadFrame);
+            AASeq = convNT2AA(Seq, 'frame', ReadFrame);
             if ~isempty(regexpi(AASeq, '\*', 'once')); continue; end %Stop codon   
-            CDR3seq = nt2aa(Seq(Cloc:Wloc));
+            CDR3seq = convNT2AA(Seq(Cloc:Wloc));
             
             ValidL = 1;
         end

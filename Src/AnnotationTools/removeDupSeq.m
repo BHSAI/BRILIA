@@ -21,7 +21,7 @@ for y = 1:length(UnqGrpNum)
     Tdata = VDJdata(GrpIdx, :);
     AncMapS = getTreeData(Tdata, VDJheader);
     AncMap = AncMapS.HAM;
-    if sum(AncMap(:, 3) == 0) > 1
+    if any(AncMap(:, 3) == 0)
         Tdata = removeDupSeqPerGroup(VDJdata(GrpIdx, :), H, L, Chain);
         if sum(GrpIdx) ~= size(Tdata, 1)
             GrpLoc = find(GrpIdx);

@@ -36,6 +36,7 @@ function [AncMapS, TreeName, CDR3Name, TemplateCount] = getTreeData(Tdata, VDJhe
 AncMapS = [];
 TreeName = [];
 CDR3Name = [];
+TemplateCount = 0;
 
 %Check if there are multiple groups
 [H, L, Chain] = getAllHeaderVar(VDJheader);
@@ -80,23 +81,6 @@ SeqLocs(SeqLocs == 0) = [];
 RefSeqLocs(RefSeqLocs == 0) = [];
 
 %--------------------------------------------------------------------------
-%Getting TreeName
-
-TreeName = cell(length(GeneNameLocs) + 1, 1);
-for j = 1:length(GeneNameLocs)
-    GeneNames = Tdata(1, GeneNameLocs{j});
-    for w = 1:length(GeneNames)
-        TempNames = regexpi(GeneNames{w},'\|','Split'); %Get the first recommended name
-        TempName = strrep(TempNames{1}, 'IGH', ''); %Remove IGH for heavy chain
-        GeneNames{w} = strrep(TempName, 'IG', ''); %Remove IG for light chain. Save.
-    end
-    RepPat = repmat(' %s |',1,length(GeneNames));
-    RepPat([1 end]) = [];
-    TreeName{j} = sprintf(RepPat, GeneNames{:});
-end
-TreeName{end} = sprintf('Grp %d, Size %d, TC %d', UnqGrpNum, size(Tdata, 1), sum(cell2mat(Tdata(:, TemplateLoc))));
-
-%--------------------------------------------------------------------------
 %Getting AncMapS
 
 AncMapAll = zeros(size(Tdata, 1), 7); %[Child Par HAMdist SHMdist HAMperc SHMperc TemplateCount];
@@ -115,7 +99,7 @@ for j = 1:size(Tdata, 1)
         end
         if min(Match) == 1
             ParentSeqNum = Tdata{g, SeqNumLoc};
-            break;
+            break
         end
     end
 
@@ -161,42 +145,63 @@ for k = 1:length(DistOrder)
 end
 
 %--------------------------------------------------------------------------
-%Getting CDR3Name
-
-CDR3Name = cell(size(Tdata, 1) + AddedGermline, 1);
-for j = 1:size(Tdata, 1)
-    %Combine and extract CDR3 Info
-    if length(CDR3Locs) > 1
-        RepPat = repmat('%s:', 1, length(CDR3Locs));        
-        CDR3seq = sprintf(RepPat, Tdata{j, CDR3Locs});
-        CDR3seq(end) = [];
-        CDR3Name{j + AddedGermline} = CDR3seq;
-    else
-        CDR3Name{j + AddedGermline} = Tdata{j, CDR3Locs};
+%Getting TreeName
+if nargout >= 2
+    TreeName = cell(length(GeneNameLocs) + 1, 1);
+    for j = 1:length(GeneNameLocs)
+        GeneNames = Tdata(1, GeneNameLocs{j});
+        for w = 1:length(GeneNames)
+            TempNames = regexpi(GeneNames{w},'\|','Split'); %Get the first recommended name
+            TempName = strrep(TempNames{1}, 'IGH', ''); %Remove IGH for heavy chain
+            GeneNames{w} = strrep(TempName, 'IG', ''); %Remove IG for light chain. Save.
+        end
+        RepPat = repmat(' %s |',1,length(GeneNames));
+        RepPat([1 end]) = [];
+        TreeName{j} = sprintf(RepPat, GeneNames{:});
     end
+    TreeName{end} = sprintf('Grp %d, Size %d, TC %d', UnqGrpNum, size(Tdata, 1), sum(cell2mat(Tdata(:, TemplateLoc))));
 end
-    
-if AddedGermline == 1
-    %Add in the germline sequence CDR3
-    CDR3NameGerm = cell(1, length(CDR3Locs));
-    for k = 1:length(CDR3Locs)
-        if ~isempty(CDR3sLocs) && ~isempty(CDR3eLocs)
-            RefSeq = Tdata{1, RefSeqLocs(k)};
-            CDR3s = Tdata{1, CDR3sLocs(k)};
-            CDR3e = Tdata{1, CDR3eLocs(k)};
-            CDR3NameGerm{k} = nt2aa(RefSeq(CDR3s:CDR3e), 'ACGTonly', 'false');
+
+%--------------------------------------------------------------------------
+%Getting CDR3Name
+if nargout > 3
+    CDR3Name = cell(size(Tdata, 1) + AddedGermline, 1);
+    for j = 1:size(Tdata, 1)
+        %Combine and extract CDR3 Info
+        if length(CDR3Locs) > 1
+            RepPat = repmat('%s:', 1, length(CDR3Locs));        
+            CDR3seq = sprintf(RepPat, Tdata{j, CDR3Locs});
+            CDR3seq(end) = [];
+            CDR3Name{j + AddedGermline} = CDR3seq;
+        else
+            CDR3Name{j + AddedGermline} = Tdata{j, CDR3Locs};
         end
     end
-    
-    %Combine and extract CDR3 Info
-    RepPat = repmat('%s:', 1, length(CDR3NameGerm));        
-    CDR3seq = sprintf(RepPat, CDR3NameGerm{:});
-    CDR3seq(end) = [];
-    CDR3Name{1} = CDR3seq;
+
+    if AddedGermline == 1
+        %Add in the germline sequence CDR3
+        CDR3NameGerm = cell(1, length(CDR3Locs));
+        for k = 1:length(CDR3Locs)
+            if ~isempty(CDR3sLocs) && ~isempty(CDR3eLocs)
+                RefSeq = Tdata{1, RefSeqLocs(k)};
+                CDR3s = Tdata{1, CDR3sLocs(k)};
+                CDR3e = Tdata{1, CDR3eLocs(k)};
+                CDR3NameGerm{k} = convNT2AA(RefSeq(CDR3s:CDR3e), 'ACGTonly', false);
+            end
+        end
+
+        %Combine and extract CDR3 Info
+        RepPat = repmat('%s:', 1, length(CDR3NameGerm));        
+        CDR3seq = sprintf(RepPat, CDR3NameGerm{:});
+        CDR3seq(end) = [];
+        CDR3Name{1} = CDR3seq;
+    end
 end
 
 %--------------------------------------------------------------------------
 %Getting TemplateCount
-
-TemplateCount = zeros(size(Tdata, 1) + AddedGermline, 1);
-TemplateCount(1+AddedGermline:end) = cell2mat(Tdata(:, TemplateLoc));
+if nargout >= 4
+    TemplateCount = zeros(size(Tdata, 1) + AddedGermline, 1);
+    TemplateCount(1+AddedGermline:end) = cell2mat(Tdata(:, TemplateLoc));
+end
+    

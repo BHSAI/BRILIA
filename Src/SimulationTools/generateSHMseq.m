@@ -153,7 +153,7 @@ for y = 1:length(UnqGrpNum) %Find group and select random one to be the ancestor
                     %Make sure it does not create a stop codon
                     if length(CodonPos) == 3
                         EvalCodon = SeqT(CodonPos);
-                        NewAA = nt2aa(EvalCodon,'ACGTonly','false','frame',1);
+                        NewAA = convNT2AA(EvalCodon,'ACGTonly','false','frame',1);
                         if NewAA == '*' %Has stop codon
                             continue
                         end
@@ -187,7 +187,7 @@ for y = 1:length(UnqGrpNum) %Find group and select random one to be the ancestor
                     NewVDJdata(q,:) = NewVDJdata(SeqIdx,:); %Copy existing info
                 end
                 NewVDJdata{q,B.SeqLoc} = Seq; %Replace Seq with mutated one
-                NewVDJdata{q,B.CDR3Loc(1)} = nt2aa(Seq(CDR3s:CDR3e),'ACGTonly','false'); %Replace Seq with mutated one        
+                NewVDJdata{q,B.CDR3Loc(1)} = convNT2AA(Seq(CDR3s:CDR3e),'ACGTonly','false'); %Replace Seq with mutated one        
 
                 %Save the ancestral seq
                 if g == 1

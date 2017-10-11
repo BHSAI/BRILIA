@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------
+## Patch notice for version 3.0.13
+ - Fixed issues with nt2aa function now correctly processing ambiguous nt letters. It now uses wrapper function convNT2AA to handle ambiguous characters.
+
+---------------------------------------------------------------------------
 ## Patch notice for version 3.0.12
  - Fixed problem with plotTree creating an infinite recursion if multiple copies of a germline sequence exist.
  - Improved speed of readFasta.m for reading fasta files.

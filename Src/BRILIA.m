@@ -118,7 +118,7 @@
 %  Written by Donald Lee, dlee@bhsai.org
 
 function varargout = BRILIA(varargin)
-Version = '3.0.12';
+Version = '3.0.13';
 varargout = cell(1, nargout);
 
 %--------------------------------------------------------------------------

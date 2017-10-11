@@ -48,11 +48,11 @@ for k = 1:length(Chain)
         if isempty(CDR3len); continue; end
         
         %Make sure info makes sense (I for invalid)
-        if min(VMDNJ) < 0 || sum(VMDNJ) ~= length(Seq); 
+        if min(VMDNJ) < 0 || sum(VMDNJ) ~= length(Seq)
             VDJdata{j,B.FunctLoc} = 'I';
             continue; 
         end
-        if CDR3s < 1 || CDR3e > length(Seq); 
+        if CDR3s < 1 || CDR3e > length(Seq)
             VDJdata{j,B.FunctLoc} = 'I';
             continue; 
         end
@@ -77,7 +77,7 @@ for k = 1:length(Chain)
         %from CDR3
         BadCharIdx = regexpi(Seq,'[^ACGTU]');
         Seq(BadCharIdx) = 'N';
-        AAseq = nt2aa(Seq(CDR3s:CDR3e),'ACGTonly','false','frame',1);
+        AAseq = convNT2AA(Seq(CDR3s:CDR3e),'ACGTonly','false','frame',1);
         if ~isempty(regexp(AAseq,'\*','once'))
             VDJdata{j,B.FunctLoc} = 'N';
             continue
@@ -87,18 +87,18 @@ for k = 1:length(Chain)
         HavePseudo = 0; %Assume maybe for now, until you confirm a "F".
         for v = 1:length(Vnum)
             if Chain(k) == 'H'
-                if ~isempty(regexpi(DB.Vmap{Vnum(v),M.FunctLoc},'P','once'));
+                if ~isempty(regexpi(DB.Vmap{Vnum(v),M.FunctLoc},'P','once'))
                     HavePseudo = 1;
                     break
                 end
             else
                 if ~isempty(regexpi(Vname,'IGKV','once')) %Kappa
-                    if ~isempty(regexpi(DB.Vkmap{Vnum(v),M.FunctLoc},'P','once'));
+                    if ~isempty(regexpi(DB.Vkmap{Vnum(v),M.FunctLoc},'P','once'))
                         HavePseudo = 1;
                         break
                     end
                 else %Lambda
-                    if ~isempty(regexpi(DB.Vlmap{Vnum(v),M.FunctLoc},'P','once'));
+                    if ~isempty(regexpi(DB.Vlmap{Vnum(v),M.FunctLoc},'P','once'))
                         HavePseudo = 1;
                         break
                     end

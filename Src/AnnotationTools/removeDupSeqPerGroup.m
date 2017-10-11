@@ -7,7 +7,7 @@ for j = 1:size(VDJdata, 1) - 1
     Xcount = zeros(size(VDJdata, 1), 1); %Tracks how many X's there are
             
     %Add on constant regions to prevent collapsing seq with different C.
-    if ~isempty(VDJdata{j, H.OverSeq3Loc})
+    if contains(Chain, 'H') && ~isempty(VDJdata{j, H.OverSeq3Loc})
         ConstSeq1 = VDJdata{j, H.OverSeq3Loc};
     else 
         ConstSeq1 = '';
@@ -30,7 +30,7 @@ for j = 1:size(VDJdata, 1) - 1
         if DelIdx(q); continue; end %Already deleted, skip
 
         %Determine if there are any possible constant region sequences
-        if ~isempty(VDJdata{q, H.OverSeq3Loc})
+        if contains(Chain, 'H') && ~isempty(VDJdata{q, H.OverSeq3Loc})
             ConstSeq2 = VDJdata{q, H.OverSeq3Loc};
         else 
             ConstSeq2 = '';
