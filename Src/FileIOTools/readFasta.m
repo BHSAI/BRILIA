@@ -48,8 +48,8 @@ Texts = textscan(FID, '%s', 'delimiter', '\n');
 Texts = Texts{1};
 fclose(FID);
 
-BrakLoc = regexp(Texts, '>', 'once');
-Idx = find(~cellfun('isempty', BrakLoc));
+BrackLoc = regexp(Texts, '>', 'once');
+Idx = find(~cellfun('isempty', BrackLoc));
 SeqRange(2) = min([SeqRange(2) length(Idx)]);
 
 Header = cell(diff(SeqRange) + 1, 1);
@@ -62,7 +62,7 @@ for j = SeqRange(1):SeqRange(2)
     else
         If = length(Texts);
     end
-    Header{k} = Texts{Idx(j)}(BrakLoc{Idx(j)}+1:end);
+    Header{k} = Texts{Idx(j)}(BrackLoc{Idx(j)}+1:end);
     Seq{k} = strrep(strcat(Texts{Io:If}), ' ', '');
     k = k+1;
 end
