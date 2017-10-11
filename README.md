@@ -46,7 +46,7 @@ BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning
 ### General preparations and downloads
 1. Download the MATLAB Runtime Version R2017a (9.2) from the [MathWorks website](https://www.mathworks.com/products/compiler/mcr.html).
 2. Install the MRC library on your computer.
-3. Download the appropriate [BRILIA binary files](https://github.com/BHSAI/BRILIA/releases/tag/v3.0.8).
+3. Download the appropriate [BRILIA binary files](https://github.com/BHSAI/BRILIA/releases/tag/v3.0.12).
 4. Unzip the executable files into a folder called BRILIA.
 
 ### For WINDOWS
@@ -120,19 +120,19 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in MATLAB to check.
 
 ## Resuming BRILIA after a crash
 
-Sometime, jobs must be killed before completion due to a server crash / outage. In such case, BRILIA saves most of the time-consuming steps in a temp directory located in a folder name the same as the sequence name. To resume, follow these steps:
+If your job stopped before completion (ex: due to a server crash), then you could recover some of the work. BRILIA saves most of the time-consuming steps in a Temp directory located within the output folder name, which by default is the same as the sequence file name. To resume, follow these steps:
 
-0. (Optional) Make a copy of the temp dir, which should be where the sequence file is with the same name of that file. EX: if the file is user\data\mouse.fa, then temp dir is \user\data\mouse\Temp .
-1. Retype the entire command you used to call this job (See above instructions), BUT add " Resume y " to the end.
+0. (Optional) Make a copy of the Temp dir, which should be where the sequence file is with the same name of that file. EX: if the file is /user/data/MouseH.fa, then the temp dir is /user/data/MouseH/Temp.
+1. Retype the ENTIRE command you used to call this job as shown above, BUT ADD **`Resume y`** to the end. If you used a non-default output folder, then use **`ResumeFrom  [output_dir_path]`** instead.
    
-   EX: will assume default temp dir for resuming
+   EX: when using the default output folder that stores the Temp dir
    ```
-      > BRILIA InputFile.fa SettingFile SettingFile.txt Resume y 
+      > BRILIA InputFile.fa ... Resume y 
    ```
 
-   EX: will use a different temp dir for resuming
+   EX: when using a non-default output folder that stores the Temp dir elsewhere
    ```
-      > BRILIA InputFile.fa SettingFile SettingFile.txt ResumeFrom \this\other\TempDir 
+      > BRILIA InputFile.fa ... ResumeFrom /output_folder/Temp 
    ```
    
 
