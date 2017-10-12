@@ -17,9 +17,14 @@
 function combineSeqData(FileList, OutputFile, varargin)
 %Detemine if there are multiple files to combine
 if ischar(FileList) 
-    warning('%s: Input a cell of file name strings. No action taken.', mfilename);
-    return;
-elseif isstruct(FileList) %Convert to a cell of file name strings
+    if ~contains(FileList, '\*')
+        FileList = dir(FileList);
+    else
+        warning('%s: No action taken.', mfilename);
+        return
+    end
+end
+if isstruct(FileList) %Convert to a cell of file name strings
     if length(FileList) <= 1
         warning('%s: Need more than one file. No action taken.', mfilename);
         return;
@@ -35,9 +40,37 @@ elseif iscell(FileList) && length(FileList) <= 1
     return;
 end
 
+%Make sure OutputFile is not the same as one of the InputFile
+FileNames = cell(size(FileList));
+for k = 1:length(FileNames)
+    [~, FileNames{k}, ~] = fileparts(FileList{k});
+end
+[~, OutName, ~] = fileparts(OutputFile);
+if ismember(OutName, FileNames)
+    warning('%s: The output "%s" cannot also be in the input files.', mfilename, OutputFile);
+    Attempt = 0;
+    while 1
+        Ask = input('Exclude the output file from the input file and combine the rest to output?\n   y or n :', 's');
+        if strcmpi(Ask, 'n')
+            fprintf('%s: Exiting due to cancelation.\n', mfilename)
+            return
+        elseif strcmpi(Ask, 'y')
+            fprintf('%s: Continuing to combine rest to output.\n', mfilename)
+            FileList(ismember(FileNames, OutName)) = [];
+            break
+        else
+            Attempt = Attempt + 1;
+            if Attempt >= 5
+                error('%s: Exiting due to invalid option', mfilename);
+            end
+        end
+    end
+end
+
+
 %Determine if you want to append to existing output file
 AppendThis = 'n';
-if ~isempty(varargin) && ischar(varargin{1}) && strcmpi(varargin{1}, 'append')
+if ~isempty(varargin) && ischar(varargin{1}) && contains(varargin{1}, 'append')
     AppendThis = 'y';
 end
 
@@ -48,15 +81,19 @@ if AppendThis == 'n'
     end
 end
 
+if isempty(OutputFile)
+    error('%s: No output file specified', mfilename);
+end
+
 %See if the folder exists
 [OutFilePath, ~, ~] = parseFileName(OutputFile);
-if ~exist(OutFilePath, 'dir')
+if ~isempty(OutFilePath) && ~exist(OutFilePath, 'dir')
     mkdir(OutFilePath)
 end
 
 %Append/create file
 if strcmpi(AppendThis, 'y')
-    Mode = 'a'; 
+    Mode = 'a';
 else 
     Mode = 'w';
 end
