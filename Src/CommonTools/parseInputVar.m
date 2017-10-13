@@ -21,8 +21,9 @@
 %
 %  EXAMPLE (parseInputVar - this code)
 %    varargin = {'a', 1, 'b', 2};
-%    a = parseInputVar('a', 0, @(x)isnumeric(x), varargin{:});
-%    c = parseInputVar('c', 3, @(x)isnumeric(x), varargin{:});
+%    P = struct;
+%    [a, P] = parseInputVar('a', 0, @(x)isnumeric(x), varargin{:}, P);
+%    [c, P] = parseInputVar('c', 3, @(x)isnumeric(x), varargin{:}, P);
 %
 %  EXAMPLE (inputParser - messy to deal with)
 %    varargin = {'a', 1, 'b', 2};
@@ -34,8 +35,16 @@
 %    a = P.Results.a;
 %    c = P.Results.c;
 
-function ParamVal = parseInputVar(ParamName, Default, Validator, varargin)
-VarLoc = strcmpi(varargin, ParamName);
+function [ParamVal, P] = parseInputVar(ParamName, Default, Validator, varargin)
+%Determine varargin before any input structure is given at the end
+if ~isempty(varargin) && isstruct(varargin{end})
+    EndLoc = length(varargin) - 1;
+else
+    EndLoc = length(varargin);
+end
+
+%Extract the value for this paramater
+VarLoc = strcmpi(varargin(1:EndLoc), ParamName);
 if any(VarLoc)
     VarIdx = find(VarLoc) + 1;
     if VarIdx(1) > length(varargin)
@@ -46,20 +55,35 @@ else
     ParamVal = Default;
 end
 
+%Validate input type
 if isa(Validator, 'function_handle')
-    BadFuncStr = 'delete|copyfile|mkdir|rmdir';
-    if ~isempty(regexpi(func2str(Validator), BadFuncStr))
-        error('%s: Cannot accept function handles with these words: %s.', mfilename, BadFuncStr); 
+    BadFuncStr = {'delete', 'copyfile', 'movefile', 'cd', 'mkdir', 'rmdir'};
+    ValidatorStr = func2str(Validator);
+    ValidatorStrOnly = regexpi(ValidatorStr, '[a-z0-9]+', 'match');
+    if any(ismember(BadFuncStr, ValidatorStrOnly))
+        error('%s: Validator "%s" cannot be a system function handles.', mfilename, ValidatorStrOnly.name); 
     end
-    ValidatorResult = Validator(ParamVal);
-elseif Validator == 1
-    ValidatorResult = 1;
+    try
+        ValidatorResult = Validator(ParamVal);
+    catch
+        error('%s: Validator "%s" could not be evaluated.', mfilename, ValidatorStr);
+    end
+    if numel(ValidatorResult) ~= 1 || ~islogical(ValidatorResult)
+        error('%s: Validator "%s" must return one true/false result.', mfilename, ValidatorStr);
+    end
+    if ~ValidatorResult
+        error('%s: Input parameter "%s" failed validation by "%s".', mfilename, ParamName, func2str(Validator));
+    end
 else
-    error('%s: Validator is invalid', mfilename);
+    error('%s: Validator must be a function handle.', mfilename);
 end
 
-if ~islogical(ValidatorResult)
-    error('%s: Validator must return a single logical value.', mfilename);
-elseif ~min(ValidatorResult)
-    error('%s: Input parameter (%s) failed validation: %s.', mfilename, ParamName, func2str(Validator));
+%Modify input structure if given and if it's an output
+if nargout > 1
+    if isstruct(varargin{end})
+        P = varargin{end};
+    else
+        P = struct;
+    end
+    P.(ParamName) = ParamVal;
 end
