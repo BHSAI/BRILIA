@@ -60,12 +60,8 @@
 %         'A'    'T'    'TGAAX'    'N'    [24]
 %    
 function MutInfo = getMutInfo(RefSeq, Seq, varargin)
-P = inputParser;
-addParameter(P, 'Frame', 0, @(x) isnumeric(x) && x >= 0 && x <= length(RefSeq))
-addParameter(P, 'ReturnAs', 'struct', @(x) ischar(x));% && ismember({lower(x)}, {'struct', 'cellstruct'}))
-parse(P, varargin{:});
-Frame = P.Results.Frame;
-ReturnAs = P.Results.ReturnAs;
+Frame    = parseInputVar('Frame', 0, @(x) isnumeric(x) && x >= 0 && x <= length(RefSeq), varargin{:});
+ReturnAs = parseInputVar('ReturnAs', 'struct', @(x) any(strcmpi(x, {'struct', 'cellstruct'})), varargin{:});
 
 %Ensure everything is upper case
 RefSeq = upper(RefSeq);
