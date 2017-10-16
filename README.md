@@ -122,7 +122,7 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in MATLAB to check.
 
 If you only want to do only the annotation without lineage determination (eg, when annotating independent sequences), add this setting:
   ``` 
-      >> BRILIA InputFile.fa ... AnnotOnly y
+      > BRILIA InputFile.fa ... AnnotOnly y
   ```
 
 
