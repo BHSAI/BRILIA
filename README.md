@@ -118,6 +118,14 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in MATLAB to check.
       >> testMouseH
    ```
 
+## Skipping the lineage-based correction
+
+If you only want to do only the annotation without lineage determination (eg, when annoting independent sequences), add this setting:
+  ``` 
+      >> BRILIA InputFile.fa ... AnnotOnly y
+  ```
+
+
 ## Resuming BRILIA after a crash
 
 If your job stopped before completion (ex: due to a server crash), then you could recover some of the work. BRILIA saves most of the time-consuming steps in a Temp directory located within the output folder name, which by default is the same as the sequence file name. To resume, follow these steps:

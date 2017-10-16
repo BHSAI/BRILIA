@@ -481,6 +481,13 @@ for f = 1:length(InputFile)
                 saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
                 VDJdata(BadIdx, :) = [];
             end
+            
+            %Finish scheme if annotonly
+            if strcmpi(AnnotOnly, 'y')
+                VDJdata = findCDR1(VDJdata, VDJheader, DB);
+                VDJdata = findCDR2(VDJdata, VDJheader, DB);
+                VDJdata = buildVDJalignment(VDJdata, VDJheader, DB);
+            end
 
             %Save remaining sequences to temp dir
             if SegmentMode %If sequence file is segmented by CDR3 length
