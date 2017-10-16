@@ -56,6 +56,10 @@
 %      'OutputFile'      [OutputFile.csv]       Outputfile name. See note
 %                                                 below about outputfile
 %                                                 handling.
+%      'AnnotOnly'       'y' or 'n'             'y' = only does annotation,
+%                                                 no lineage correction
+%                                               'n' = will do everything
+%                                                 (default)
 %
 %  OUTPUT
 %    Version: Version string in X.Y.Z
@@ -118,7 +122,7 @@
 %  Written by Donald Lee, dlee@bhsai.org
 
 function varargout = BRILIA(varargin)
-Version = '3.0.13';
+Version = '3.0.14';
 varargout = cell(1, nargout);
 
 %--------------------------------------------------------------------------
@@ -152,7 +156,7 @@ addParameter(P, 'Delimiter', '', @(x) ischar(x) && ismember(x, {';', ',', '\t', 
 addParameter(P, 'FileType', '', @ischar); %Will make input reader determine file type
 addParameter(P, 'NumProc', 'max', @(x) ischar(x) || isnumeric(x));
 addParameter(P, 'SettingFile', '', @ischar);
-addParameter(P, 'Species', '', @(x) ischar(x) && ismember(lower(x), {'human', 'mouse', 'macaque'}));
+addParameter(P, 'Species', '', @(x) ischar(x) && ismember(lower(x), lower(getGeneDatabase('getlist'))));
 addParameter(P, 'Strain', 'all', @ischar);
 addParameter(P, 'StatusHandle', [], @(x) ishandle(x) || isempty(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
 addParameter(P, 'Vfunction', 'all', @(x) ischar(x) && min(ismember(regexpi(lower(x), ',', 'split'), {'all', 'f', 'p', 'orf', ''}))==1);
@@ -161,6 +165,8 @@ addParameter(P, 'Resume', 'n', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}))
 addParameter(P, 'ResumeFrom', '', @(x) ischar(x)); %File directory storing the *Raw.csv file(s).
 addParameter(P, 'OutputFile', [], @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'BatchSize', 1000, @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'AnnotOnly', 'n', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
+
 
 varargin = cleanCommandLineInput(varargin{:});
 
@@ -222,6 +228,7 @@ Species = Ps.Species;
 StatusHandle = Ps.StatusHandle;
 Strain = Ps.Strain;
 Vfunction = Ps.Vfunction;
+AnnotOnly = Ps.AnnotOnly;
 
 %--------------------------------------------------------------------------
 %Display credits, etc.
@@ -519,120 +526,123 @@ for f = 1:length(InputFile)
     %Part 2 does everything AFTER intial annotations
     GrpNumStart = 0 ;
     FileList = dir([TempDir '*Raw.csv']);
-    for t = 1:length(FileList)
-        %Check if a Final.csv file already exists to skip
-        TempRawFileName = FileList(t).name;
-        TempOutputFileName = strrep(TempRawFileName, 'Raw.csv', 'Final.csv');
-        if exist(TempOutputFileName, 'file')
-            continue;
-        end
-        
-        %Reload the sequence file with same-length CDR3s
-        showStatus(sprintf('Processing %s ...', TempRawFileName), StatusHandle);
-        [VDJdata, VDJheader] = openSeqData([TempDir TempRawFileName]);
+    
+    if strcmpi(AnnotOnly, 'n')
+        for t = 1:length(FileList)
+            %Check if a Final.csv file already exists to skip
+            TempRawFileName = FileList(t).name;
+            TempOutputFileName = strrep(TempRawFileName, 'Raw.csv', 'Final.csv');
+            if exist(TempOutputFileName, 'file')
+                continue
+            end
 
-        %Fix insertion/deletion in V framework
-        showStatus('Fixing indels in V genes ...', StatusHandle)
-        VDJdata = fixGeneIndel(VDJdata, VDJheader, DB);
+            %Reload the sequence file with same-length CDR3s
+            showStatus(sprintf('Processing %s ...', TempRawFileName), StatusHandle);
+            [VDJdata, VDJheader] = openSeqData([TempDir TempRawFileName]);
 
-        %Remove pseudogenes from degenerate annotations containing functional ones.
-        showStatus('Accepting F genes over ORF/P ...', StatusHandle)
-        VDJdata = fixDegenVDJ(VDJdata, VDJheader, DB);
+            %Fix insertion/deletion in V framework
+            showStatus('Fixing indels in V genes ...', StatusHandle)
+            VDJdata = fixGeneIndel(VDJdata, VDJheader, DB);
 
-        %Insure that V and J segments cover the CDR3 region.
-        showStatus('Anchoring 104C and 118W/F ...', StatusHandle)
-        VDJdata = constrainGeneVJ(VDJdata, VDJheader, DB);
+            %Remove pseudogenes from degenerate annotations containing functional ones.
+            showStatus('Accepting F genes over ORF/P ...', StatusHandle)
+            VDJdata = fixDegenVDJ(VDJdata, VDJheader, DB);
 
-        %Cluster the data based variable region and hamming dist of DevPerc%.
-        showStatus('Clustering by lineage ...', StatusHandle)
-        [VDJdata, BadVDJdataT] = clusterGene(VDJdata, VDJheader, DevPerc);
-        if size(BadVDJdataT, 1) ~= 0
-            saveSeqData([TempDir ErrFileName], BadVDJdataT, VDJheader, 'append');
-            clear BadVDJdataT;
-        end
-        if size(VDJdata, 1) == 0; continue; end
-        
-        %Renumbering groups
-        H = getHeavyHeaderVar(VDJheader);
-        GrpNums = cell2mat(VDJdata(:, H.GrpNumLoc)) + GrpNumStart;
-        VDJdata(:, H.GrpNumLoc) = num2cell(GrpNums);
-        GrpNumStart = max(GrpNums); 
-        
-        %Set all groups to have same annotation and VMDNJ lengths.
-        showStatus('Correcting annotations by lineage ...', StatusHandle)
-        VDJdata = conformGeneGroup(VDJdata, VDJheader, DB);
+            %Insure that V and J segments cover the CDR3 region.
+            showStatus('Anchoring 104C and 118W/F ...', StatusHandle)
+            VDJdata = constrainGeneVJ(VDJdata, VDJheader, DB);
 
-        %Get better D match based on location of consensus V J mismatches.
-        showStatus('Refining D annotations ...', StatusHandle)
-        VDJdata = findBetterD(VDJdata, VDJheader, DB);
+            %Cluster the data based variable region and hamming dist of DevPerc%.
+            showStatus('Clustering by lineage ...', StatusHandle)
+            [VDJdata, BadVDJdataT] = clusterGene(VDJdata, VDJheader, DevPerc);
+            if size(BadVDJdataT, 1) ~= 0
+                saveSeqData([TempDir ErrFileName], BadVDJdataT, VDJheader, 'append');
+                clear BadVDJdataT;
+            end
+            if size(VDJdata, 1) == 0; continue; end
 
-        %Trim V, D, J edges and extract better N regions
-        showStatus('Trimming N regions ...', StatusHandle)
-        VDJdata = trimGeneEdge(VDJdata, VDJheader, DB);
+            %Renumbering groups
+            H = getHeavyHeaderVar(VDJheader);
+            GrpNums = cell2mat(VDJdata(:, H.GrpNumLoc)) + GrpNumStart;
+            VDJdata(:, H.GrpNumLoc) = num2cell(GrpNums);
+            GrpNumStart = max(GrpNums); 
 
-        %Fix obviously incorrect trees.
-        showStatus('Rerooting lineage trees ...', StatusHandle)
-        VDJdata = removeDupSeq(VDJdata, VDJheader);
-        VDJdata = fixTree(VDJdata, VDJheader);
+            %Set all groups to have same annotation and VMDNJ lengths.
+            showStatus('Correcting annotations by lineage ...', StatusHandle)
+            VDJdata = conformGeneGroup(VDJdata, VDJheader, DB);
 
-        %Finalize VDJdata details and CDR 1, 2, 3 info
-        VDJdata = padtrimSeqGroup(VDJdata, VDJheader, 'grpnum', 'trim', 'Seq'); %will only remove "x" before and after Seq if they all have it. 
-        VDJdata = findCDR1(VDJdata, VDJheader, DB);
-        VDJdata = findCDR2(VDJdata, VDJheader, DB);
-        VDJdata = findCDR3(VDJdata, VDJheader, DB, 'IMGT'); %removes the 104C and 118W from CDR3, and adjusts the CDR3 length to true IMGT length
+            %Get better D match based on location of consensus V J mismatches.
+            showStatus('Refining D annotations ...', StatusHandle)
+            VDJdata = findBetterD(VDJdata, VDJheader, DB);
 
-        %Move non-function sequences to Err file too
-        [H, L, ~] = getAllHeaderVar(VDJheader);
-        FunctLoc = [H.FunctLoc(:); L.FunctLoc(:)];
-        FunctLoc(FunctLoc == 0) = [];
-        BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
-        for w = 1:size(VDJdata, 1)
-            for q = 1:length(FunctLoc)
-                if isempty(VDJdata{w, FunctLoc(q)}) || VDJdata{w, FunctLoc(q)} == 'N'
-                    BadIdx(w) = 1;
-                    break
+            %Trim V, D, J edges and extract better N regions
+            showStatus('Trimming N regions ...', StatusHandle)
+            VDJdata = trimGeneEdge(VDJdata, VDJheader, DB);
+
+            %Fix obviously incorrect trees.
+            showStatus('Rerooting lineage trees ...', StatusHandle)
+            VDJdata = removeDupSeq(VDJdata, VDJheader);
+            VDJdata = fixTree(VDJdata, VDJheader);
+
+            %Finalize VDJdata details and CDR 1, 2, 3 info
+            VDJdata = padtrimSeqGroup(VDJdata, VDJheader, 'grpnum', 'trim', 'Seq'); %will only remove "x" before and after Seq if they all have it. 
+            VDJdata = findCDR1(VDJdata, VDJheader, DB);
+            VDJdata = findCDR2(VDJdata, VDJheader, DB);
+            VDJdata = findCDR3(VDJdata, VDJheader, DB, 'IMGT'); %removes the 104C and 118W from CDR3, and adjusts the CDR3 length to true IMGT length
+
+            %Move non-function sequences to Err file too
+            [H, L, ~] = getAllHeaderVar(VDJheader);
+            FunctLoc = [H.FunctLoc(:); L.FunctLoc(:)];
+            FunctLoc(FunctLoc == 0) = [];
+            BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
+            for w = 1:size(VDJdata, 1)
+                for q = 1:length(FunctLoc)
+                    if isempty(VDJdata{w, FunctLoc(q)}) || VDJdata{w, FunctLoc(q)} == 'N'
+                        BadIdx(w) = 1;
+                        break
+                    end
                 end
             end
-        end
-        if max(BadIdx) ~= 0
-            saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
-        end
-        VDJdata(BadIdx, :) = [];
+            if max(BadIdx) ~= 0
+                saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
+            end
+            VDJdata(BadIdx, :) = [];
 
-        %Save the functional annotations
-        [VDJdata, VDJheader2] = buildVDJalignment(VDJdata, VDJheader, DB); %Adds the alignment information
-        saveSeqData([TempDir TempOutputFileName], VDJdata, VDJheader2, 'append');
-        clear VDJdata BadVDJdata
-    end
-    %======================================================================
-    %Move folder to the correct destination folder
-    
-    %Combine final annotations to a single file, then move to destination
-    FinalFileStruct = dir([TempDir '*Final.csv']);
-    FinalFileList = cell(length(FinalFileStruct), 1);
-    for q = 1:length(FinalFileList)
-        FinalFileList{q} = [TempDir FinalFileStruct(q).name];
-    end
-    if exist([TempDir OutputFileName], 'file') %If a real output file was interrupted and left in Temp folder, delete.
-        try
-            delete([TempDir OutputFileName]);
-        catch
-            warning('%s: Could not delete incomplete final file [ %s ].', mfilename, [TempDir OutputFileName]);
+            %Save the functional annotations
+            [VDJdata, VDJheader2] = buildVDJalignment(VDJdata, VDJheader, DB); %Adds the alignment information
+            saveSeqData([TempDir TempOutputFileName], VDJdata, VDJheader2, 'append');
+            clear VDJdata BadVDJdata
         end
-    end
-    if length(FinalFileList) > 1
-        combineSeqData(FinalFileList, [TempDir OutputFileName]);
-        try
-            movefile([TempDir OutputFileName], [OutputFilePath, OutputFileName], 'f');
-            delete(FinalFileList{:});
-        catch
-            warning('%s: Could not move Final files from [ %s ] to destination [ %s ].', mfilename, [TempDir OutputFileName], [OutputFilePath OutputFileName]);
+        %======================================================================
+        %Move folder to the correct destination folder
+
+        %Combine final annotations to a single file, then move to destination
+        FinalFileStruct = dir([TempDir '*Final.csv']);
+        FinalFileList = cell(length(FinalFileStruct), 1);
+        for q = 1:length(FinalFileList)
+            FinalFileList{q} = [TempDir FinalFileStruct(q).name];
         end
-    elseif length(FinalFileList) == 1
-        try
-            movefile(FinalFileList{1}, [OutputFilePath, OutputFileName], 'f');
-        catch
-            warning('%s: Could not move Final files from [ %s ] to destination [ %s ].', mfilename, FinalFileList{1}, [OutputFilePath OutputFileName]);
+        if exist([TempDir OutputFileName], 'file') %If a real output file was interrupted and left in Temp folder, delete.
+            try
+                delete([TempDir OutputFileName]);
+            catch
+                warning('%s: Could not delete incomplete final file [ %s ].', mfilename, [TempDir OutputFileName]);
+            end
+        end
+        if length(FinalFileList) > 1
+            combineSeqData(FinalFileList, [TempDir OutputFileName]);
+            try
+                movefile([TempDir OutputFileName], [OutputFilePath, OutputFileName], 'f');
+                delete(FinalFileList{:});
+            catch
+                warning('%s: Could not move Final files from [ %s ] to destination [ %s ].', mfilename, [TempDir OutputFileName], [OutputFilePath OutputFileName]);
+            end
+        elseif length(FinalFileList) == 1
+            try
+                movefile(FinalFileList{1}, [OutputFilePath, OutputFileName], 'f');
+            catch
+                warning('%s: Could not move Final files from [ %s ] to destination [ %s ].', mfilename, FinalFileList{1}, [OutputFilePath OutputFileName]);
+            end
         end
     end
         

@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------
+## Patch notice for version 3.0.14
+ - Allows for annotation-only usage of BRILIA via the 'annotonly' 'y' command. Default is 'n' which would do lineage-based annotation. If 'y', will only do VDJ annotation without correction (good for non-repertoire data).
+
+---------------------------------------------------------------------------
 ## Patch notice for version 3.0.13
  - Fixed issues with nt2aa function now correctly processing ambiguous nt letters. It now uses wrapper function convNT2AA to handle ambiguous characters.
 
