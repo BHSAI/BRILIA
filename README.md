@@ -120,7 +120,7 @@ Note: Requires bioinformatics toolbox. Use `>> ver` command in MATLAB to check.
 
 ## Skipping the lineage-based correction
 
-If you only want to do only the annotation without lineage determination (eg, when annoting independent sequences), add this setting:
+If you only want to do only the annotation without lineage determination (eg, when annotating independent sequences), add this setting:
   ``` 
       >> BRILIA InputFile.fa ... AnnotOnly y
   ```
