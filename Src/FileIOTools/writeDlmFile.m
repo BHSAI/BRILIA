@@ -1,7 +1,7 @@
 %writeDlmFile will take a cell array and convert it into a string array, 
 %and then save it into a delimited file. If the delimiter is the same as a
 %character in the string array, will automatically replace the string
-%character with a "|" character to ensure delimiter number is no messed up.
+%character with a "|" character to ensure delimiter number is not ruined.
 %
 %  writeDlmFile(CellData, OutputFile, Delimiter)
 %

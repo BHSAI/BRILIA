@@ -47,7 +47,7 @@ P = inputParser;
 addParameter(P, 'Save', 'y', @(x) any(validatestring(lower(x), {'y', 'n'})));
 addParameter(P, 'SaveAs', '', @ischar);
 addParameter(P, 'SavePre', '', @ischar);
-addParameter(P, 'Format', 'tif', @(x) any(validatestring(lower(x), {'tif', 'jpg', 'png', 'fig'})));
+addParameter(P, 'Format', 'png', @(x) any(validatestring(lower(x), {'tif', 'jpg', 'png', 'fig'})));
 addParameter(P, 'DPI', 300, @isnumeric);
 [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInputT(P, varargin{:});
 if ReturnThis

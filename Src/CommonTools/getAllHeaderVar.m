@@ -30,6 +30,8 @@ if nargout <= 3
             varargout{1} = 'H';
         elseif L.SeqLoc > 0
             varargout{1} = 'L';
+        else
+            varargout{1} = 'none';
         end
     end
 else
