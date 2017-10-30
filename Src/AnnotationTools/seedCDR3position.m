@@ -87,36 +87,38 @@ RepPat = repmat('%s|', 1, length(SpecialSeed));
 RepPat(end) = [];
 SeedPat = sprintf(RepPat, SpecialSeed{:});  %Special seed for V and J, which is the 'TGT' and the 'TGG' or 'TT[TC]'
 
-%Setup the alignSeq input structure for faster alignment
-P.MissRate = 0;
-P.Alphabet = 'nt';
-P.CheckSeq = 'yes';
-P.DiagIdx = [];
-P.ExactMatch = 'no';
-P.PreferSide = 'none';
-if Segment == 'V'
-    P.TrimSide = 'right';   %will trim poorly matched regions in this side
-    P.PreferSide = 'left';  %if tied alignments, will favor one towards this side of seed and seq
-    P.PenaltySide = 'left'; %unused nts of seed in this side will be unfavorable
-elseif Segment == 'J'
-    P.TrimSide = 'left';    %will trim poorly matched regions in this side
-    P.PreferSide = 'right'; %if tied alignments, will favor one towards this side of seed and seq
-    P.PenaltySide = 'right';%unused nts of seed in this side will be unfavorable
+%Setup the input for alignSeqMEX.
+MissRate   = 0;
+Alphabet   = 'n'; %nt
+ExactMatch = 'n'; 
+if X == 'V'
+    TrimSide    = 'r'; %right
+    PenaltySide = 'l'; %left
+    PreferSide  = 'l'; %left
+elseif X == 'J'
+    TrimSide    = 'l'; %left
+    PenaltySide = 'r'; %right
+    PreferSide  = 'r'; %right
+elseif X == 'D'
+    TrimSide    = 'b'; %both
+    PenaltySide = 'n'; %none
+    PreferSide  = 'n'; %none
+else
+    TrimSide    = 'n'; %none
+    PenaltySide = 'n'; %none
+    PreferSide  = 'n'; %none
 end
 
 %Find the CDR3start or CDR3end locations. Flip seq too if needed.
 parfor j = 1:size(VDJdata, 1)
-    %Extract a "slice" of VDJdata for parfor
     Tdata = VDJdata(j, :);  
     Seq = Tdata{SeqLoc};
-    if length(Seq) < Nleft + Nright + 1; %If sequence is too short, skip
-        continue; 
-    end 
+    if length(Seq) < Nleft + Nright + 1; continue; end %Skip short seqs
     
     %Do seed alignments, forward sense
     AlignScores = zeros(size(Xseed, 1), 3);
     for x = 1:size(Xseed, 1)
-       [Score, ~, StartAt, MatchAt] = alignSeq(Xseed{x}, Seq, P); %Subtle hint: alignSeq 1st input should be shorter than 2nd input for speed
+       [Score, StartAt, MatchAt] = alignSeqMEX(Xseed{x}, Seq, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
        if StartAt(2) > 0
             AnchorLoc = Nleft - StartAt(2) + 2; %Comes from (Nleft + 1) - (StartAt(2) - 1) = PositionAnchorSeed - MissingSeqCount
        else
@@ -130,7 +132,7 @@ parfor j = 1:size(VDJdata, 1)
         AlignScoresR = zeros(size(Xseed, 1), 3);
         SeqNTR = seqrcomplement(Seq);
         for x = 1:size(Xseed, 1)
-            [Score, ~, StartAt, MatchAt] = alignSeq(Xseed{x}, SeqNTR, P);
+            [Score, StartAt, MatchAt] = alignSeqMEX(Xseed{x}, SeqNTR, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
             if StartAt(2) > 0
                 AnchorLoc = Nleft - StartAt(2) + 2; %Comes from (Nleft + 1) - (StartAt(2) - 1) = PositionAnchorSeed - MissingSeqCount
             else

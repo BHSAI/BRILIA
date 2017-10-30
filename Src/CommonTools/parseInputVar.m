@@ -44,20 +44,25 @@ else
 end
 
 %Extract the value for this paramater
-VarLoc = strcmpi(varargin(1:EndLoc), ParamName);
-if any(VarLoc)
-    VarIdx = find(VarLoc) + 1;
-    if VarIdx(1) > length(varargin)
-        error('%s: Could not find value for (%s) - exceeded length(varargin).', mfilename, ParamName);
+VarLoc = 0;
+for j = 1:2:EndLoc
+    if strcmpi(varargin{j}, ParamName)
+        if j+1 > EndLoc
+            error('%s: Could not find value for (%s) - exceeded length(varargin).', mfilename, ParamName);
+        else
+            VarLoc = j+1;
+            ParamVal = varargin{VarLoc};
+        end
+        break;
     end
-    ParamVal = varargin{VarIdx(1)};
-else
+end
+if VarLoc == 0
     ParamVal = Default;
 end
 
 %Validate input type
 if isa(Validator, 'function_handle')
-    BadFuncStr = {'delete', 'copyfile', 'movefile', 'cd', 'mkdir', 'rmdir'};
+    BadFuncStr = {'delete', 'copyfile', 'movefile', 'mkdir', 'rmdir'};
     ValidatorStr = func2str(Validator);
     ValidatorStrOnly = regexpi(ValidatorStr, '[a-z0-9]+', 'match');
     if any(ismember(BadFuncStr, ValidatorStrOnly))
@@ -82,8 +87,8 @@ end
 if nargout > 1
     if isstruct(varargin{end})
         P = varargin{end};
+        P.(ParamName) = ParamVal;
     else
-        P = struct;
+        P = struct('ParamName', ParamVal);
     end
-    P.(ParamName) = ParamVal;
 end

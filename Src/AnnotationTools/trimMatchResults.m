@@ -45,7 +45,7 @@ function [MatchResults,varargout] = trimMatchResults(MatchResults,TrimSide)
 if ~islogical(MatchResults)
     error('Error in %s: MatchResults must be a logical matrix.',mfilename);
 end
-if ~ismember(lower(TrimSide),{'both','left','right'})
+if ~ismember(lower(TrimSide(1)),{'b','l','r','n'})
     error('Error in %s: TrimSide not defined correctly.',mfilename);
 end
 TrimSide = lower(TrimSide(1));

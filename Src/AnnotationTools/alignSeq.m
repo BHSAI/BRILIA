@@ -166,37 +166,108 @@
 %           19
 %
 %  See also makeDiagonalSeq, calcAlignScore, trimMatchResults
-function varargout = alignSeq(SeqA, SeqB, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide)
-if nargin < 8 
-    PreferSide = 'n';
-    if nargin < 7
-        PenaltySide = 'n';
-        if nargin < 6
-            TrimSide = 'n';
-            if nargin < 5
-                ExactMatch = 'n';
-                if nargin < 4
-                    Alphabet = 'n';
-                    if nargin < 3
-                        MissRate = 0;
-                    end
-                end
-            end
-        end
+function varargout = alignSeq(varargin)
+
+warning('%s: This is obsolete. Use alignSeqMEX instead.', mfilename);
+
+%--------------------------------------------------------------------------
+%Input parsing
+
+%The special case check for extracting input
+JustGettingInput = 0;
+if nargin == 1 && ischar(varargin{1})
+    if strcmpi(varargin{1},'getinput')
+        JustGettingInput = 1;
+        varargin = {}; %Want to get defaults.
     end
+end
+if ~JustGettingInput %Need to get the SeqA and SeqB
+    SeqA = varargin{1};
+    SeqB = varargin{2};
+    varargin(1:2) = [];
+end
+
+if isempty(varargin) || ~isstruct(varargin{1})
+    %Need to parse from scrap
+    P = inputParser;
+    addParameter(P,'MissRate',0,@isnumeric);
+    addParameter(P,'Alphabet','n',@(x) ischar(x) && ismember(lower(x(1)),{'n','a','r'}));
+    addParameter(P,'TrimSide','n',@(x) ischar(x) && ismember(lower(x(1)),{'n','l','r','b'}));
+    addParameter(P,'PenaltySide','n',@(x) ischar(x) && ismember(lower(x),{'n','l','r','b'}));
+    addParameter(P,'PreferSide','n',@(x) ischar(x) && ismember(lower(x),{'n','l','r'}));
+    addParameter(P,'ExactMatch','n',@(x) ischar(x) && ismember(lower(x),{'y','n'}));
+    addParameter(P,'CheckSeq','n',@(x) ischar(x) && ismember(lower(x),{'y','n'}));
+    addParameter(P,'DiagIdx',[],@isnumeric); %Used only to speed things up.
+    parse(P,varargin{:});
+    P = P.Results;
+else
+    %Advance user specified exact fields and values. %No error checking! 
+    P = varargin{1};
+end
+
+if JustGettingInput
+    varargout{1} = P;
+    return
 end
 
 %--------------------------------------------------------------------------
-if strcmpi(ExactMatch(1), 'y')
-    if length(SeqA) ~= length(SeqB)
-        error('%s: SeqA and SeqB must be the same lengths for an exact match.', mfilename);
+%Input checking
+
+%Make sure SeqA and SeqB are 1xM char
+if iscell(SeqA)
+    SeqA = SeqA{1};
+    if size(SeqA,1) > 1
+        disp('Warning: SeqA should a 1x1 cell or 1xN char. Taking first one only');
     end
-    MatchResults = SeqA == SeqB | SeqA == 'X' | SeqB == 'X';
+end
+if iscell(SeqB)
+    SeqB = SeqB{1};
+    if size(SeqB,1) > 1
+        disp('Warning: SeqB should a 1x1 cell or 1xN char. Taking first one only');
+    end
+end
+
+%Make sure SeqA and SeqB are all upper case
+SeqA = upper(SeqA);
+SeqB = upper(SeqB);
+AllowedMiss = round(P.MissRate * min([length(SeqA) length(SeqB)]));
+
+%Check seq for ambiguous char, replacing them with X (HINT: Better to ensure no ambig char before alignSeq)
+if lower(P.CheckSeq(1)) == 'n'
+    %Identify what are bad letters
+    switch P.Alphabet
+        case 'nt'
+            BadPattern = '[^ACGTUX]';
+        case 'aa'
+            BadPattern = ['[^' int2aa(1:20) 'X]'];
+        otherwise
+            BadPattern = '';
+    end
+
+    %Convert ambiguous characters to X.
+    BadLoc1 = regexp(SeqA,BadPattern);
+    SeqA(BadLoc1) = 'X';
+    BadLoc2 = regexp(SeqB,BadPattern);
+    SeqB(BadLoc2) = 'X';
+end
+
+%--------------------------------------------------------------------------
+%Alignment for Exact Match case
+
+if lower(P.ExactMatch(1)) == 'y'
+    %Check to make sure SeqA and SeqB are the same lengths.
+    if length(SeqA) ~= length(SeqB)
+        error('Error: SeqA and SeqB must be of same length for exact match.');
+    end
+    
+    AnyMatchIdx = (SeqA == 'X') | (SeqB == 'X'); %Keep track of wildcard matches
+    MatchResults = (SeqA == SeqB);
+    MatchResults(AnyMatchIdx) = 1;
 
     %Trim match results, which helps with poor end matches.
-    if ~strcmpi(TrimSide(1), 'n')
+    if ~(lower(P.TrimSide(1)) == 'n');
         GoodIdx = ones(1,length(SeqA),'logical'); %Forces score on all GoodIdx locations
-        [MatchResults, TrimIdx] = trimMatchResults(MatchResults, TrimSide);
+        [MatchResults,TrimIdx] = trimMatchResults(MatchResults,P.TrimSide);
         GoodIdx(TrimIdx) = 0;
     else
         GoodIdx = []; %Forces score on only first to last match locations
@@ -204,7 +275,7 @@ if strcmpi(ExactMatch(1), 'y')
 
     %Consider implementing ins/del corrector here--------------------------
 
-    AllowedMiss = round(MissRate * length(SeqA));
+    %Find the best alignments
     AlignScores = calcAlignScore(MatchResults,AllowedMiss,GoodIdx);
     
     %Perform output calculations on a need basis
@@ -217,11 +288,11 @@ if strcmpi(ExactMatch(1), 'y')
             if nargout >= 3 %Return start locs'
                 varargout{3} = [1; 1];
                 if nargout >= 4 %Return match locs
-                    MatchLoc = find(MatchPat == '|');
-                    if isempty(MatchLoc)
-                        MatchLoc = 0;
+                    H.MatchLoc = find(MatchPat == '|');
+                    if isempty(H.MatchLoc)
+                        H.MatchLoc = 0;
                     end
-                    varargout{4} = [MatchLoc(1); MatchLoc(end)];
+                    varargout{4} = [H.MatchLoc(1); H.MatchLoc(end)];
                 end
             end
         end

@@ -105,7 +105,7 @@ for k = 1:size(MatchResults,1)
     ConsHits = 0;
     ConsMiss = 0;
     for j = StartLoc:EndLoc %StartLoc(1):size(CurAction,2)
-        if CurAction(j) > 0;
+        if CurAction(j) > 0
             ConsHits = ConsHits + (CurAction(j) == 1);
             if ConsMiss > 0
                 Score = Score - ConsMiss.^2;

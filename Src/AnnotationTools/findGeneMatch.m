@@ -35,100 +35,91 @@
 %      Col5   [(# of matches) AlignmentScore]
 %      Col6   3xN character alignment results
 %
-%  See also alignSeq, findVDJmatch, findVJmatch
+%  See also alignSeqMEX, findVDJmatch, findVJmatch
 
 function GeneMatch = findGeneMatch(Seq, Xmap, X, MissRate, varargin)
-%Make sure Seq is a cell.
 if iscell(Seq)
-    if length(Seq) > 1
-        warning('findGeneMatch: Seq should be a character. Taking only the first sequence of the cell.');
-    end
+    warning('%s: Seq should be a char, not cell. Taking 1st sequence only.', mfilename);
     Seq = Seq{1};
 end
+X = upper(X(1));
 
-X = upper(X(1)); %Want to handle only uppercase X
-
-%Determine if 'ForceAnchor' option was given
-ForceAnchor = 0;
-ForceAnchorLoc = findCell(varargin, 'ForceAnchor', 'MatchCase', 'any');
-if ForceAnchorLoc > 0
+ForceAnchorLoc = strcmpi(varargin, 'ForceAnchor');
+if any(ForceAnchorLoc)
     ForceAnchor = 1;
     varargin(ForceAnchorLoc) = [];
-end
-
-%Determine if a valid, nonzero CDR3anchor was given.
-CDR3anchor = 0;
-if ~isempty(varargin) && ~isempty(varargin{1})
-    CDR3anchor = sort(varargin{1});
-end
-
-%Override ForceAnchor. Can't enforce an anchor that does not exist.
-if max(CDR3anchor) == 0 && ForceAnchor == 1
+else
     ForceAnchor = 0;
 end
 
-%Ensure miss rate is valid
+if ~isempty(varargin) && ~isempty(varargin{1})
+    CDR3anchor = sort(varargin{1});
+else
+    CDR3anchor = 0;
+end
+
+if max(CDR3anchor) == 0 && ForceAnchor == 1 %No anchor, no forceanchor.
+    ForceAnchor = 0; 
+end
+
+%Setup inputs for alignSeqMEX
 if MissRate < 0; MissRate = 0; end
 if MissRate > 1; MissRate = 1; end
 
-%Setup the input structure for alignSeq, which is faster.
-P.MissRate = MissRate;
-P.Alphabet = 'nt';
-P.CheckSeq = 'yes'; %Assumes ambig char taken char of before this.
-P.DiagIdx = [];
-if X == 'V'
-    P.TrimSide = 'right';
-    P.PreferSide = 'left';
-    P.PenaltySide = 'left';
-elseif X == 'J'
-    P.TrimSide = 'left';
-    P.PreferSide = 'right';
-    P.PenaltySide = 'right';
-elseif X == 'D'
-    P.TrimSide = 'both';
-    P.PreferSide = 'none';
-    P.PenaltySide = 'none';
-else
-    P.TrimSide = 'none';
-    P.PreferSide = 'none';
-    P.PenaltySide = 'none';
-end
+Alphabet    = 'n'; %nt
+
 if max(CDR3anchor) > 0
-    P.ExactMatch = 'yes';
+    ExactMatch = 'y';
 else
-    P.ExactMatch = 'no';
-end    
+    ExactMatch = 'n';
+end
+
+if X == 'V'
+    TrimSide    = 'r'; %right
+    PenaltySide = 'l'; %left
+    PreferSide  = 'l'; %left
+elseif X == 'J'
+    TrimSide    = 'l'; %left
+    PenaltySide = 'r'; %right
+    PreferSide  = 'r'; %right
+elseif X == 'D'
+    TrimSide    = 'b'; %both
+    PenaltySide = 'n'; %none
+    PreferSide  = 'n'; %none
+else
+    TrimSide    = 'n'; %none
+    PenaltySide = 'n'; %none
+    PreferSide  = 'n'; %none
+end
 
 %--------------------------------------------------------------------------
 %Find the best ref gene map.
 
 %If CDR3 anchors are provided, try to use this first to find gene match.
-if P.ExactMatch(1) == 'y'
+if ExactMatch == 'y'
     %Determine best fit ref gene number via NT matching
-    FitScore1 = -Inf*ones(length(CDR3anchor), size(Xmap, 1)); %Match/mismatch
-    FitScore2 = -Inf*ones(length(CDR3anchor), size(Xmap, 1)); %Align Score
+    FitScore1 = -inf(length(CDR3anchor), size(Xmap, 1)); %Match/mismatch
+    FitScore2 = -inf(length(CDR3anchor), size(Xmap, 1)); %Align Score
     InvalidMap = zeros(1, size(Xmap, 1), 'logical');
     for x = 1:size(Xmap, 1)
-        %Determine if Xmap entry and anchor are viable
-        if isempty(Xmap{x, 1}); 
+        if isempty(Xmap{x, 1}) || Xmap{x, end} == 0 %Deleted reference seq or no anchor
             InvalidMap(x) = 1;
             continue; 
-        end %Deleted reference seq       
-        if Xmap{x, end} == 0; 
-            InvalidMap(x) = 1;
-            continue; 
-        end %No valid anchor available
+        end 
         
-        if X == 'V'
-            Xanchor = length(Xmap{x, 1}) - Xmap{x, end} + 1; %CDR3start location (1st nt of codon)
-        else 
-            Xanchor = Xmap{x, end} + 2; %CDR3end location (3rd nt of codon)
+        switch X 
+            case 'V'
+                Xanchor = length(Xmap{x, 1}) - Xmap{x, end} + 1; %CDR3start location (1st nt of codon)
+            case 'J' 
+                Xanchor = Xmap{x, end} + 2; %CDR3end location (3rd nt of codon)
+            otherwise
+                error('%s: X should be either ''V'' or ''J''.', mfilename);
         end
         
         %Determine alignment score for Xmap and anchor points
         for q = 1:length(CDR3anchor)
             [SeqA, SeqB] = padtrimSeq(Seq, Xmap{x, 1}, CDR3anchor(q), Xanchor, 'min', 'min');
-            [ScoreT, ~, StartAt, MatchAt] = alignSeq(SeqA, SeqB, P); 
+            [ScoreT, StartAt, MatchAt] = alignSeqMEX(SeqA, SeqB, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
             %Adjust Score1 based on where SeqA start/ends for V/J gene
             if StartAt(2) < 0
                 SeqAstart = abs(StartAt(2)) + 1;
@@ -167,35 +158,21 @@ if P.ExactMatch(1) == 'y'
             BestRow = BestRow(1);
         end
     end
+    BestIdentity = max(FitScore1(BestRow, BestXmapNum));
 
     %In case you have to abandon a bad seed, just do full match
-    BestIdentity = max(FitScore1(BestRow, BestXmapNum));
     if (BestIdentity < 0.70 && ForceAnchor == 0) || BestIdentity == 0
-        P.ExactMatch = 'no';
+        ExactMatch = 'n';
     end
 end
     
 %If no anchor point, or previous one gave bad results, do full alighmnet.
-if P.ExactMatch(1) == 'n'
-    %Generate the DiagMatrixIdx here that is used by makeDiagonalSeq in
-    %convolveSeq. This will speedup the gene matching process.
-    
-    %Determine the number of rows in the diagonal matrix
-    SeqXmaxLen = 0;
-    for x = 1:size(Xmap, 1)
-        SeqXlen = length(Xmap{x, 1});
-        if SeqXlen > SeqXmaxLen
-            SeqXmaxLen = SeqXlen;
-        end
-    end
-    Tlen = length(Seq)+SeqXmaxLen-1; %Length of the untrimmed diag matrix
-    P.DiagIdx = repmat([-length(Seq)+2:1], Tlen, 1) + repmat([0:Tlen-1]', 1, length(Seq)); %Determine the index for Seq2  %SLOWEST    
-
+if ExactMatch == 'n'
     %Determine best fit ref gene number via NT matching
     FitScore = -Inf*ones(1, size(Xmap, 1));
     for x = 1:size(Xmap, 1)
         if isempty(Xmap{x, 1}); continue; end
-        ScoreT = alignSeq(Seq, Xmap{x, 1}, P);
+        ScoreT = alignSeqMEX(Seq, Xmap{x, 1}, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
         FitScore(1, x) = ScoreT(2);
     end
     BestXmapNum = find(FitScore == max(FitScore)); %The index number in Xmap of best matches
@@ -211,7 +188,7 @@ for k = 1:length(BestXmapNum)
     SeqB = Xmap{w, 1};
     Aadj = [0 0]; %Will always be negative to indicate how many nts were removed from left or right side of Seq A.
     Badj = [0 0]; %Will always be negative to indicate how many nts were removed from left or right side of Seq A.
-    if P.ExactMatch(1) == 'y'
+    if ExactMatch(1) == 'y'
         if X == 'V'
             Xanchor = length(Xmap{w, 1}) - Xmap{w, end} + 1;
         else
@@ -219,7 +196,7 @@ for k = 1:length(BestXmapNum)
         end
         [SeqA, SeqB, Aadj, Badj] = padtrimSeq(SeqA, SeqB, BestAnchor, Xanchor, 'min', 'min'); %Using min, min option is key to ensuring negative Aadj and Badj values!
     end
-    [AlignScore, Alignment, StartAt, MatchAt] = alignSeq(SeqA, SeqB, P); 
+    [AlignScore, StartAt, MatchAt, Alignment] = alignSeqMEX(SeqA, SeqB, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
 
     %Calculate Left, Middle, and Right segment lengths. LMRsamp and LMRgerm
     if StartAt(2) < 0 %Seq2 starts first

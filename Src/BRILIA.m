@@ -122,7 +122,7 @@
 %  Written by Donald Lee, dlee@bhsai.org
 
 function varargout = BRILIA(varargin)
-Version = '3.0.14';
+Version = '3.1.0';
 varargout = cell(1, nargout);
 
 %--------------------------------------------------------------------------
@@ -156,7 +156,7 @@ addParameter(P, 'Delimiter', '', @(x) ischar(x) && ismember(x, {';', ',', '\t', 
 addParameter(P, 'FileType', '', @ischar); %Will make input reader determine file type
 addParameter(P, 'NumProc', 'max', @(x) ischar(x) || isnumeric(x));
 addParameter(P, 'SettingFile', '', @ischar);
-addParameter(P, 'Species', '', @(x) ischar(x) && ismember(lower(x), lower(getGeneDatabase('getlist'))));
+addParameter(P, 'Species', '', @(x) ischar(x) && any(contains(getGeneDatabase('getlist'), x, 'ignorecase', true)));
 addParameter(P, 'Strain', 'all', @ischar);
 addParameter(P, 'StatusHandle', [], @(x) ishandle(x) || isempty(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
 addParameter(P, 'Vfunction', 'all', @(x) ischar(x) && min(ismember(regexpi(lower(x), ',', 'split'), {'all', 'f', 'p', 'orf', ''}))==1);

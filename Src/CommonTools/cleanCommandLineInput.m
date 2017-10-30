@@ -33,7 +33,7 @@ for k = 1:length(CharLoc)
     end
     
     %Check if this a string that can be a number
-    if isempty(regexpi(InputStr, '[^0-9\-\.\:\,]'))
+    if isempty(regexpi(InputStr, '[^0-9\]\[\-\.\:\,]'))
         try
             NumVal = convStr2Num(InputStr);
             if ~isempty(NumVal)
