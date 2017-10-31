@@ -179,9 +179,9 @@ while max(AncCycle) > 0
                         SeqDiff = CurSeq == RefSeq;
 
                         %Compute the scores
-                        Vscore = calcAlignScore(SeqDiff(1:VMDNJ(1)),inf);
-                        Dscore = calcAlignScore(SeqDiff(sum(VMDNJ(1:2))+1:sum(VMDNJ(1:3))),inf);
-                        Jscore = calcAlignScore(SeqDiff(sum(VMDNJ(1:4))+1:sum(VMDNJ)),inf);
+                        Vscore = calcAlignScoreMEX(SeqDiff(1:VMDNJ(1)),inf);
+                        Dscore = calcAlignScoreMEX(SeqDiff(sum(VMDNJ(1:2))+1:sum(VMDNJ(1:3))),inf);
+                        Jscore = calcAlignScoreMEX(SeqDiff(sum(VMDNJ(1:4))+1:sum(VMDNJ)),inf);
 
                         %Fill in the score matrix
                         TempCt = AncMap(RootLoc(g)==AncMap(:,1),4);
@@ -205,8 +205,8 @@ while max(AncCycle) > 0
                         SeqDiff = CurSeq == RefSeq;
 
                         %Compute the scores
-                        Vscore = calcAlignScore(SeqDiff(1:VNJ(1)),Inf);
-                        Jscore = calcAlignScore(SeqDiff(sum(VNJ(1:2))+1:sum(VNJ)),Inf);
+                        Vscore = calcAlignScoreMEX(SeqDiff(1:VNJ(1)),Inf);
+                        Jscore = calcAlignScoreMEX(SeqDiff(sum(VNJ(1:2))+1:sum(VNJ)),Inf);
 
                         %Fill in the score matrix
                         TempCt = AncMap(RootLoc(g)==AncMap(:,1),4);

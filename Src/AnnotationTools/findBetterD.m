@@ -132,11 +132,11 @@ for y = 1:length(UnqGrpNum)
 
                 %Calculate the new V score
                 VconsMatch = ~ConsMiss(1:VMDNJ(1)-VcutLen(v));
-                CompareMat(q, 4) = calcAlignScore(VconsMatch);                
+                CompareMat(q, 4) = calcAlignScoreMEX(VconsMatch);                
 
                 %Calculate the new J score
                 JconsMatch = ~ConsMiss(end-VMDNJ(end)+1+JcutLen(j):end);
-                CompareMat(q, 5) = calcAlignScore(JconsMatch);
+                CompareMat(q, 5) = calcAlignScoreMEX(JconsMatch);
 
                 %Get the new Nvd D Ndj lengths
                 Mlen = Dmatch{q, 4}(1);
@@ -222,7 +222,7 @@ for y = 1:length(UnqGrpNum)
             warning('%s: Skipping D fix due to loss of V, D, or J.', mfilename);
             continue;
         end 
-        if min(VMDNJnew([2 4])) < 0; %Don't fix errors
+        if min(VMDNJnew([2 4])) < 0 %Don't fix errors
             warning('%s: Skipping D fix due to negative Nvd or Ndj.', mfilename);
             continue; 
         end 

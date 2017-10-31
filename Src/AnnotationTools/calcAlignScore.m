@@ -54,6 +54,8 @@
 %  See also alignSeq, makeDiagonalSeq
 
 function AllScores = calcAlignScore(MatchResults,varargin)
+warning('calcAlignScore is obsolete. Use calcAlignScoreMEX');
+
 %Determine if you have a binary matrix, or a 3xN alignment char.
 if ischar(MatchResults)
     if size(MatchResults == 3)
