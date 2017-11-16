@@ -1,10 +1,12 @@
 ---------------------------------------------------------------------------
 ## Patch notice for version 3.1.0
  - Version 3.1 introduces MEX routines for improved speeds.
- - alignSeq is obsolete, replaced by alignSeqMEX.
- - alignSeqMEX does NOT compute textual alignment results unless asked for by the 4th output argument. This contrasts with alignSeq, which always generate text even when not needed.
- - findGeneMatch is obsolete, replaced by findGeneMatchMEX.
- - VDJdata and VDJheader cell variables are now rewritten into structures.
+   - alignSeqMEX replaces alignSeq.
+   - alignSeqMEX does NOT compute textual alignment results unless asked for by the 4th output argument. This contrasts with alignSeq, which always generate text even when not needed.
+   - calcPairDistMEX replaces calcSHMHAMdist, calcHAMdist, and calcPairDist.
+   - calcAlignScoreMEX replaces calcAlignScore.
+   - trimMatchResultsMEX replaces trimMatchResults.
+ - Improved code for accessing VDJdata via VDJheader index locations. Uses a map structure instead of parsing header every time.
 
 ---------------------------------------------------------------------------
 ## Patch notice for version 3.0.14

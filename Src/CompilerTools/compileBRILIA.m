@@ -4,15 +4,26 @@
 function compileBRILIA()
 RootDir = findRoot;
 if ispc
-    TargetDir = fullfile(RootDir, 'Bin', 'Win');
-elseif isunix
-    TargetDir = fullfile(RootDir, 'Bin', 'Linux');
+    OS = 'Win';
+else
+    OS = 'Linux';
 end
+TargetDir = fullfile(RootDir, 'Bin', OS);
 [Success, Msg] = mkdir(TargetDir);
-assert(Success > 0, '%s: Could not move files to "%s".\n  %s', mfilename, TargetDir, Msg)
+assert(Success > 0, '%s: Could not create directory "%s".\n  %s', mfilename, TargetDir, Msg)
+
+MexDir = fullfile(RootDir, 'Src', 'MEX');
+MexTargetDir = fullfile(RootDir, 'Src', 'MEX', OS);
+[Success, Msg] = mkdir(MexTargetDir);
+assert(Success > 0, '%s: Could not create directory "%s".\n  %s', mfilename, MexTargetDir, Msg)
 
 fprintf('%s: %s\n', mfilename, 'Compiling help texts.');
 compileHelpText('Dir', RootDir, 'CheckSub', 'y', 'SaveTo', fullfile(RootDir, 'HelpText'), 'Overwrite', 'y');
+
+MexFiles = dir(fullfile(MexDir, '*.cpp'));
+for f = 1:length(MexFiles)
+    mex(fullfile(MexDir, MexFiles(f).name), '-outdir', MexTargetDir);
+end
 
 fprintf('%s: %s\n', mfilename, 'Compiling BRILIA.m.');
 mcc('-m', fullfile(RootDir, 'Src', 'BRILIA.m'), ...
@@ -38,3 +49,5 @@ for j = 1:length(MatlabFiles)
         end
     end
 end
+
+zipBRILIA;

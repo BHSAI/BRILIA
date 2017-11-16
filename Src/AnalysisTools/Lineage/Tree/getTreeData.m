@@ -120,7 +120,6 @@ for j = 1:size(Tdata, 1)
         ChildSeq = Tdata{j, SeqLocs(k)};
         ParentSeq = Tdata{j, RefSeqLocs(k)};
         [HAMdistT, SHMdistT] = calcPairDistMEX(ParentSeq, ChildSeq);
-        %[SHMdistT, ~, HAMdistT] = calcSHMHAMdist(ParentSeq, ChildSeq);
         SHMdist = SHMdist + SHMdistT;
         HAMdist = HAMdist + HAMdistT;
         SeqLen = SeqLen + length(ParentSeq);
@@ -201,10 +200,8 @@ if nargout > 3
         end
 
         %Combine and extract CDR3 Info
-        RepPat = repmat('%s:', 1, length(CDR3NameGerm));        
-        CDR3seq = sprintf(RepPat, CDR3NameGerm{:});
-        CDR3seq(end) = [];
-        CDR3Name{1} = CDR3seq;
+        CDR3seq = sprintf('%s:', CDR3NameGerm{:});
+        CDR3Name{1} = CDR3seq(1:end-1);
     end
 end
 
