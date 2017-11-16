@@ -297,7 +297,7 @@ void calcAlignScore(bool *pMatch, mwSize Len, int AllowedMiss, mxChar PenaltySid
 /* slignSeqMEX is the main function for doing alignments between SeqA and 
  * SeqB based on the other parameters given.
  */
-void alignSeqMEX(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double MissRate, mxChar Alphabet, mxChar ExactMatch, mxChar TrimSide, mxChar PreferSide, mxChar PenaltySide, int *pMaxScore, int *pBshift) {
+void alignSeqMEX(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double MissRate, mxChar Alphabet, mxChar ExactMatch, mxChar TrimSide, mxChar PenaltySide, mxChar PreferSide, int *pMaxScore, int *pBshift) {
     if (LenA == 0 || LenB == 0) {
         return;
     }
@@ -446,6 +446,7 @@ void getAlignmentInfo(bool *pMatch, mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, m
 void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
 
+    
     if (nrhs < 2) {
         mexErrMsgIdAndTxt("alignSeqMEX:input", "Not enough inputs.");\
     }
@@ -454,72 +455,83 @@ void mexFunction(int nlhs,        mxArray *plhs[],
         mexErrMsgIdAndTxt("alignSeqMEX:output", "Too many outputs.");
     }
     
+    mxChar *pSeqA, *pSeqB;
+    mwSize LenA, LenB;
+    double MissRate;
+    mxChar Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide;
+
     if (!mxIsChar(prhs[0]) || mxGetM(prhs[0]) > 1) {
         mexErrMsgIdAndTxt("alignSeqMEX:input", "Input1: SeqA, must be a 1xN char array.");
+    } else {
+        pSeqA = mxGetChars(prhs[0]);
+        LenA  = mxGetN(prhs[0]);
     }
     
     if (nrhs >= 2 && (!mxIsChar(prhs[1]) || mxGetM(prhs[1]) > 1)) {
         mexErrMsgIdAndTxt("alignSeqMEX:input", "Input2: SeqB, must be a 1xN char array.");
+    } else {
+        pSeqB = mxGetChars(prhs[1]);
+        LenB  = mxGetN(prhs[1]);
     }
     
-    if (nrhs >= 3 && !mxIsDouble(prhs[2])) {
-        mexErrMsgIdAndTxt("alignSeqMEX:input", "Input3: MissRate, must be a scalar between 0.0 to 1.0."); 
-    }
-    
-    if (nrhs >= 4 && !mxIsChar(prhs[3])) {
-        mexErrMsgIdAndTxt("alignSeqMEX:input", "Input4: Alphabet, must be a char 'n' (nucleotide), 'a' (amino acid), or other (basic char).");
-    }
-    
-    if (nrhs >= 5 && !mxIsChar(prhs[4])) {
-        mexErrMsgIdAndTxt("alignSeqMEX:input", "Input5: ExactMatch, must be a char 'n' or 'y'."); 
-    }
-
-    if (nrhs >= 6 && !mxIsChar(prhs[5])) {
-        mexErrMsgIdAndTxt("alignSeqMEX:input", "Input6: TrimSide, must be a char 'n' (none), 'l' (left), 'r' (right), 'b' (both).");
-    }
-    
-    if (nrhs >= 7 && !mxIsChar(prhs[6])) {
-        mexErrMsgIdAndTxt("alignSeqMEX:input", "Input7: PenaltySide, must be a char 'n' (none), 'l' (left), 'r' (right), 'b' (both).");
-    }
-
-    if (nrhs >= 8 && !mxIsChar(prhs[7])) {
-        mexErrMsgIdAndTxt("alignSeqMEX:input", "Input8: PreferSide, must be a char 'n' (none), 'l' (left), 'r' (right).");
-    }
-
-    mxChar *pSeqA = mxGetChars(prhs[0]);
-    mwSize LenA  = mxGetN(prhs[0]);
-
-    mxChar *pSeqB = mxGetChars(prhs[1]);
-    mwSize LenB  = mxGetN(prhs[1]);
-
-    double MissRate = 0;
     if (nrhs >= 3) {
-        MissRate = mxGetScalar(prhs[2]);
+        if (!mxIsDouble(prhs[2])) {
+            mexErrMsgIdAndTxt("alignSeqMEX:input", "Input3: MissRate, must be a scalar between 0.0 to 1.0."); 
+        } else {
+            MissRate = mxGetScalar(prhs[2]);
+        }
+    } else {
+        MissRate = 0;
     }
-
-    mxChar Alphabet = 'n';
+    
     if (nrhs >= 4) {
-        Alphabet = *mxGetChars(prhs[3]);
+        if (!mxIsChar(prhs[3])) {
+            mexErrMsgIdAndTxt("alignSeqMEX:input", "Input4: Alphabet, must be a char 'n' (nucleotide), 'a' (amino acid), or other (basic char).");
+        } else {
+            Alphabet = *mxGetChars(prhs[3]);
+        }
+    } else {
+        Alphabet = 'n';
     }
-
-    mxChar ExactMatch = 'n';
+    
     if (nrhs >= 5) {
-        ExactMatch = *mxGetChars(prhs[4]);
+        if(!mxIsChar(prhs[4])) {
+            mexErrMsgIdAndTxt("alignSeqMEX:input", "Input5: ExactMatch, must be a char 'n' or 'y'."); 
+        } else {
+            ExactMatch = *mxGetChars(prhs[4]);
+        }
+    } else {
+        ExactMatch = 'n';
     }
 
-    mxChar TrimSide = 'n';
     if (nrhs >= 6) {
-        TrimSide = *mxGetChars(prhs[5]);
+        if (!mxIsChar(prhs[5])) {
+           mexErrMsgIdAndTxt("alignSeqMEX:input", "Input6: TrimSide, must be a char 'n' (none), 'l' (left), 'r' (right), 'b' (both).");
+        } else {
+            TrimSide = *mxGetChars(prhs[5]);
+        }
+    } else {
+        TrimSide = 'n';
+    }
+    
+    if (nrhs >= 7) { 
+        if (!mxIsChar(prhs[6])) {
+            mexErrMsgIdAndTxt("alignSeqMEX:input", "Input7: PenaltySide, must be a char 'n' (none), 'l' (left), 'r' (right), 'b' (both).");
+        } else {
+            PenaltySide = *mxGetChars(prhs[6]);
+        }
+    } else {
+        PenaltySide = 'n';
     }
 
-    mxChar PenaltySide = 'n';
-    if (nrhs >= 7) {
-        PenaltySide = *mxGetChars(prhs[6]);
-    }
-
-    mxChar PreferSide = 'n';
-    if (nrhs >= 8) {
-        PreferSide = *mxGetChars(prhs[7]);
+    if (nrhs >= 8) { 
+        if(!mxIsChar(prhs[7])) {
+            mexErrMsgIdAndTxt("alignSeqMEX:input", "Input8: PreferSide, must be a char 'n' (none), 'l' (left), 'r' (right).");
+        } else {
+            PreferSide = *mxGetChars(prhs[7]);
+        }
+    } else {
+        PreferSide = 'n';
     }
     
     int Bshift = 0;
@@ -528,7 +540,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
     int pMatchAt[2]; 
     bool pMatch[LenA+LenB];
     
-    alignSeqMEX(pSeqA, pSeqB, LenA, LenB, MissRate, Alphabet, ExactMatch, TrimSide, PreferSide, PenaltySide, &pScore[1], &Bshift); 
+    alignSeqMEX(pSeqA, pSeqB, LenA, LenB, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide, &pScore[1], &Bshift); 
     getAlignmentInfo(pMatch, pSeqA, pSeqB, LenA, LenB, Alphabet, TrimSide, Bshift, pScore, pStartAt, pMatchAt);
 
     if (nlhs >= 1) {

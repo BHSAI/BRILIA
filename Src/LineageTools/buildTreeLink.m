@@ -48,11 +48,11 @@ function varargout = buildTreeLink(varargin)
 JustGettingS = 0;
 S = [];
 if nargin >= 2 && ischar(varargin{1}) && strcmpi(varargin{1},'getheadervar')
-    VDJheader = varargin{2};
+    Map = varargin{2};
     JustGettingS = 1;
 elseif nargin >= 3
     Tdata = varargin{1};
-    VDJheader = varargin{2};
+    Map = varargin{2};
     DevPerc = varargin{3};
     if nargin >= 4 && isstruct(varargin{4})
         S = varargin{4};
@@ -63,19 +63,17 @@ end
 
 %Extract the minimally needed header information due to high repetetition
 if isempty(S)
-    H = getHeavyHeaderVar(VDJheader);
-    L = getLightHeaderVar(VDJheader);
-    S.TemplateLoc = H.TemplateLoc;
-    S.ChildCountLoc = H.ChildCountLoc;
-    S.GrpNumLoc = H.GrpNumLoc;
-    S.HCDR3Loc = H.CDR3Loc;
-    S.LCDR3Loc = L.CDR3Loc;
-    S.HSeqLoc = H.SeqLoc;
-    S.LSeqLoc = L.SeqLoc;
-    S.HRefSeqLoc = H.RefSeqLoc;
-    S.LRefSeqLoc = L.RefSeqLoc;
-    S.HLengthLoc = H.LengthLoc;
-    S.LLengthLoc = L.LengthLoc;
+    S.TemplateLoc = Map.Template;
+    S.ChildCountLoc = Map.ChildCount;
+    S.GrpNumLoc = Map.GrpNum;
+    S.HCDR3Loc = Map.hCDR3;
+    S.LCDR3Loc = Map.lCDR3;
+    S.HSeqLoc = Map.hSeq;
+    S.LSeqLoc = Map.lSeq;
+    S.HRefSeqLoc = Map.hRefSeq;
+    S.LRefSeqLoc = Map.lRefSeq;
+    S.HLengthLoc = Map.hLength;
+    S.LLengthLoc = Map.lLength;
 end
 
 %Return S if specified
@@ -93,32 +91,20 @@ else
     Chain = 'L';
 end
 
-%Determine the maximum Seq Dist, which is used to set the class of PairDist
 MaxDist = 0;
 MaxSeqLen = 0;
 for c = 1:length(Chain)
     MaxDist = MaxDist + length(Tdata{1,S.([Chain(c) 'SeqLoc'])}) ^ 2+length(Tdata{1,S.([Chain(c) 'SeqLoc'])});
     MaxSeqLen = MaxSeqLen + length(Tdata{1,S.([Chain(c) 'SeqLoc'])});
 end
-Class = 'uint16';
-if MaxDist > 2^32-1
-    Class = 'double';
-end
 
 %Determine the distances between sequences
-PairDist = zeros(size(Tdata,1),Class);
+PairDist = zeros(size(Tdata,1));
 for c = 1:length(Chain) %Add H and L chain distances
-    PairDist = PairDist + calcPairDist(Tdata(:,S.([Chain(c) 'SeqLoc'])),'shmham',Class); %Seq-Seq distances
+    [~, ShmPairDist] = calcPairDistMEX(Tdata(:,S.([Chain(c) 'SeqLoc'])));
+    PairDist = PairDist + ShmPairDist;
 end
-
-%Compute the cutoff distance
-CutoffDist = ceil(MaxSeqLen*DevPerc/100) * 2; %Remember that the PairDist is DOUBLED!!!
-
-%Calculate the cutoff SHM distance, accounting for the fact that we must
-%double the value because pairwise SHM distance is doubled for memory
-%limitations. The original SHM dist in the paper uses 0.5 fractions, which
-%would have required the use of a double matrix. Doubling the value allows
-%for the use of uint matrices instead.
+CutoffDist = ceil(MaxSeqLen*DevPerc/100);
 
 %==========================================================================
 % %Ensure all sequence lengths are the same, aligned based on the CDR3endLoc.
@@ -292,10 +278,10 @@ for j= 1:size(AncMapCell,1)
     AncMapT = AncMap(AncMap(:,end)==j,:);
     AncMapT(:,3) = AncMapT(:,3)/2; %Remember, SHMHAM was doubled for algorithm purposes, so need to divide back by 2;
     AncMapCell{j,1} = AncMapT;
-    if ~isempty(strfind(Chain,'H'))
+    if contains(Chain,'H')
         AncMapCell{j,2} = Tdata(AncMapT(:,1),S.HCDR3Loc(1)); %Save the CDR3 info
     end
-    if ~isempty(strfind(Chain,'L'))
+    if contains(Chain,'L')
         AncMapCell{j,3} = Tdata(AncMapT(:,1),S.LCDR3Loc(1)); %Save the CDR3 info
     end
 end
@@ -306,7 +292,7 @@ if nargout >= 1
     if nargout == 2   
         GrpNum = 1;
         S1 = 1; %Start index of TdataNew
-        TdataNew = cell(size(Tdata,1),length(VDJheader));
+        TdataNew = cell(size(Tdata,1),length(Map));
         for k = 1:size(AncMapCell,1)
 
             %Extract the data for this cluster

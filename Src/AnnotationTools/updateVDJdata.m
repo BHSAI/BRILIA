@@ -14,10 +14,10 @@
 %    VDJdata: modified VDJdata germline-child SHM counts, CDR3 start and
 %      end anchors, and sequence functionality data.
 
-function VDJdata = updateVDJdata(VDJdata,VDJheader,DB)
+function VDJdata = updateVDJdata(VDJdata,Map,DB)
 
 
 %Update fields in VDJdata
-VDJdata = countSHM(VDJdata,VDJheader); %SHM info on the VMDNJ segments
-VDJdata = findCDR3(VDJdata,VDJheader,DB,'anchor'); %Get the CDR3 seq and info, using anchor method
-VDJdata = labelNonprodVDJ(VDJdata,VDJheader,DB); %Double check what is functional or not.
+VDJdata = countSHM(VDJdata,Map); %SHM info on the VMDNJ segments
+VDJdata = findCDR3(VDJdata,Map,DB,'anchor'); %Get the CDR3 seq and info, using anchor method
+VDJdata = labelNonprodVDJ(VDJdata,Map,DB); %Double check what is functional or not.

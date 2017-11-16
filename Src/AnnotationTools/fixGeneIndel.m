@@ -26,36 +26,38 @@
 %           C residue, OR
 %        2) has a 20% miss rate in the V alignment caused by indel-induced
 %           frame shift error
-function VDJdata = fixGeneIndel(VDJdata, VDJheader, DB)
+function VDJdata = fixGeneIndel(VDJdata, Map, DB)
 %Extract the VDJ database
-[H, L, Chain] = getAllHeaderVar(VDJheader);
 M = getMapHeaderVar(DB.MapHeader);
 
 %Begin fixing indel error in V genes
 UpdateIdx = zeros(size(VDJdata, 1), 1, 'logical'); %Marks which ones need updates
-for k = 1:length(Chain)
+for k = 1:length(Map.Chain)
     %Determine heavy or light or both IG chain
-    if Chain(k) == 'H'
-        B = H;
+    if strcmpi(Map.Chain(k), 'H')
+        SeqLoc      = Map.hSeq;
+        DelLoc      = Map.hDel(1);
+        VmutLoc     = Map.hVmut;
+        VLengthLoc  = Map.hLength(1);
+        MLengthLoc  = Map.hLength(2); 
+        GeneNumLoc  = Map.hGeneNum(1);
+        GeneNameLoc = Map.hGeneName(1);        
         Vmap = DB.Vmap;
         VkCount = 0; %Set to 0, doesn't do any Vnum shifting.
-    elseif Chain(k) == 'L'
-        B = L;
+    elseif strcmpi(Map.Chain(k), 'L')
+        SeqLoc      = Map.lSeq;
+        DelLoc      = Map.lDel(1);
+        VmutLoc     = Map.lVmut;
+        VLengthLoc  = Map.lLength(1);
+        MLengthLoc  = Map.lLength(2); 
+        GeneNumLoc  = Map.lGeneNum(1);
+        GeneNameLoc = Map.lGeneName(1);
         Vmap = [DB.Vkmap; DB.Vlmap]; %Easier if it's combined
         VkCount = size(DB.Vkmap, 1); %Need to shift lambda maps by this
     else
         warning('%s: Unknown IG chain %s', mfilename, Chain(k));
         continue
     end
-    
-    %Relabel variables to prevent parfor broadcast issues
-    SeqLoc      = B.SeqLoc;
-    DelLoc      = B.DelLoc(1);
-    VmutLoc     = B.VmutLoc;
-    VLengthLoc  = B.LengthLoc(1);
-    MLengthLoc  = B.LengthLoc(2); 
-    GeneNumLoc  = B.GeneNumLoc(1);
-    GeneNameLoc = B.GeneNameLoc(1);
     
     %Pre-determined allowed V ref seq and anchors to avoid broadcasting
     VseqSlice = cell(size(VDJdata, 1), 1); %Vref and Vanchor
@@ -79,7 +81,7 @@ for k = 1:length(Chain)
     end
     
     %Correct indel
-    for j = 1:size(VDJdata, 1)
+    parfor j = 1:size(VDJdata, 1)
         Tdata = VDJdata(j, :);
         
         %Extract all necessary information
@@ -185,5 +187,5 @@ for k = 1:length(Chain)
     end
 end
 
-VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), VDJheader, DB);
-VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), VDJheader, DB);
+VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), Map, DB);
+VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), Map, DB);

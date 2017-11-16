@@ -13,27 +13,26 @@
 %    VDJdata: modified VDJdata with cluster sequences reordered and
 %      relinked via phylogeny lineage.
 
-function VDJdata = fixTree(VDJdata, VDJheader)
+function VDJdata = fixTree(VDJdata, Map)
 %Determine chain and needed locations
-[H, L, Chain] = getAllHeaderVar(VDJheader);
-if strcmpi(Chain, 'HL')
-    SHMLoc = [H.VmutLoc H.MmutLoc H.DmutLoc H.NmutLoc H.JmutLoc L.VmutLoc L.NmutLoc L.JmutLoc];
-    SeqLoc = [H.SeqLoc L.SeqLoc];
-    RefSeqLoc = [H.RefSeqLoc L.RefSeqLoc];
-elseif strcmpi(Chain, 'H')
-    SHMLoc = [H.VmutLoc H.MmutLoc H.DmutLoc H.NmutLoc H.JmutLoc];
-    SeqLoc = H.SeqLoc;
-    RefSeqLoc = H.RefSeqLoc;
-elseif strcmpi(Chain, 'L')
-    SHMLoc = [L.VmutLoc L.NmutLoc L.JmutLoc];
-    SeqLoc = L.SeqLoc;
-    RefSeqLoc = L.RefSeqLoc;
+if strcmpi(Map.Chain, 'HL')
+    SHMLoc = [Map.hVmut Map.hMmut Map.hDmut Map.hNmut Map.hJmut Map.lVmut Map.lNmut Map.lJmut];
+    SeqLoc = [Map.hSeq Map.lSeq];
+    RefSeqLoc = [Map.hRefSeq Map.lRefSeq];
+elseif strcmpi(Map.Chain, 'H')
+    SHMLoc = [Map.hVmut Map.hMmut Map.hDmut Map.hNmut Map.hJmut];
+    SeqLoc = Map.hSeq;
+    RefSeqLoc = Map.hRefSeq;
+elseif strcmpi(Map.Chain, 'L')
+    SHMLoc = [Map.lVmut Map.lNmut Map.lJmut];
+    SeqLoc = Map.lSeq;
+    RefSeqLoc = Map.lRefSeq;
 end
-ChildCountLoc = max([H.ChildCountLoc L.ChildCountLoc]);
-TemplateLoc = max([H.TemplateLoc L.TemplateLoc]);
+ChildCountLoc = Map.ChildCount;
+TemplateLoc = Map.Template;
 
 %Begin fixing tree per cluster
-GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
 for y = 1:length(UnqGrpNum)
     %Extract necessary info
@@ -62,26 +61,16 @@ for y = 1:length(UnqGrpNum)
     end
 
     %Proceed to rebuild tree. This generally improves lineages
-    
-    %Determine the maximum Seq Dist, which is used to set the class of PairDist
-    MaxDist = 0;
-    for c = 1:length(Chain)
-        MaxDist = MaxDist + length(Tdata{1, SeqLoc(c)})^2 + length(Tdata{1, SeqLoc(c)})^2;
-    end
-    Class = 'uint16';
-    if MaxDist > 2^32-1
-        Class = 'double';
-    end
-
     %Determine the distances between sequences
-    PairDist = zeros(size(Tdata, 1), Class);
-    for c = 1:length(Chain) %Add H and L chain distances
-        PairDist = PairDist + calcPairDist(Tdata(:, SeqLoc(c)), 'shmham', Class);
+    PairDist = zeros(size(Tdata, 1));
+    for c = 1:length(Map.Chain) %Add H and L chain distances
+        [~, ShmPairDist] = calcPairDistMEX(Tdata(:, SeqLoc(c)));
+        PairDist = PairDist + ShmPairDist;
     end
     
     %Calculate the new ancestral map
     AncMap = calcRootedAncMap(PairDist);
-    Tdata = setAncRefSeq(Tdata, VDJheader, AncMap); %This will remap RefSeq to Seq based on AncMap
+    Tdata = setAncRefSeq(Tdata, Map, AncMap); %This will remap RefSeq to Seq based on AncMap
 
     %Update the child count per parent
     ChildCt = zeros(size(AncMap, 1), 1);

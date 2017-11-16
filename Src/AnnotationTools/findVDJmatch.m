@@ -42,7 +42,7 @@
 %
 %  See also findVJmatch
 
-function [VDJdata, varargout] = findVDJmatch(VDJdata, VDJheader, DB, varargin)
+function [VDJdata, varargout] = findVDJmatch(VDJdata, Map, DB, varargin)
 %Parse the input
 P = inputParser;
 addParameter(P, 'Update', 'y', @(x) ismember(lower(x(1)), {'y', 'n'}));
@@ -56,22 +56,21 @@ Dreserve = P.Results.Dreserve;   %Preserve first 3 nts after V for D.
 BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
 
 %Place VDJheader into separate variables due to parfor broadcast issues
-H = getHeavyHeaderVar(VDJheader);
-if H.SeqLoc == 0 %Make sure header exists for right chain
+if Map.hSeq == 0 %Make sure header exists for right chain
     if nargout >=2
         varargout{1} = BadIdx;
     end
     return; 
 end
-SeqLoc      = H.SeqLoc;
-OverSeq5Loc = H.OverSeq5Loc;
-OverSeq3Loc = H.OverSeq3Loc;
-CDR3sLoc    = H.CDR3Loc(3);
-CDR3eLoc    = H.CDR3Loc(4);
-GeneNumLoc  = H.GeneNumLoc;
-GeneNameLoc = H.GeneNameLoc;
-LengthLoc   = H.LengthLoc;
-DelLoc      = H.DelLoc;
+SeqLoc      = Map.hSeq;
+OverSeq5Loc = Map.hOverSeq5;
+OverSeq3Loc = Map.hOverSeq3;
+CDR3sLoc    = Map.hCDR3(3);
+CDR3eLoc    = Map.hCDR3(4);
+GeneNumLoc  = Map.hGeneNum;
+GeneNameLoc = Map.hGeneName;
+LengthLoc   = Map.hLength;
+DelLoc      = Map.hDel;
 
 %Place DB data into separate variables due to parfor broadcast issues.
 M = getMapHeaderVar(DB.MapHeader);
@@ -90,7 +89,7 @@ parfor j = 1:size(VDJdata, 1)
     Seq = Tdata{1, SeqLoc};
     if length(Seq) < DJreserve+1 %Sequence is too short
         BadIdx(j) = 1;
-        continue; 
+        continue
     end
     
     %Extract CDR3 start and end index. Set to 0 if empty.
@@ -219,8 +218,8 @@ end
 %Update VDJdata 
 if upper(Update(1)) == 'Y'
     UpdateIdx = ~BadIdx;
-    VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), VDJheader, DB, 'H', 'germline', 'single');
-    VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), VDJheader, DB);
+    VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), Map, DB, 'H', 'germline', 'single');
+    VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), Map, DB);
 end
 
 if nargout >=2

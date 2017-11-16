@@ -8,9 +8,8 @@
 %    VDJdata: main BRILIA data cell
 %    VDJheader: main BRILIA header cell
 
-function VDJdata = removeDupSeq(VDJdata, VDJheader)
-[H, L, Chain] = getAllHeaderVar(VDJheader);
-GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
+function VDJdata = removeDupSeq(VDJdata, Map)
+GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
 DelIdx = zeros(size(VDJdata, 1), 1, 'logical');
 for y = 1:length(UnqGrpNum)
@@ -19,10 +18,10 @@ for y = 1:length(UnqGrpNum)
     end
     GrpIdx = GrpNum == UnqGrpNum(y);
     Tdata = VDJdata(GrpIdx, :);
-    AncMapS = getTreeData(Tdata, VDJheader);
+    AncMapS = getTreeData(Tdata, Map);
     AncMap = AncMapS.HAM;
     if any(AncMap(:, 3) == 0)
-        Tdata = removeDupSeqPerGroup(VDJdata(GrpIdx, :), H, L, Chain);
+        Tdata = removeDupSeqPerGroup(VDJdata(GrpIdx, :), Map);
         if sum(GrpIdx) ~= size(Tdata, 1)
             GrpLoc = find(GrpIdx);
             DelNum = sum(GrpIdx) - size(Tdata, 1);
@@ -31,7 +30,7 @@ for y = 1:length(UnqGrpNum)
         end
     end
 end
-if max(DelIdx) > 0
+if any(DelIdx)
     VDJdata(DelIdx, :) = [];
-    showStatus(  'Deleted %d duplicate sequences.', sum(DelIdx));
+    showStatus(sprintf(  'Deleted %d duplicate sequences.', sum(DelIdx)));
 end

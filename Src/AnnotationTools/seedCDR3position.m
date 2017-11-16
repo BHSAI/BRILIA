@@ -32,18 +32,19 @@
 %
 %  See also findVDJmatch, findVJmatch, findGeneMatch
 
-function VDJdata = seedCDR3position(VDJdata, VDJheader, DB, X, Nleft, Nright, CheckSeqDir)
+function VDJdata = seedCDR3position(VDJdata, Map, DB, X, Nleft, Nright, CheckSeqDir)
 CheckSeqDir = upper(CheckSeqDir(1)); %Ensure proper format
+
+if contains(Map.Chain, 'H', 'IgnoreCase', true) && any(contains(X, {'k', 'l'}, 'IgnoreCase', true))
+    return;
+elseif contains(Map.Chain, 'L', 'IgnoreCase', true) && ~any(contains(X, {'k', 'l'}, 'IgnoreCase', true))
+    return;
+end
 
 %Determine the chain and segment
 Xparse = regexpi(X, ',\s*|;', 'split');
-if strcmpi(Xparse{1}, 'V') || strcmpi(Xparse{1}, 'J')
-    if length(Xparse) > 1
-        error('%s: Cannot have multiple heavy chains. Check X variable.', mfilename);
-    end
-    Chain = 'H';
-else
-    Chain = 'L';
+if ( strcmpi(Xparse{1}, 'V') || strcmpi(Xparse{1}, 'J') ) && length(Xparse) > 1
+    error('%s: Cannot have multiple heavy chains. Check X variable.', mfilename);
 end
 Segment = upper(X(1));
 
@@ -61,31 +62,31 @@ if isempty(Xseed) %missing all database files or valid seed sequences
 end
 
 %Get header locations since parfor can't handle broadcast variables
-[H, L, ~] = getAllHeaderVar(VDJheader);
-if Chain == 'H' %Heavy chain
-    SeqLoc = H.SeqLoc;
+if strcmpi(Map.Chain, 'H') %Heavy chain
+    SeqLoc = Map.hSeq;
     if SeqLoc == 0; return; end %Invalid 
     if Segment == 'V'
         SpecialSeed = {'TGT'};      %conserved C
-        CDR3colLoc = H.CDR3Loc(3);  %Where in VDJdata to store the location
+        CDR3colLoc = Map.hCDR3(3);  %Where in VDJdata to store the location
     else
         SpecialSeed = {'TGG'};      %Conserved W
-        CDR3colLoc = H.CDR3Loc(4);  %Where in VDJdata to store the location
+        CDR3colLoc = Map.hCDR3(4);  %Where in VDJdata to store the location
     end
-else %Light chain
-    SeqLoc = L.SeqLoc;
+elseif strcmpi(Map.Chain, 'L')  %Light chain
+    SeqLoc = Map.lSeq;
     if SeqLoc == 0; return; end %Invalid 
     if Segment == 'V'
         SpecialSeed = {'TGT'};      %conserved C
-        CDR3colLoc = L.CDR3Loc(3);  %Where in VDJdata to store the location
+        CDR3colLoc = Map.lCDR3(3);  %Where in VDJdata to store the location
     else
-        SpecialSeed = {'TTT'; 'TTC'};   %Conserved F for light chain
-        CDR3colLoc =  L.CDR3Loc(4);     %Where in VDJdata to store the location
+        SpecialSeed = {'TTT'; 'TTC'};  %Conserved F for light chain
+        CDR3colLoc = Map.lCDR3(4);     %Where in VDJdata to store the location
     end
+else %Can't determine H or L side.
+    return; 
 end
-RepPat = repmat('%s|', 1, length(SpecialSeed));
-RepPat(end) = [];
-SeedPat = sprintf(RepPat, SpecialSeed{:});  %Special seed for V and J, which is the 'TGT' and the 'TGG' or 'TT[TC]'
+SeedPat = sprintf('%s|', SpecialSeed{:});  %Special seed for V and J, which is the 'TGT' and the 'TGG' or 'TT[TC]'
+SeedPat(end) = [];
 
 %Setup the input for alignSeqMEX.
 MissRate   = 0;
@@ -113,12 +114,12 @@ end
 parfor j = 1:size(VDJdata, 1)
     Tdata = VDJdata(j, :);  
     Seq = Tdata{SeqLoc};
-    if length(Seq) < Nleft + Nright + 1; continue; end %Skip short seqs
+    if length(Seq) < (Nleft + Nright + 1); continue; end %Skip short seqs
     
     %Do seed alignments, forward sense
     AlignScores = zeros(size(Xseed, 1), 3);
     for x = 1:size(Xseed, 1)
-       [Score, StartAt, MatchAt] = alignSeqMEX(Xseed{x}, Seq, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
+       [Score, StartAt, MatchAt,a] = alignSeqMEX(Xseed{x}, Seq, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
        if StartAt(2) > 0
             AnchorLoc = Nleft - StartAt(2) + 2; %Comes from (Nleft + 1) - (StartAt(2) - 1) = PositionAnchorSeed - MissingSeqCount
        else

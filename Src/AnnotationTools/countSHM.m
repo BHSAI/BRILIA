@@ -10,26 +10,36 @@
 %  OUTPUT
 %    VDJdata: modified VDJdata where SHM count info are filled
 
-function VDJdata = countSHM(VDJdata,VDJheader)
-[H, L, Chain] = getAllHeaderVar(VDJheader);
-
+function VDJdata = countSHM(VDJdata,Map)
 %Count SHMs per segment
-GrpNum = cell2mat(VDJdata(:,H.GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:,Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
 for y = 1:length(UnqGrpNum)
     IdxLoc = find(GrpNum == UnqGrpNum(y));
     
-    for k = 1:length(Chain)
+    for k = 1:length(Map.Chain)
         %Determine chain header locator
-        if Chain(k) == 'H'
-            B = H;
+        if Map.Chain(k) == 'H'
+            SeqLoc  = Map.hSeq;
+            RefSeqLoc  = Map.hRefSeq;
+            LengthLoc  = Map.hLength;
+            VmutLoc = Map.hVmut;
+            MmutLoc = Map.hMmut;
+            DmutLoc = Map.hDmut;
+            NmutLoc = Map.hNmut;
+            JmutLoc = Map.hJmut;
         else
-            B = L;
+            SeqLoc  = Map.lSeq;
+            RefSeqLoc  = Map.lRefSeq;
+            LengthLoc  = Map.lLength;
+            VmutLoc = Map.lVmut;
+            NmutLoc = Map.lNmut;
+            JmutLoc = Map.lJmut;
         end
         
         %Extract the RefSeq and segment info
-        RefSeq = VDJdata{IdxLoc(1),B.RefSeqLoc};
-        SegLen = cell2mat(VDJdata(IdxLoc(1),B.LengthLoc));
+        RefSeq = VDJdata{IdxLoc(1),RefSeqLoc};
+        SegLen = cell2mat(VDJdata(IdxLoc(1),LengthLoc));
         
         %Make sure all information is provided for this data
         if isempty(RefSeq); continue; end
@@ -40,7 +50,7 @@ for y = 1:length(UnqGrpNum)
         RefSeqXIdx = RefSeq == 'X';
         for j = 1:length(IdxLoc)
             %Extract remaining needed seq information
-            Seq = VDJdata{IdxLoc(j),B.SeqLoc};
+            Seq = VDJdata{IdxLoc(j),SeqLoc};
             
             %Make sure all information is provided for this data
             if isempty(Seq); continue; end
@@ -54,7 +64,7 @@ for y = 1:length(UnqGrpNum)
             MissIdx = Seq ~= RefSeq;
             MissIdx(SeqXIdx | RefSeqXIdx) = 0;
 
-            if Chain(k) == 'H'
+            if Map.Chain(k) == 'H'
                 try
                     Vmiss = sum(MissIdx(1:SegLen(1)));
                     Mmiss = sum(MissIdx(SegLen(1)+1:sum(SegLen(1:2))));
@@ -72,11 +82,11 @@ for y = 1:length(UnqGrpNum)
                 if isempty(Nmiss); Nmiss = 0; end
                 if isempty(Jmiss); Jmiss = 0; end        
 
-                VDJdata{IdxLoc(j),B.VmutLoc} = Vmiss;
-                VDJdata{IdxLoc(j),B.MmutLoc} = Mmiss;
-                VDJdata{IdxLoc(j),B.DmutLoc} = Dmiss;
-                VDJdata{IdxLoc(j),B.NmutLoc} = Nmiss;
-                VDJdata{IdxLoc(j),B.JmutLoc} = Jmiss;
+                VDJdata{IdxLoc(j),VmutLoc} = Vmiss;
+                VDJdata{IdxLoc(j),MmutLoc} = Mmiss;
+                VDJdata{IdxLoc(j),DmutLoc} = Dmiss;
+                VDJdata{IdxLoc(j),NmutLoc} = Nmiss;
+                VDJdata{IdxLoc(j),JmutLoc} = Jmiss;
             else
                 Vmiss = sum(MissIdx(1:SegLen(1)));
                 Nmiss = sum(MissIdx(SegLen(1)+1:sum(SegLen(1:2))));
@@ -86,9 +96,9 @@ for y = 1:length(UnqGrpNum)
                 if isempty(Nmiss); Nmiss = 0; end
                 if isempty(Jmiss); Jmiss = 0; end        
 
-                VDJdata{IdxLoc(j),B.VmutLoc} = Vmiss;
-                VDJdata{IdxLoc(j),B.NmutLoc} = Nmiss;
-                VDJdata{IdxLoc(j),B.JmutLoc} = Jmiss;
+                VDJdata{IdxLoc(j),VmutLoc} = Vmiss;
+                VDJdata{IdxLoc(j),NmutLoc} = Nmiss;
+                VDJdata{IdxLoc(j),JmutLoc} = Jmiss;
             end
         end
     end

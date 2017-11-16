@@ -70,26 +70,23 @@ end
 
 %Regroup strain names based on the first X condense letter.
 if N > 0 && length(UnqStrain) > 1
-    %Prepare the UnqStrain for doing pairwise hamming distance matching
-    UnqStrainChar = char(UnqStrain);
-    UnqStrainChar = UnqStrainChar(:, 1:N);
-    UnqStrainChar(UnqStrainChar == 'X') = '@'; %Ham dist calc assumes x is wildcard, so go and change these X out arbitrarily to @ symbol
-    UnqStrainChar(UnqStrainChar == 'x') = '@'; 
-    UnqStrainChar(UnqStrainChar == ' ') = 'X'; %Assume empty spaces are wildcards
+    UnqStrainN = cell(length(UnqStrain), 1);
+    for j = 1:length(UnqStrain)
+        if length(UnqStrain{j}) >  N
+            UnqStrainPre = UnqStrain{j}(1:N);
+        else
+            UnqStrainPre = UnqStrain{j};
+        end
+        UnqStrainPre = regexp(UnqStrainPre, '\w+', 'match');
+        UnqStrainN{j} = UnqStrainPre{1};
+    end
     
-    %Perform pairwise hamming distance calc to determine word clustering
-    PairDist = calcPairDist(UnqStrainChar, 'ham');
-    PairDistMap = calcAncMap(PairDist);
-    PairDistMap(PairDistMap(:, 3) > 0, 2) = 0; 
-    ClustMap = findTreeClust(PairDistMap);
-    
-    %Cluster strains and subsets of strain into the same cell
-    UnqStrainCell = cell(max(ClustMap(:, 2)), 1);
+    [~, ~, UnqIdx] = unique(UnqStrainN);
+    UnqStrainCell = cell(max(UnqIdx), 1);
     for j = 1:length(UnqStrainCell)
-        StrainIdx = find(ClustMap(:, 2) == j);
-        RepPat = repmat('%s;', 1, length(StrainIdx));
-        RepPat(end) = [];
-        UnqStrainCell{j} = sprintf(RepPat, UnqStrain{StrainIdx});
+        Idx = UnqIdx == j;
+        TempUnqStr = sprintf('%s;', UnqStrain{Idx});
+        UnqStrainCell{j} = TempUnqStr(1:end-1);
     end
 else
     UnqStrainCell = UnqStrain;

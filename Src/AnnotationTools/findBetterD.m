@@ -23,14 +23,13 @@
 %
 %  See also calcTDTscore
 
-function VDJdata = findBetterD(VDJdata, VDJheader, DB)
-[H, ~, Chain] = getAllHeaderVar(VDJheader);
-if strcmpi(Chain, 'L')
+function VDJdata = findBetterD(VDJdata, Map, DB)
+if strcmpi(Map.Chain, 'L')
     return
 end
 
 %Look for better D
-GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
 UpdateIdx = zeros(size(VDJdata, 1), 1, 'logical');
 for y = 1:length(UnqGrpNum)
@@ -41,29 +40,29 @@ for y = 1:length(UnqGrpNum)
     %Identify group, if any. For single, check all mutations.
     IdxLoc = find(UnqGrpNum(y) == GrpNum);
     Tdata = VDJdata(IdxLoc, :);
-    VMDNJ = cell2mat(Tdata(1, H.LengthLoc));
+    VMDNJ = cell2mat(Tdata(1, Map.hLength));
 
     %Extract necessary V informations
-    Vname = Tdata{1, H.GeneNameLoc(1)};
-    VdelCur = Tdata{1, H.DelLoc(1)};
-    VmapNum = Tdata{1, H.GeneNumLoc(1)};
+    Vname = Tdata{1, Map.hGeneName(1)};
+    VdelCur = Tdata{1, Map.hDel(1)};
+    VmapNum = Tdata{1, Map.hGeneNum(1)};
     VallowedDel = DB.Vmap{VmapNum(1), end} - 3; %Correct -3 as deletion length is AFTER C codon.
     if VallowedDel <= 0; VallowedDel = 25; end
 
     %Extract necessary J informations
-    Jname = Tdata{1, H.GeneNameLoc(3)};
-    JdelCur = Tdata{1, H.DelLoc(end)};
-    JmapNum = Tdata{1, H.GeneNumLoc(end)};
+    Jname = Tdata{1, Map.hGeneName(3)};
+    JdelCur = Tdata{1, Map.hDel(end)};
+    JmapNum = Tdata{1, Map.hGeneNum(end)};
     JallowedDel = DB.Jmap{JmapNum(1), end} - 1; %Correct -1 as deletion length is BEFORE F/W codon.
     if JallowedDel < 0; JallowedDel = 25; end
 
     %Find the mismatched nts with respect to 1st seq of cluster only.
-    RefSeq = Tdata{1, H.RefSeqLoc};
+    RefSeq = Tdata{1, Map.hRefSeq};
     XlocRef = RefSeq == 'X';
     ConsMissCt = zeros(size(RefSeq));
     ErrorDetected = 0;
     for k = 1:size(Tdata, 1)
-        Seq = Tdata{k, H.SeqLoc};
+        Seq = Tdata{k, Map.hSeq};
         if length(Seq) ~= length(RefSeq)
             ErrorDetected = 1;
             break;
@@ -190,7 +189,7 @@ for y = 1:length(UnqGrpNum)
             Vnt = RefSeq(1:sum(VMDNJnew(1:2)));
             AllowedMiss = ceil(MissRate * length(Vnt));
 
-            CDR3start = Tdata{1, H.CDR3Loc(3)};
+            CDR3start = Tdata{1, Map.hCDR3(3)};
             if isempty(CDR3start); CDR3start = 0; end
             Vmatch = findGeneMatch(Vnt, DB.Vmap, 'V', AllowedMiss, CDR3start); %Redo for all V's
 
@@ -206,7 +205,7 @@ for y = 1:length(UnqGrpNum)
             Jnt = RefSeq(sum(VMDNJnew(1:3))+1:end);
             AllowedMiss = ceil(MissRate * length(Jnt));
 
-            CDR3end = Tdata{1, H.CDR3Loc(4)} - sum(VMDNJnew(1:3)); %need to adjust for Jnt being smaller than first Seq
+            CDR3end = Tdata{1, Map.hCDR3(4)} - sum(VMDNJnew(1:3)); %need to adjust for Jnt being smaller than first Seq
             if isempty(CDR3end); CDR3end = 0; end
             Jmatch = findGeneMatch(Jnt, DB.Jmap, 'J', AllowedMiss, CDR3end); %Redo for all J's.
 
@@ -229,15 +228,15 @@ for y = 1:length(UnqGrpNum)
 
         %Update VDJdata and mark which ones need RefSeq / SHM updates
         VDDJdels = [(VdelCur+VnewDel)  Dmatch{1, 3}(1, 1)  Dmatch{1, 3}(1, 3)  (JdelCur+JnewDel)];
-        Tdata(:, H.DelLoc) = repmat(num2cell(VDDJdels), size(Tdata, 1), 1);
-        Tdata(:, H.LengthLoc) = repmat(num2cell(VMDNJnew), size(Tdata, 1), 1);
-        Tdata(:, H.GeneNumLoc) = repmat({VmapNum Dmatch{1, 1} JmapNum}, size(Tdata, 1), 1);
-        Tdata(:, H.GeneNameLoc) = repmat({Vname Dmatch{1, 2} Jname}, size(Tdata, 1), 1);
+        Tdata(:, Map.hDel) = repmat(num2cell(VDDJdels), size(Tdata, 1), 1);
+        Tdata(:, Map.hLength) = repmat(num2cell(VMDNJnew), size(Tdata, 1), 1);
+        Tdata(:, Map.hGeneNum) = repmat({VmapNum Dmatch{1, 1} JmapNum}, size(Tdata, 1), 1);
+        Tdata(:, Map.hGeneName) = repmat({Vname Dmatch{1, 2} Jname}, size(Tdata, 1), 1);
         VDJdata(IdxLoc, :) = Tdata;
         UpdateIdx(IdxLoc) = 1;
     end
 end
 
 %Update those that have changed
-VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), VDJheader, DB, 'H', 'germline', 'first'); %must do first seq of all cluster
-VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), VDJheader, DB);
+VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), Map, DB, 'H', 'germline', 'first'); %must do first seq of all cluster
+VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), Map, DB);

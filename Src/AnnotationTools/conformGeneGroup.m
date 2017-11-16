@@ -13,30 +13,28 @@
 %    VDJdata: modified VDJdata where all seq in a cluster has the same
 %      gene annotations
 
-function VDJdata = conformGeneGroup(VDJdata, VDJheader, DB)
-[H, L, Chain] = getAllHeaderVar(VDJheader);
-
+function VDJdata = conformGeneGroup(VDJdata, Map, DB)
 %Standadize annotations
-GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
 for y = 1:length(UnqGrpNum)
     IdxLoc = UnqGrpNum(y) == GrpNum;
     if sum(IdxLoc) <= 1; continue; end %Nothing to correct, single entry.
     Tdata = VDJdata(IdxLoc, :);    
     
-    if H.SeqLoc > 0 %Heavy chain
+    if Map.hSeq > 0 %Heavy chain
         %Standardize the other fields as well (1st one is the root)
-        Tdata(:, [H.LengthLoc(:); H.GeneNameLoc(:); H.GeneNumLoc(:); H.DelLoc(:)]) = repmat(Tdata(1, [H.LengthLoc(:); H.GeneNameLoc(:); H.GeneNumLoc(:); H.DelLoc(:)]), size(Tdata, 1), 1);
+        Tdata(:, [Map.hLength(:); Map.hGeneName(:); Map.hGeneNum(:); Map.hDel(:)]) = repmat(Tdata(1, [Map.hLength(:); Map.hGeneName(:); Map.hGeneNum(:); Map.hDel(:)]), size(Tdata, 1), 1);
     end
     
-    if L.SeqLoc > 0 %Light chain
+    if Map.lSeq > 0 %Light chain
         %Standardize the other fields as well (1st one is the root)
-        Tdata(:, [L.LengthLoc(:); L.GeneNameLoc(:); L.GeneNumLoc(:); L.DelLoc(:)]) = repmat(Tdata(1, [L.LengthLoc(:); L.GeneNameLoc(:); L.GeneNumLoc(:); L.DelLoc(:)]), size(Tdata, 1), 1);
+        Tdata(:, [Map.lLength(:); Map.lGeneName(:); Map.lGeneNum(:); Map.lDel(:)]) = repmat(Tdata(1, [Map.lLength(:); Map.lGeneName(:); Map.lGeneNum(:); Map.lDel(:)]), size(Tdata, 1), 1);
     end
     
     VDJdata(IdxLoc, :) = Tdata;  
 end
 
 %Update all data
-VDJdata = buildRefSeq(VDJdata, VDJheader, DB, Chain, 'germline', 'first'); %must do first seq of each cluster
-VDJdata = updateVDJdata(VDJdata, VDJheader, DB);
+VDJdata = buildRefSeq(VDJdata, Map, DB, Map.Chain, 'germline', 'first'); %must do first seq of each cluster
+VDJdata = updateVDJdata(VDJdata, Map, DB);

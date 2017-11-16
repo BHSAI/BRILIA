@@ -26,13 +26,12 @@
 %  OUTPUT
 %    NewRange: the start and end nt sequence positions in Seq that the
 %      reference sequence is extracted from.
-function [VDJdata, varargout] = buildRefSeq(VDJdata, VDJheader, DB, varargin)
+function [VDJdata, varargout] = buildRefSeq(VDJdata, Map, DB, varargin)
 %Setup the options
 LengthOpt = 'same';
 InnerOpt  = 'germline';
 GroupOpt  = 'first';
 
-[H, L, Chain] = getAllHeaderVar(VDJheader);
 for k = 1:length(varargin)
     switch lower(varargin{k})
         case 'full'
@@ -59,11 +58,23 @@ for k = 1:length(varargin)
 end
 
 % Extract the full VDJ database
-for k = 1:length(Chain)
-    if Chain(k) == 'H'
-        B = H;
+for k = 1:length(Map.Chain)
+    if Map.Chain(k) == 'H'
+        GrpNumLoc  = Map.GrpNum;
+        DelLoc  = Map.hDel;
+        GeneNumLoc  = Map.hGeneNum; 
+        SeqLoc  = Map.hSeq;
+        RefSeqLoc  = Map.hRefSeq;
+        LengthLoc  = Map.hLength;
+        GeneNameLoc  = Map.hGeneName;
     else
-        B = L;
+        GrpNumLoc  = Map.GrpNum;
+        DelLoc  = Map.lDel;
+        GeneNumLoc  = Map.lGeneNum; 
+        SeqLoc  = Map.lSeq;
+        RefSeqLoc  = Map.lRefSeq;
+        LengthLoc  = Map.lLength;
+        GeneNameLoc  = Map.lGeneName;
     end
 
     %Change group number temporarily if you'll process all sequence
@@ -71,7 +82,7 @@ for k = 1:length(Chain)
         GrpNum = [1:size(VDJdata, 1)]';
         UnqGrpNum = GrpNum;
     else    
-        GrpNum = cell2mat(VDJdata(:, B.GrpNumLoc));
+        GrpNum = cell2mat(VDJdata(:, GrpNumLoc));
         UnqGrpNum = unique(GrpNum);
     end
 
@@ -82,12 +93,12 @@ for k = 1:length(Chain)
         IdxLoc = find(UnqGrpNum(y) == GrpNum);
         Tdata = VDJdata(IdxLoc, :);
 
-        if Chain(k) == 'H' %Heavy chain only
+        if Map.Chain(k) == 'H' %Heavy chain only
             %Extract the other informations about ref sequences
-            DelCt = unique(cell2mat(VDJdata(IdxLoc, B.DelLoc)), 'rows');    
-            Vnum = VDJdata{IdxLoc(1), B.GeneNumLoc(1)}(1);
-            Dnum = VDJdata{IdxLoc(1), B.GeneNumLoc(2)}(1);
-            Jnum = VDJdata{IdxLoc(1), B.GeneNumLoc(3)}(1);
+            DelCt = unique(cell2mat(VDJdata(IdxLoc, DelLoc)), 'rows');    
+            Vnum = VDJdata{IdxLoc(1), GeneNumLoc(1)}(1);
+            Dnum = VDJdata{IdxLoc(1), GeneNumLoc(2)}(1);
+            Jnum = VDJdata{IdxLoc(1), GeneNumLoc(3)}(1);
 
             %Make sure nothing is empty
             if isempty(DelCt); continue; end
@@ -99,8 +110,8 @@ for k = 1:length(Chain)
             Jnum = Jnum(1);
             
             %Assemble the full length germline VDJ first
-            Seq = Tdata{1, B.SeqLoc};
-            VMDNJ = unique(cell2mat(Tdata(:, B.LengthLoc)), 'rows');
+            Seq = Tdata{1, SeqLoc};
+            VMDNJ = unique(cell2mat(Tdata(:, LengthLoc)), 'rows');
             if size(VMDNJ, 1) > 1
                 warning('%s: Group #%d annotation is not uniform.', mfilename, UnqGrpNum(y));
                 continue
@@ -162,23 +173,23 @@ for k = 1:length(Chain)
             %Fill in RefSeq as needed
             switch GroupOpt
                 case 'first'
-                    VDJdata(IdxLoc(1), B.RefSeqLoc) = {FullRefSeq};
-                    VDJdata(IdxLoc(2:end), B.RefSeqLoc) = Tdata(2:end, B.RefSeqLoc);
+                    VDJdata(IdxLoc(1), RefSeqLoc) = {FullRefSeq};
+                    VDJdata(IdxLoc(2:end), RefSeqLoc) = Tdata(2:end, RefSeqLoc);
                 case 'group'
-                    VDJdata(IdxLoc, B.RefSeqLoc) = repmat({FullRefSeq}, length(IdxLoc), 1);
+                    VDJdata(IdxLoc, RefSeqLoc) = repmat({FullRefSeq}, length(IdxLoc), 1);
                 case 'single'
-                    VDJdata(IdxLoc(1), B.RefSeqLoc) = {FullRefSeq};
+                    VDJdata(IdxLoc(1), RefSeqLoc) = {FullRefSeq};
             end
             NewRangeH(IdxLoc, 1) = S1;
             NewRangeH(IdxLoc, 2) = S2;
         end
 
-        if Chain(k) == 'L' %Light chain only
+        if Map.Chain(k) == 'L' %Light chain only
             %Extract the other informations about ref sequences
-            DelCt = unique(cell2mat(VDJdata(IdxLoc, B.DelLoc)), 'rows');    
-            Vname = VDJdata{IdxLoc(1), B.GeneNameLoc};
-            Vnum = VDJdata{IdxLoc(1), B.GeneNumLoc(1)};
-            Jnum = VDJdata{IdxLoc(1), B.GeneNumLoc(end)};
+            DelCt = unique(cell2mat(VDJdata(IdxLoc, DelLoc)), 'rows');    
+            Vname = VDJdata{IdxLoc(1), GeneNameLoc};
+            Vnum = VDJdata{IdxLoc(1), GeneNumLoc(1)};
+            Jnum = VDJdata{IdxLoc(1), GeneNumLoc(end)};
 
             %Make sure nothing is empty
             if isempty(DelCt); continue; end
@@ -189,8 +200,8 @@ for k = 1:length(Chain)
             Jnum = Jnum(1);
 
             %Assemble the full length germline VDJ first
-            Seq = Tdata{1, B.SeqLoc};
-            VNJ = unique(cell2mat(Tdata(:, B.LengthLoc)), 'rows');
+            Seq = Tdata{1, SeqLoc};
+            VNJ = unique(cell2mat(Tdata(:, LengthLoc)), 'rows');
             if size(VNJ, 1) > 1
                 warning('buildRefSeq: This data has not be conformed to unity per group. Perform group treatment first');
                 continue;
@@ -251,12 +262,12 @@ for k = 1:length(Chain)
             %Fill in RefSeq as needed
             switch GroupOpt
                 case 'first'
-                    VDJdata(IdxLoc(1), B.RefSeqLoc) = {FullRefSeq};
-                    VDJdata(IdxLoc(2:end), B.RefSeqLoc) = Tdata(2:end, B.RefSeqLoc);
+                    VDJdata(IdxLoc(1), RefSeqLoc) = {FullRefSeq};
+                    VDJdata(IdxLoc(2:end), RefSeqLoc) = Tdata(2:end, RefSeqLoc);
                 case 'group'
-                    VDJdata(IdxLoc, B.RefSeqLoc) = repmat({FullRefSeq}, length(IdxLoc), 1);
+                    VDJdata(IdxLoc, RefSeqLoc) = repmat({FullRefSeq}, length(IdxLoc), 1);
                 case 'single'
-                    VDJdata(IdxLoc(1), B.RefSeqLoc) = {FullRefSeq};
+                    VDJdata(IdxLoc(1), RefSeqLoc) = {FullRefSeq};
             end
             NewRangeL(IdxLoc, 1) = S1;
             NewRangeL(IdxLoc, 2) = S2;

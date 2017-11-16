@@ -16,33 +16,32 @@
 %
 %  See also findCDR1, findCDR3
 
-function VDJdata = findCDR2(VDJdata,VDJheader,DB)
+function VDJdata = findCDR2(VDJdata,Map,DB)
 %Determine chain and extract key locations
 M = getMapHeaderVar(DB.MapHeader);
-H = getHeavyHeaderVar(VDJheader);
-L = getLightHeaderVar(VDJheader);
-if H.SeqLoc > 0 && L.SeqLoc > 0
-    Chain = 'HL';
-elseif H.SeqLoc > 0
-    Chain = 'H';
-elseif L.SeqLoc > 0
-    Chain = 'L';
-end
 
-for k = 1:length(Chain)
+for k = 1:length(Map.Chain)
     %Decide what header locator to use
-    if Chain(k) == 'H'
-        B = H;
+    if Map.Chain(k) == 'H'
+        DelLoc  = Map.hDel;
+        GeneNumLoc  = Map.hGeneNum; 
+        SeqLoc  = Map.hSeq;
+        LengthLoc  = Map.hLength;
+        CDR2Loc = Map.hCDR2;
     else
-        B = L;
+        DelLoc  = Map.lDel;
+        GeneNumLoc  = Map.lGeneNum; 
+        SeqLoc  = Map.lSeq;
+        LengthLoc  = Map.lLength;
+        CDR2Loc = Map.lCDR2;
     end
     
     for j = 1:size(VDJdata,1)
         %Get basic annotation information
-        Seq = strrep(VDJdata{j,B.SeqLoc},'X','N');
-        Vlen = VDJdata{j,B.LengthLoc(1)};
-        Vdel = VDJdata{j,B.DelLoc(1)};
-        VmapNum = VDJdata{j,B.GeneNumLoc(1)};
+        Seq = strrep(VDJdata{j,SeqLoc},'X','N');
+        Vlen = VDJdata{j,LengthLoc(1)};
+        Vdel = VDJdata{j,DelLoc(1)};
+        VmapNum = VDJdata{j,GeneNumLoc(1)};
 
         %Make sure all info is provided for CDRX calculation 
         if isempty(Seq); continue; end
@@ -51,11 +50,11 @@ for k = 1:length(Chain)
         if isempty(VmapNum); continue; end
         
         %Determine the Vxmap and CDRX location
-        if Chain(k) == 'H' %Heavy chain
+        if Map.Chain(k) == 'H' %Heavy chain
             Vxmap = DB.Vmap;
         else %Light chain, determine locus Vxmap
             %Determine the locus and anchor loc
-            Vname = VDJdata{j,L.GeneNameLoc(1)};
+            Vname = VDJdata{j,Map.lGeneName(1)};
             if ~isempty(regexpi(Vname,'IGKV','once')) %Kappa
                 Vxmap = DB.Vkmap;
             else %Lambda
@@ -93,6 +92,6 @@ for k = 1:length(Chain)
         end
 
         %Fill in the VDJdata
-        VDJdata(j,B.CDR2Loc) = {CDR2aa length(CDR2aa) CDR2s CDR2e};
+        VDJdata(j,CDR2Loc) = {CDR2aa length(CDR2aa) CDR2s CDR2e};
     end
 end

@@ -24,8 +24,6 @@
 %
 %    Unlike calcRootedAncMap, calcAncMap can generate cyclic dependencies
 %    due if give Both triangle sides and an assymmetric matrix. 
-% 
-%  See also calcRootedAncMap, calcPairDist, findTreeClust, findTreeCycle
 
 function AncMap = calcAncMap(PairDist,varargin)
 %Ensure PairDist is a square matrix

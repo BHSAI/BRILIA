@@ -49,6 +49,8 @@
 %         2    0    1
 %         3    1    0
 function [PairDist, varargout] = calcPairDist(Seq, DistMode, varargin)
+warning('%s: This is obsolete. Use calcPairDistMEX', mfilename);
+
 %Convert Seq to a cell array
 if ischar(Seq)
     SeqT = Seq;
@@ -107,6 +109,7 @@ switch lower(DistMode)
         HamDist = zeros(length(Seq), Class);
         if length(Seq) < N %Single core is faster for small jobs
             for r = 1:length(Seq)-1
+                %[HD, PCD, CPD]  = calcShmHamDistMEX(Seq{r}, Seq(r+1:end));
                 [PCD, CPD, HD] = calcSHMHAMdist(Seq{r}, Seq(r+1:end));
                 PairDist(r+1:end, r) = CPD*2; %Remember calcSHMHAMdist gives you a half unit, and you want full integers
                 PairDist(r, r+1:end) = PCD*2; 
@@ -117,6 +120,7 @@ switch lower(DistMode)
             PairDistCell = cell(1, length(Seq) - 1); %Slicable
             parfor r = 1:length(PairDistCell)
                 SeqT = Seq; %Just to confirm that Seq should be given to all workers.
+                %[HD, PCD, CPD]  = calcShmHamDistMEX(SeqT{r}, SeqT(r+1:end));
                 [PCD, CPD, HD] = calcSHMHAMdist(SeqT{r}, SeqT(r+1:end));
                 PairDistCell{r} = [PCD*2 CPD*2 HD]; %Remember you want full integer units for PairDist, but true dist has fractions.
             end

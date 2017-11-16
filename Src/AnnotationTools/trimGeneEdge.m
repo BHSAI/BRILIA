@@ -28,11 +28,9 @@
 %
 %  See also BRILIA, findVDJmatch
 
-function VDJdata = trimGeneEdge(VDJdata, VDJheader, DB)
-[H, L, Chain] = getAllHeaderVar(VDJheader);
-
+function VDJdata = trimGeneEdge(VDJdata, Map, DB)
 %Look for better N
-GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
 UpdateIdx = zeros(size(VDJdata, 1), 1, 'logical');
 for y = 1:length(UnqGrpNum)
@@ -40,13 +38,12 @@ for y = 1:length(UnqGrpNum)
     GrpIdx = find(UnqGrpNum(y) == GrpNum);
     Tdata = VDJdata(GrpIdx, :); 
     
-    if ~isempty(strfind(Chain, 'H')) %Heavy chain portion
-
+    if any(contains(Map.Chain, 'H', 'ignorecase', true))
         %Extract the basic info
-        RefSeq = Tdata{1, H.RefSeqLoc};
-        VMDNJ = cell2mat(Tdata(1, H.LengthLoc));
-        [VdelCur, D5delCur, D3delCur, JdelCur] = deal(Tdata{1, H.DelLoc});
-        [CDR3s, CDR3e] = deal(Tdata{1, H.CDR3Loc(3:4)});
+        RefSeq = Tdata{1, Map.hRefSeq};
+        VMDNJ = cell2mat(Tdata(1, Map.hLength));
+        [VdelCur, D5delCur, D3delCur, JdelCur] = deal(Tdata{1, Map.hDel});
+        [CDR3s, CDR3e] = deal(Tdata{1, Map.hCDR3(3:4)});
         
         %Ensure all info is available before trimming
         if ~(isempty(RefSeq) || isempty(VMDNJ) || isempty(VdelCur) || isempty(D5delCur) || isempty(D3delCur) || isempty(JdelCur) || isempty(CDR3s) || isempty(CDR3e))
@@ -63,7 +60,7 @@ for y = 1:length(UnqGrpNum)
             ConsMissCt = zeros(size(RefSeq));
             ErrorDetected = 0;
             for k = 1:size(Tdata, 1)
-                Seq = Tdata{k, H.SeqLoc};
+                Seq = Tdata{k, Map.hSeq};
                 if length(Seq) ~= length(RefSeq) 
                     ErrorDetected = 1;
                     continue;
@@ -266,20 +263,20 @@ for y = 1:length(UnqGrpNum)
                 end
 
                 %Update the necessary fields 
-                Tdata(:, H.LengthLoc) = repmat(num2cell(NewVMDNJ), size(Tdata, 1), 1);
-                Tdata(:, H.DelLoc) = repmat(num2cell(NewDel), size(Tdata, 1), 1);    
+                Tdata(:, Map.hLength) = repmat(num2cell(NewVMDNJ), size(Tdata, 1), 1);
+                Tdata(:, Map.hDel) = repmat(num2cell(NewDel), size(Tdata, 1), 1);    
                 VDJdata(GrpIdx, :) = Tdata;
                 UpdateIdx(GrpIdx) = 1;
             end
         end %End of valid info 
     end %End of heavy chain fix
     
-    if ~isempty(strfind(Chain, 'L'))     
+    if any(contains(Map.Chain, 'L', 'ignorecase', true))     
         %Extract the basic info
-        RefSeq = Tdata{1, L.RefSeqLoc};
-        VNJ = cell2mat(Tdata(1, L.LengthLoc));
-        [VdelCur, JdelCur] = deal(Tdata{1, L.DelLoc});
-        [CDR3s, CDR3e] = deal(Tdata{1, L.CDR3Loc(3:4)});
+        RefSeq = Tdata{1, Map.lRefSeq};
+        VNJ = cell2mat(Tdata(1, Map.lLength));
+        [VdelCur, JdelCur] = deal(Tdata{1, Map.lDel});
+        [CDR3s, CDR3e] = deal(Tdata{1, Map.lCDR3(3:4)});
         
         %Ensure all info is available before trimming
         if ~(isempty(RefSeq) || isempty(VNJ) || isempty(VdelCur) || isempty(JdelCur) || isempty(CDR3s) || isempty(CDR3e))
@@ -295,7 +292,7 @@ for y = 1:length(UnqGrpNum)
             XlocRef = RefSeq == 'X';
             ConsMissCt = zeros(size(RefSeq));
             for k = 1:size(Tdata, 1)
-                Seq = Tdata{k, L.SeqLoc};
+                Seq = Tdata{k, Map.lSeq};
                 if isempty(Seq); continue; end
                 XlocSeq = Seq == 'X';
                 MissLoc = ~(RefSeq == Seq | XlocSeq | XlocRef);
@@ -397,17 +394,17 @@ for y = 1:length(UnqGrpNum)
                 NewDel = [VdelCur+Vcut  JdelCur+Jcut];
                 
                 %Check to ensure the VMDNJ and del makes sense
-                if NewVNJ(1)*NewVNJ(3) == 0; %Try not to lose the VDJ.
+                if NewVNJ(1)*NewVNJ(3) == 0 %Try not to lose the VDJ.
                    continue; 
                 end 
-                if min(NewVNJ) < 0; %Don't fix errors
+                if min(NewVNJ) < 0 %Don't fix errors
                    warning('%s: Sequence group # %d has negative VNJ', mfilename, UnqGrpNum(y));
                    continue; 
                 end
 
                 %Update the necessary fields 
-                Tdata(:, L.LengthLoc) = repmat(num2cell(NewVNJ), size(Tdata, 1), 1);
-                Tdata(:, L.DelLoc) = repmat(num2cell(NewDel), size(Tdata, 1), 1);    
+                Tdata(:, Map.lLength) = repmat(num2cell(NewVNJ), size(Tdata, 1), 1);
+                Tdata(:, Map.lDel) = repmat(num2cell(NewDel), size(Tdata, 1), 1);    
                 VDJdata(GrpIdx, :) = Tdata;
                 UpdateIdx(GrpIdx) = 1;
             end
@@ -416,5 +413,5 @@ for y = 1:length(UnqGrpNum)
 end
 
 %Update those that have changed
-VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), VDJheader, DB, Chain, 'germline', 'first'); %must do first seq of all cluster
-VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), VDJheader, DB);
+VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), Map, DB, Map.Chain, 'germline', 'first'); %must do first seq of all cluster
+VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), Map, DB);

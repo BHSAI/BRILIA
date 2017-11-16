@@ -18,10 +18,9 @@
 %    VDJdata: modified VDJdata with corrected sequences
 %    BadIdx: Nx1 logical array of entries have > 10% non-nt letters
 
-function [VDJdata, varargout] = fixInputSeq(VDJdata, VDJheader, varargin)
+function [VDJdata, varargout] = fixInputSeq(VDJdata, Map, varargin)
 %Extract all sequence locations
-[H, L, ~] = getAllHeaderVar(VDJheader);
-SeqLoc = [H.SeqLoc; L.SeqLoc];
+SeqLoc = [Map.hSeq; Map.lSeq];
 SeqLoc(SeqLoc == 0) = [];
 
 %Determine max error %

@@ -21,7 +21,7 @@
 %
 %  See also findCDR1, findCDR2
 
-function VDJdata = findCDR3(VDJdata,VDJheader,DB,varargin)
+function VDJdata = findCDR3(VDJdata,Map,DB,varargin)
 %Determine which CDR3 output to return - IMGT's CDR3 or CDR3 anchor
 Option = 'imgt';
 if ~isempty(varargin) && ischar(varargin{1})
@@ -30,33 +30,32 @@ end
 
 %Determine chain and extract key locations
 M = getMapHeaderVar(DB.MapHeader);
-H = getHeavyHeaderVar(VDJheader);
-L = getLightHeaderVar(VDJheader);
-if H.SeqLoc > 0 && L.SeqLoc > 0
-    Chain = 'HL';
-elseif H.SeqLoc > 0
-    Chain = 'H';
-elseif L.SeqLoc > 0
-    Chain = 'L';
-end
 
-for k = 1:length(Chain)
+for k = 1:length(Map.Chain)
     %Decide what header locator to use
-    if Chain(k) == 'H'
-        B = H;
+    if Map.Chain(k) == 'H'
+        DelLoc  = Map.hDel;
+        GeneNumLoc  = Map.hGeneNum; 
+        SeqLoc  = Map.hSeq;
+        LengthLoc  = Map.hLength;
+        CDR3Loc = Map.hCDR3;
     else
-        B = L;
+        DelLoc  = Map.lDel;
+        GeneNumLoc  = Map.lGeneNum; 
+        SeqLoc  = Map.lSeq;
+        LengthLoc  = Map.lLength;
+        CDR3Loc = Map.lCDR3;
     end
     
     for j = 1:size(VDJdata,1)
         %Get basic annotation information
-        Seq = VDJdata{j,B.SeqLoc};
-        Vlen = VDJdata{j,B.LengthLoc(1)};
-        Jlen = VDJdata{j,B.LengthLoc(end)};
-        Vdel = VDJdata{j,B.DelLoc(1)};
-        Jdel = VDJdata{j,B.DelLoc(end)};
-        VmapNum = VDJdata{j,B.GeneNumLoc(1)};
-        JmapNum = VDJdata{j,B.GeneNumLoc(end)};
+        Seq = VDJdata{j,SeqLoc};
+        Vlen = VDJdata{j,LengthLoc(1)};
+        Jlen = VDJdata{j,LengthLoc(end)};
+        Vdel = VDJdata{j,DelLoc(1)};
+        Jdel = VDJdata{j,DelLoc(end)};
+        VmapNum = VDJdata{j,GeneNumLoc(1)};
+        JmapNum = VDJdata{j,GeneNumLoc(end)};
 
         %Make sure all info is provided for CDR3 calculation 
         if isempty(Seq); continue; end
@@ -67,12 +66,12 @@ for k = 1:length(Chain)
         if isempty(VmapNum); continue; end
         if isempty(JmapNum); continue; end
         
-        if Chain(k) == 'H' %Heavy chain, use Vmap Jmap
+        if Map.Chain(k) == 'H' %Heavy chain, use Vmap Jmap
             VrefCDR3 = DB.Vmap{VmapNum(1),M.AnchorLoc}; %Location of C from right end of V
             JrefCDR3 = DB.Jmap{JmapNum(1),M.AnchorLoc}; %Location of W from left end of J
         else %Light chain, determine locus and u se Vkmap, Vlmap, Jkmap, Jlmap
             %Determine the locus and anchor loc
-            Vname = VDJdata{j,L.GeneNameLoc(1)};
+            Vname = VDJdata{j,Map.lGeneName(1)};
             if ~isempty(regexpi(Vname,'IGKV','once')) %Kappa
                 VrefCDR3 = DB.Vkmap{VmapNum(1),M.AnchorLoc}; %Location of C from right end of V
                 JrefCDR3 = DB.Jkmap{JmapNum(1),M.AnchorLoc}; %Location of F from left end of J
@@ -109,6 +108,6 @@ for k = 1:length(Chain)
         end
 
         %Fill in the VDJdata
-        VDJdata(j,B.CDR3Loc) = {CDR3aa length(CDR3aa) CDR3s CDR3e};
+        VDJdata(j,CDR3Loc) = {CDR3aa length(CDR3aa) CDR3s CDR3e};
     end
 end

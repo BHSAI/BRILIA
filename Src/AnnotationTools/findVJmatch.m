@@ -40,7 +40,7 @@
 %
 %  See also findVDJmatch
 
-function [VDJdata,varargout] = findVJmatch(VDJdata,VDJheader,DB,varargin)
+function [VDJdata,varargout] = findVJmatch(VDJdata,Map,DB,varargin)
 %Parse the input
 P = inputParser;
 addParameter(P,'Update','y',@(x) ismember(lower(x(1)),{'y','n'}));
@@ -52,22 +52,21 @@ Jreserve = P.Results.Jreserve;
 BadIdx = zeros(size(VDJdata,1),1,'logical');
 
 %Find headers since parfor can't handle it
-L = getLightHeaderVar(VDJheader); 
-if L.SeqLoc == 0; %Make sure header exists for right chain   
+if Map.lSeq == 0 %Make sure header exists for right chain   
     if nargout >=2
         varargout{1} = BadIdx;
     end
     return; 
 end
-SeqLoc      = L.SeqLoc;
-OverSeq5Loc = L.OverSeq5Loc;
-OverSeq3Loc = L.OverSeq3Loc;
-CDR3sLoc    = L.CDR3Loc(3);
-CDR3eLoc    = L.CDR3Loc(4);
-GeneNumLoc  = L.GeneNumLoc;
-GeneNameLoc = L.GeneNameLoc;
-LengthLoc   = L.LengthLoc;
-DelLoc      = L.DelLoc;
+SeqLoc      = Map.lSeq;
+OverSeq5Loc = Map.lOverSeq5;
+OverSeq3Loc = Map.lOverSeq3;
+CDR3sLoc    = Map.lCDR3(3);
+CDR3eLoc    = Map.lCDR3(4);
+GeneNumLoc  = Map.lGeneNum;
+GeneNameLoc = Map.lGeneName;
+LengthLoc   = Map.lLength;
+DelLoc      = Map.lDel;
 
 %Place DB into separate tables due to broadcast issues.
 %Find headers since parfor can't handle it
@@ -83,7 +82,7 @@ parfor j = 1:size(VDJdata,1)
     %Extract info from sliced VDJdata variable
     Tdata = VDJdata(j,:);
     Seq = Tdata{1,SeqLoc};
-    if length(Seq) < Jreserve+1; %Seq is too short
+    if length(Seq) < Jreserve+1 %Seq is too short
         BadIdx(j) = 1;
         continue; 
     end
@@ -201,15 +200,14 @@ end
 %If there are errors, show them now.
 BadLoc = find(BadIdx == 1);
 for b = 1:length(BadLoc)
-    ErrorMsg = sprintf('%s: Bad sequence # %d',mfilename,BadLoc(b));
-    disp(ErrorMsg);
+    fprintf('%s: Bad sequence # %d\n',mfilename,BadLoc(b));
 end
 
 %Update VDJdata 
 if upper(Update(1)) == 'Y'
     UpdateIdx = ~BadIdx;
-    VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),VDJheader,DB,'L','germline','single');
-    VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),VDJheader,DB);    
+    VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),Map,DB,'L','germline','single');
+    VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),Map,DB);    
 end
 
 if nargout >=2

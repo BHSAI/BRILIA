@@ -32,15 +32,18 @@
 %    sequence as an entry but with 0 template count, returning parameters
 %    with size(Tdata,1) + 1 entries.
 
-function [AncMapS, TreeName, CDR3Name, TemplateCount] = getTreeData(Tdata, VDJheader)
+function [AncMapS, TreeName, CDR3Name, TemplateCount] = getTreeData(Tdata, Map)
 AncMapS = [];
 TreeName = [];
 CDR3Name = [];
 TemplateCount = 0;
 
+if iscell(Map)
+    Map = getVDJmapper(Map);
+end
+
 %Check if there are multiple groups
-[H, L, Chain] = getAllHeaderVar(VDJheader);
-GrpNum = cell2mat(Tdata(:, H.GrpNumLoc));
+GrpNum = cell2mat(Tdata(:, Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
 if length(UnqGrpNum) > 1
     warning('%s: Tdata must contain annotations from the same cluster. No tree was made.', mfilename);
@@ -48,27 +51,33 @@ if length(UnqGrpNum) > 1
 end
 
 %Determine key tree parameter data
-SeqNumLoc = H.SeqNumLoc;
-TemplateLoc = H.TemplateLoc;
+SeqNumLoc = Map.SeqNum;
+TemplateLoc = Map.Template;
 CDR3Locs = [];
 CDR3sLocs = [];
 CDR3eLocs = [];
 SeqLocs = [];
 RefSeqLocs = [];
 GeneNameLocs = {};
-for j = 1:length(Chain)
-    if strcmpi(Chain(j), 'H')
-        B = H;
+for j = 1:length(Map.Chain)
+    if strcmpi(Map.Chain(j), 'H')
+        CDR3Loc = Map.hCDR3;
+        SeqLoc = Map.hSeq;
+        RefSeqLoc = Map.hRefSeq;
+        GeneNameLoc = Map.hGeneName;
     else
-        B = L;
+        CDR3Loc = Map.lCDR3;
+        SeqLoc = Map.lSeq;
+        RefSeqLoc = Map.lRefSeq;
+        GeneNameLoc = Map.lGeneName;
     end
     try
-        CDR3Locs = cat(2, CDR3Locs, B.CDR3Loc(1));
-        CDR3sLocs = cat(2, CDR3sLocs, B.CDR3Loc(3));
-        CDR3eLocs = cat(2, CDR3eLocs, B.CDR3Loc(4));
-        SeqLocs = cat(2, SeqLocs, B.SeqLoc);
-        RefSeqLocs = cat(2, RefSeqLocs, B.RefSeqLoc);
-        GeneNameLocs = cat(2, GeneNameLocs, B.GeneNameLoc);
+        CDR3Locs = cat(2, CDR3Locs, CDR3Loc(1));
+        CDR3sLocs = cat(2, CDR3sLocs, CDR3Loc(3));
+        CDR3eLocs = cat(2, CDR3eLocs, CDR3Loc(4));
+        SeqLocs = cat(2, SeqLocs, SeqLoc);
+        RefSeqLocs = cat(2, RefSeqLocs, RefSeqLoc);
+        GeneNameLocs = cat(2, GeneNameLocs, GeneNameLoc);
     catch
     end
 end
@@ -110,7 +119,8 @@ for j = 1:size(Tdata, 1)
     for k = 1:length(SeqLocs)
         ChildSeq = Tdata{j, SeqLocs(k)};
         ParentSeq = Tdata{j, RefSeqLocs(k)};
-        [SHMdistT, ~, HAMdistT] = calcSHMHAMdist(ParentSeq, ChildSeq);
+        [HAMdistT, SHMdistT] = calcPairDistMEX(ParentSeq, ChildSeq);
+        %[SHMdistT, ~, HAMdistT] = calcSHMHAMdist(ParentSeq, ChildSeq);
         SHMdist = SHMdist + SHMdistT;
         HAMdist = HAMdist + HAMdistT;
         SeqLen = SeqLen + length(ParentSeq);

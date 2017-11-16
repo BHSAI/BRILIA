@@ -7,36 +7,27 @@
 %
 %  VDJdata = buildVDJalignment(VDJdata, VDJheader, DB)
 
-function [VDJdata, VDJheader] = buildVDJalignment(VDJdata,VDJheader,DB)
-[H, L, Chain] = getAllHeaderVar(VDJheader);
-   
-if ~isempty(strfind(Chain, 'H'))
+function VDJdata = buildVDJalignment(VDJdata,Map,DB)
+if any(contains(Map.Chain, 'h', 'ignorecase', true)) 
     %Build the heavy chain alignment
     HeavyAlign = cell(size(VDJdata,1),3);
     for j = 1:size(VDJdata,1)
-        %Get all the necessary data
-        Seq = VDJdata{j,H.SeqLoc};
-        VMDNJ = cell2mat(VDJdata(j,H.LengthLoc));
-
-        %Make sure all entries are valid
+        Seq = VDJdata{j,Map.hSeq};
+        VMDNJ = cell2mat(VDJdata(j,Map.hLength));
         if isempty(Seq);  continue; end
-        if VMDNJ(1) <= 0; continue; end
-        if VMDNJ(2) <  0; continue; end
-        if VMDNJ(3) <= 0; continue; end
-        if VMDNJ(4) <  0; continue; end
-        if VMDNJ(5) <= 0; continue; end
+        if any(VMDNJ < [1 0 1 0 1]); continue; end
 
         %----------------------------------------------------------------------
         %Setting V alignment
-        Vnum = VDJdata{j,H.GeneNumLoc(1)};
+        Vnum = VDJdata{j,Map.hGeneNum(1)};
         if ~isempty(Vnum)
             Vnum = Vnum(1);
             VsamSeq = Seq(1:VMDNJ(1));
             VrefSeq = DB.Vmap{Vnum,1};
-            VntDel = VDJdata{j,H.DelLoc(1)};
+            Vdel = VDJdata{j,Map.hDel(1)};
 
             %Determine if there are extra nts left for padding
-            ExtraLeft = VMDNJ(1)+ VntDel - length(VrefSeq);
+            ExtraLeft = VMDNJ(1)+ Vdel - length(VrefSeq);
             if ExtraLeft > 0
                 VrefSeq = sprintf('%s%s',repmat('X',ExtraLeft,1),VrefSeq);
             elseif ExtraLeft < 0 %Delete some
@@ -44,14 +35,14 @@ if ~isempty(strfind(Chain, 'H'))
             end
 
             %Get the deleted nts
-            if VntDel > 0
-                Vref3 = VrefSeq(end-VntDel+1:end);
-                VrefSeq(end-VntDel+1:end) = [];
+            if Vdel > 0
+                Vref3 = VrefSeq(end-Vdel+1:end);
+                VrefSeq(end-Vdel+1:end) = [];
             else
                 Vref3 = '';
             end
 
-            %Assembe the V alignment string and save
+            %Assemble the V alignment string and save
             Valign = VrefSeq;
             Valign(VsamSeq == VrefSeq | VsamSeq == 'X') = '.';
             HeavyAlign{j,1} = sprintf('%s|%s',Valign,lower(Vref3));
@@ -59,14 +50,14 @@ if ~isempty(strfind(Chain, 'H'))
 
         %----------------------------------------------------------------------
         %Setting D alignment
-        Dnum = VDJdata{j,H.GeneNumLoc(2)};
+        Dnum = VDJdata{j,Map.hGeneNum(2)};
         if ~isempty(Dnum)
             Dnum = Dnum(1);
             DsamSeq = Seq(sum(VMDNJ(1:2))+1:sum(VMDNJ(1:3)));
 
             %Get the deleted nts
-            DntDel5 = VDJdata{j,H.DelLoc(2)};
-            DntDel3 = VDJdata{j,H.DelLoc(3)};        
+            DntDel5 = VDJdata{j,Map.hDel(2)};
+            DntDel3 = VDJdata{j,Map.hDel(3)};        
             DrefSeq = DB.Dmap{Dnum,1}(1+DntDel5:end-DntDel3);       
             if DntDel5 > 0
                 Dref5 = DB.Dmap{Dnum,1}(1:DntDel5);
@@ -87,12 +78,12 @@ if ~isempty(strfind(Chain, 'H'))
 
         %----------------------------------------------------------------------
         %Setting J alignment
-        Jnum = VDJdata{j,H.GeneNumLoc(3)};
+        Jnum = VDJdata{j,Map.hGeneNum(3)};
         if ~isempty(Jnum)
             Jnum = Jnum(1);
             JsamSeq = Seq(end-VMDNJ(5)+1:end);
             JrefSeq = DB.Jmap{Jnum,1};
-            JntDel = VDJdata{j,H.DelLoc(4)};
+            JntDel = VDJdata{j,Map.hDel(4)};
 
             %Determine if there are extra nts left for padding
             ExtraRight = VMDNJ(5) + JntDel - length(JrefSeq);
@@ -118,40 +109,27 @@ if ~isempty(strfind(Chain, 'H'))
     end
     
     %Append or replace alignment in VDJdata
-    HeavyAlignLoc = findCell(VDJheader,{'H-V_Align','H-D_Align','H-J_Align'});
-    if max(HeavyAlignLoc == 0) == 1 %If anything is 0
-        if sum(HeavyAlignLoc > 0) ~= 3 %Something went wrong and not all alignments were done. delete and redo.
-            VDJdata(:,HeavyAlignLoc(HeavyAlignLoc>0)) = [];
-        end
-        VDJdata = [VDJdata HeavyAlign];
-        VDJheader = [VDJheader 'H-V_Align' 'H-D_Align' 'H-J_Align'];
-    else %Already align, just replace
-        VDJdata(:,HeavyAlignLoc) = HeavyAlign;
-    end
+    HeavyAlignLoc = [Map.hValign Map.hDalign Map.hJalign];
+    VDJdata(:,HeavyAlignLoc) = HeavyAlign;
 end
 
-if ~isempty(strfind(Chain, 'L'))
+if any(contains(Map.Chain, 'l', 'ignorecase', true))
     %Build the heavy chain alignment
     LightAlign = cell(size(VDJdata,1),2);
     for j = 1:size(VDJdata,1)
-        %Get all the necessary data
-        Seq = VDJdata{j,L.SeqLoc};
-        VNJ = cell2mat(VDJdata(j,L.LengthLoc));
-
-        %Make sure all entries are valid
+        Seq = VDJdata{j,Map.lSeq};
+        VNJ = cell2mat(VDJdata(j,Map.lLength));
         if isempty(Seq);  continue; end
-        if VNJ(1) <= 0; continue; end
-        if VNJ(2) <  0; continue; end
-        if VNJ(3) <= 0; continue; end
+        if any(VNJ < [1 0 1]); continue; end
 
         %----------------------------------------------------------------------
         %Setting V alignment
-        Vnum = VDJdata{j,L.GeneNumLoc(1)};
-        Vname = VDJdata{j,L.GeneNameLoc(1)};
+        Vnum = VDJdata{j,Map.lGeneNum(1)};
+        Vname = VDJdata{j,Map.lGeneName(1)};
         if ~isempty(Vnum)
             Vnum = Vnum(1);
             VsamSeq = Seq(1:VNJ(1));
-            VntDel = VDJdata{j,L.DelLoc(1)};
+            Vdel = VDJdata{j,Map.lDel(1)};
             
             %Choose the kappa/lampda DB
             if ~isempty(regexpi(Vname,'IGK')) 
@@ -161,7 +139,7 @@ if ~isempty(strfind(Chain, 'L'))
             end
 
             %Determine if there are extra nts left for padding
-            ExtraLeft = VNJ(1)+ VntDel - length(VrefSeq);
+            ExtraLeft = VNJ(1)+ Vdel - length(VrefSeq);
             if ExtraLeft > 0
                 VrefSeq = sprintf('%s%s',repmat('X',ExtraLeft,1),VrefSeq);
             elseif ExtraLeft < 0 %Delete some
@@ -169,9 +147,9 @@ if ~isempty(strfind(Chain, 'L'))
             end
 
             %Get the deleted nts
-            if VntDel > 0
-                Vref3 = VrefSeq(end-VntDel+1:end);
-                VrefSeq(end-VntDel+1:end) = [];
+            if Vdel > 0
+                Vref3 = VrefSeq(end-Vdel+1:end);
+                VrefSeq(end-Vdel+1:end) = [];
             else
                 Vref3 = '';
             end
@@ -184,12 +162,12 @@ if ~isempty(strfind(Chain, 'L'))
 
         %----------------------------------------------------------------------
         %Setting J alignment
-        Jnum = VDJdata{j,L.GeneNumLoc(2)};
-        Jname = VDJdata{j,L.GeneNameLoc(2)};
+        Jnum = VDJdata{j,Map.lGeneNum(2)};
+        Jname = VDJdata{j,Map.lGeneName(2)};
         if ~isempty(Jnum)
             Jnum = Jnum(1);
             JsamSeq = Seq(end-VNJ(3)+1:end);
-            JntDel = VDJdata{j,L.DelLoc(2)};
+            JntDel = VDJdata{j,Map.lDel(2)};
             
             %Choose the kappa/lampda DB
             if ~isempty(regexpi(Jname,'IGK')) 
@@ -221,15 +199,7 @@ if ~isempty(strfind(Chain, 'L'))
         end
     end
     
-    LightAlignLoc = findCell(VDJheader,{'L-V_Align','L-J_Align'});
-    if max(LightAlignLoc == 0) == 1 %If anything is 0
-        if sum(LightAlignLoc > 0) ~= 2 %Something went wrong and not all alignments were done. delete and redo.
-            VDJdata(:,LightAlignLoc(LightAlignLoc>0)) = [];
-        end
-        VDJdata = [VDJdata LightAlign];
-        VDJheader = [VDJheader 'L-V_Align' 'L-J_Align'];
-    else %Already align, just replace
-        VDJdata(:,LightAlignLoc) = LightAlign;
-    end
+    LightAlignLoc = [Map.lValign Map.lJalign];
+    VDJdata(:,LightAlignLoc) = LightAlign;
 end
 

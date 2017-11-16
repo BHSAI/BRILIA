@@ -24,8 +24,6 @@
 %    
 %    Unlike calcAncMap, calcRootedAncMap does not generate cyclic
 %    dependencies since the root is defined and this prevents the issue.
-%
-%  See also calcAncMap, calcPairDist, findTreeClust, findTreeCycle
 function AncMap = calcRootedAncMap(PairDist)
 %Ensure PairDist is a square matrix
 [M, N] = size(PairDist);
@@ -63,7 +61,7 @@ while max(Active) == 1
     %For each child, fill in the parent
     for c = 1:length(ChildLoc)
         AncMap(ChildLoc(c), 2) = ParentLoc(c);
-        AncMap(ChildLoc(c), 3) = double(PairDist(ParentLoc(c), ChildLoc(c))) / 2; %Remember, calcPairDist doubled the value 
+        AncMap(ChildLoc(c), 3) = double(PairDist(ParentLoc(c), ChildLoc(c)));
         Active(ChildLoc(c)) = 0;
     end
 end

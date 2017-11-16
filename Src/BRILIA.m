@@ -423,9 +423,10 @@ for f = 1:length(InputFile)
             %Open the file and get the sequences within range
             showStatus(sprintf('Processing sequences %d to %d (total = %d) ...', SeqRange(1), SeqRange(end), SeqCount), StatusHandle);
             [VDJdata, VDJheader] = convertInput2VDJdata(InputFile{f}, 'FileType', FileType, 'Delimiter', Delimiter, 'Chain', Chain, 'SeqRange', SeqRange);
-
+            Map = getVDJmapper(VDJheader);
+            
             %Check input sequence for bad characters
-            [VDJdata, BadIdx] = fixInputSeq(VDJdata, VDJheader);
+            [VDJdata, BadIdx] = fixInputSeq(VDJdata, Map);
             if max(BadIdx) ~= 0
                 saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
                 VDJdata(BadIdx, :) = [];
@@ -441,28 +442,28 @@ for f = 1:length(InputFile)
             %alignment. Do this here, and not when doing VDJ alignment, because users
             %might have complement sequences which must be flipped.
             showStatus('Determining sequence direction and CDR3 areas ...', StatusHandle)
-            VDJdata = seedCDR3position(VDJdata, VDJheader, DB, 'V', 80, 2, CheckSeqDir);
-            VDJdata = seedCDR3position(VDJdata, VDJheader, DB, 'J', 3, 14, 'n');
-            VDJdata = seedCDR3position(VDJdata, VDJheader, DB, 'Vk, Vl', 80, 2, CheckSeqDir);
-            VDJdata = seedCDR3position(VDJdata, VDJheader, DB, 'Jk, Jl', 3, 14, 'n');
+            VDJdata = seedCDR3position(VDJdata, Map, DB, 'V', 80, 2, CheckSeqDir);
+            VDJdata = seedCDR3position(VDJdata, Map, DB, 'J', 3, 14, 'n');
+            VDJdata = seedCDR3position(VDJdata, Map, DB, 'Vk, Vl', 80, 2, CheckSeqDir);
+            VDJdata = seedCDR3position(VDJdata, Map, DB, 'Jk, Jl', 3, 14, 'n');
 
             %Search for initial VDJ alignment matches
             showStatus('Finding initial-guess V(D)J annotations ...', StatusHandle)
-            [VDJdata, BadIdx] = findVDJmatch(VDJdata, VDJheader, DB, 'Update', 'Y');
+            [VDJdata, BadIdx] = findVDJmatch(VDJdata, Map, DB, 'Update', 'Y');
             if max(BadIdx) ~= 0
                 saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
                 VDJdata(BadIdx, :) = [];
             end
+            
             %Search for initial VJ alignment matches
-            [VDJdata, BadIdx] = findVJmatch(VDJdata, VDJheader, DB, 'Update', 'Y');
+            [VDJdata, BadIdx] = findVJmatch(VDJdata, Map, DB, 'Update', 'Y');
             if max(BadIdx) ~= 0
                 saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
                 VDJdata(BadIdx, :) = [];
             end
 
             %Send all Non-functional to error
-            [H, L, Chain] = getAllHeaderVar(VDJheader);
-            FunctLoc = [H.FunctLoc L.FunctLoc];
+            FunctLoc = [Map.hFunct Map.lFunct];
             FunctLoc(FunctLoc == 0) = [];
             BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
             for w = 1:size(VDJdata, 1)
@@ -484,14 +485,14 @@ for f = 1:length(InputFile)
             
             %Finish scheme if annotonly
             if strcmpi(AnnotOnly, 'y')
-                VDJdata = findCDR1(VDJdata, VDJheader, DB);
-                VDJdata = findCDR2(VDJdata, VDJheader, DB);
-                VDJdata = buildVDJalignment(VDJdata, VDJheader, DB);
+                VDJdata = findCDR1(VDJdata, Map, DB);
+                VDJdata = findCDR2(VDJdata, Map, DB);
+                VDJdata = buildVDJalignment(VDJdata, Map, DB);
             end
 
             %Save remaining sequences to temp dir
             if SegmentMode %If sequence file is segmented by CDR3 length
-                CDR3Loc = [H.CDR3Loc(1) L.CDR3Loc(1)];
+                CDR3Loc = [Map.hCDR3(1) Map.lCDR3(1)];
                 CDR3Loc(CDR3Loc == 0) = [];
                 CDR3Len = zeros(size(VDJdata, 1), length(CDR3Loc));
                 for k = 1:size(VDJdata, 1)
@@ -546,22 +547,23 @@ for f = 1:length(InputFile)
             %Reload the sequence file with same-length CDR3s
             showStatus(sprintf('Processing %s ...', TempRawFileName), StatusHandle);
             [VDJdata, VDJheader] = openSeqData([TempDir TempRawFileName]);
+            Map = getVDJmapper(VDJheader);
 
             %Fix insertion/deletion in V framework
             showStatus('Fixing indels in V genes ...', StatusHandle)
-            VDJdata = fixGeneIndel(VDJdata, VDJheader, DB);
+            VDJdata = fixGeneIndel(VDJdata, Map, DB);
 
             %Remove pseudogenes from degenerate annotations containing functional ones.
             showStatus('Accepting F genes over ORF/P ...', StatusHandle)
-            VDJdata = fixDegenVDJ(VDJdata, VDJheader, DB);
+            VDJdata = fixDegenVDJ(VDJdata, Map, DB);
 
             %Insure that V and J segments cover the CDR3 region.
             showStatus('Anchoring 104C and 118W/F ...', StatusHandle)
-            VDJdata = constrainGeneVJ(VDJdata, VDJheader, DB);
+            VDJdata = constrainGeneVJ(VDJdata, Map, DB);
 
             %Cluster the data based variable region and hamming dist of DevPerc%.
             showStatus('Clustering by lineage ...', StatusHandle)
-            [VDJdata, BadVDJdataT] = clusterGene(VDJdata, VDJheader, DevPerc);
+            [VDJdata, BadVDJdataT] = clusterGene(VDJdata, Map, DevPerc);
             if size(BadVDJdataT, 1) ~= 0
                 saveSeqData([TempDir ErrFileName], BadVDJdataT, VDJheader, 'append');
                 clear BadVDJdataT;
@@ -569,37 +571,35 @@ for f = 1:length(InputFile)
             if size(VDJdata, 1) == 0; continue; end
 
             %Renumbering groups
-            H = getHeavyHeaderVar(VDJheader);
-            GrpNums = cell2mat(VDJdata(:, H.GrpNumLoc)) + GrpNumStart;
-            VDJdata(:, H.GrpNumLoc) = num2cell(GrpNums);
+            GrpNums = cell2mat(VDJdata(:, Map.GrpNum)) + GrpNumStart;
+            VDJdata(:, Map.GrpNum) = num2cell(GrpNums);
             GrpNumStart = max(GrpNums); 
 
             %Set all groups to have same annotation and VMDNJ lengths.
             showStatus('Correcting annotations by lineage ...', StatusHandle)
-            VDJdata = conformGeneGroup(VDJdata, VDJheader, DB);
+            VDJdata = conformGeneGroup(VDJdata, Map, DB);
 
             %Get better D match based on location of consensus V J mismatches.
             showStatus('Refining D annotations ...', StatusHandle)
-            VDJdata = findBetterD(VDJdata, VDJheader, DB);
+            VDJdata = findBetterD(VDJdata, Map, DB);
 
             %Trim V, D, J edges and extract better N regions
             showStatus('Trimming N regions ...', StatusHandle)
-            VDJdata = trimGeneEdge(VDJdata, VDJheader, DB);
+            VDJdata = trimGeneEdge(VDJdata, Map, DB);
 
             %Fix obviously incorrect trees.
             showStatus('Rerooting lineage trees ...', StatusHandle)
-            VDJdata = removeDupSeq(VDJdata, VDJheader);
-            VDJdata = fixTree(VDJdata, VDJheader);
+            VDJdata = removeDupSeq(VDJdata, Map);
+            VDJdata = fixTree(VDJdata, Map);
 
             %Finalize VDJdata details and CDR 1, 2, 3 info
-            VDJdata = padtrimSeqGroup(VDJdata, VDJheader, 'grpnum', 'trim', 'Seq'); %will only remove "x" before and after Seq if they all have it. 
-            VDJdata = findCDR1(VDJdata, VDJheader, DB);
-            VDJdata = findCDR2(VDJdata, VDJheader, DB);
-            VDJdata = findCDR3(VDJdata, VDJheader, DB, 'IMGT'); %removes the 104C and 118W from CDR3, and adjusts the CDR3 length to true IMGT length
+            VDJdata = padtrimSeqGroup(VDJdata, Map, 'grpnum', 'trim', 'Seq'); %will only remove "x" before and after Seq if they all have it. 
+            VDJdata = findCDR1(VDJdata, Map, DB);
+            VDJdata = findCDR2(VDJdata, Map, DB);
+            VDJdata = findCDR3(VDJdata, Map, DB, 'IMGT'); %removes the 104C and 118W from CDR3, and adjusts the CDR3 length to true IMGT length
 
             %Move non-function sequences to Err file too
-            [H, L, ~] = getAllHeaderVar(VDJheader);
-            FunctLoc = [H.FunctLoc(:); L.FunctLoc(:)];
+            FunctLoc = [Map.hFunct; Map.lFunct];
             FunctLoc(FunctLoc == 0) = [];
             BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
             for w = 1:size(VDJdata, 1)
@@ -616,8 +616,8 @@ for f = 1:length(InputFile)
             VDJdata(BadIdx, :) = [];
 
             %Save the functional annotations
-            [VDJdata, VDJheader2] = buildVDJalignment(VDJdata, VDJheader, DB); %Adds the alignment information
-            saveSeqData([TempDir TempOutputFileName], VDJdata, VDJheader2, 'append');
+            VDJdata = buildVDJalignment(VDJdata, Map, DB); %Adds the alignment information
+            saveSeqData([TempDir TempOutputFileName], VDJdata, VDJheader, 'append');
             clear VDJdata BadVDJdata
         end
         %======================================================================

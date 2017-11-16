@@ -68,6 +68,9 @@
 %            3
 
 function [PCdist, CPdist, HamDist] = calcSHMHAMdist(Seq1, Seq2, varargin)
+warning('%s: This is obsolete. Use calcPairDistMEX', mfilename);
+
+
 %Need Seq1 to be char
 if iscell(Seq1)
     Seq1 = Seq1{1};

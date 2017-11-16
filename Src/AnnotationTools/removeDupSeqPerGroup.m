@@ -1,4 +1,4 @@
-function VDJdata = removeDupSeqPerGroup(VDJdata, H, L, Chain)
+function VDJdata = removeDupSeqPerGroup(VDJdata, Map)
 %Look for duplicate entries
 DelIdx = zeros(size(VDJdata, 1), 1, 'logical'); %Keeps track of duplicate entries that will be removed
 for j = 1:size(VDJdata, 1) - 1
@@ -7,19 +7,19 @@ for j = 1:size(VDJdata, 1) - 1
     Xcount = zeros(size(VDJdata, 1), 1); %Tracks how many X's there are
             
     %Add on constant regions to prevent collapsing seq with different C.
-    if contains(Chain, 'H') && ~isempty(VDJdata{j, H.OverSeq3Loc})
-        ConstSeq1 = VDJdata{j, H.OverSeq3Loc};
+    if contains(Map.Chain, 'H') && ~isempty(VDJdata{j, Map.hOverSeq3})
+        ConstSeq1 = VDJdata{j, Map.hOverSeq3};
     else 
         ConstSeq1 = '';
     end
 
     %Get Seq1 info and location of X
-    if strcmpi(Chain, 'HL')
-        Seq1 = sprintf('%s%s%s', VDJdata{j, H.SeqLoc}, VDJdata{j, L.SeqLoc}, ConstSeq1);
-    elseif strcmpi(Chain, 'H')
-        Seq1 = sprintf('%s%s', VDJdata{j, H.SeqLoc}, ConstSeq1);
+    if strcmpi(Map.Chain, 'HL')
+        Seq1 = sprintf('%s%s%s', VDJdata{j, Map.hSeq}, VDJdata{j, Map.lSeq}, ConstSeq1);
+    elseif strcmpi(Map.Chain, 'H')
+        Seq1 = sprintf('%s%s', VDJdata{j, Map.hSeq}, ConstSeq1);
     else
-        Seq1 = VDJdata{j, L.SeqLoc};
+        Seq1 = VDJdata{j, Map.lSeq};
     end
        
     if isempty(Seq1); continue; end
@@ -30,19 +30,19 @@ for j = 1:size(VDJdata, 1) - 1
         if DelIdx(q); continue; end %Already deleted, skip
 
         %Determine if there are any possible constant region sequences
-        if contains(Chain, 'H') && ~isempty(VDJdata{q, H.OverSeq3Loc})
-            ConstSeq2 = VDJdata{q, H.OverSeq3Loc};
+        if contains(Map.Chain, 'H') && ~isempty(VDJdata{q, Map.hOverSeq3})
+            ConstSeq2 = VDJdata{q, Map.hOverSeq3};
         else 
             ConstSeq2 = '';
         end
     
         %Get Seq2 info and location of X
-        if strcmpi(Chain, 'HL')
-            Seq2 = sprintf('%s%s%s', VDJdata{q, H.SeqLoc}, VDJdata{q, L.SeqLoc}, ConstSeq2);
-        elseif strcmpi(Chain, 'H')
-            Seq2 = sprintf('%s%s', VDJdata{q, H.SeqLoc}, ConstSeq2);
+        if strcmpi(Map.Chain, 'HL')
+            Seq2 = sprintf('%s%s%s', VDJdata{q, Map.hSeq}, VDJdata{q, Map.lSeq}, ConstSeq2);
+        elseif strcmpi(Map.Chain, 'H')
+            Seq2 = sprintf('%s%s', VDJdata{q, Map.hSeq}, ConstSeq2);
         else
-            Seq2 = VDJdata{q, L.SeqLoc};
+            Seq2 = VDJdata{q, Map.lSeq};
         end
         if length(Seq1) ~= length(Seq2); continue; end %Can't be same
         Xloc2 = Seq2 == 'X';
@@ -63,11 +63,11 @@ for j = 1:size(VDJdata, 1) - 1
         BestSeqLoc = BestSeqLoc(1); %Get the first best one
 
         %Add up all template counts
-        NewTempCt = sum(cell2mat(VDJdata(DupLoc, H.TemplateLoc)));
+        NewTempCt = sum(cell2mat(VDJdata(DupLoc, Map.Template)));
 
         %Condense duplicate seq to j, delete all others
         VDJdata(j, :) = VDJdata(BestSeqLoc, :);
-        VDJdata{j, H.TemplateLoc} = NewTempCt;
+        VDJdata{j, Map.Template} = NewTempCt;
 
         %Set all duplicate seq past jth seq to empty
         DupLoc(j) = 0;

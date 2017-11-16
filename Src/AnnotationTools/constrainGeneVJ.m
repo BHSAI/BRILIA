@@ -17,21 +17,28 @@
 %    VDJdata: modified VDJdata where V and J genes are set to cover the
 %      CDR3 region
 
-function [VDJdata, varargout] = constrainGeneVJ(VDJdata, VDJheader, DB)
+function VDJdata = constrainGeneVJ(VDJdata, Map, DB)
 %Determine chain and extract key locations
 M = getMapHeaderVar(DB.MapHeader);
-[H, L, Chain] = getAllHeaderVar(VDJheader);
 
 %Check each entry to ensure V and J covers CDR3
 UpdateIdx = zeros(size(VDJdata, 1), 1, 'logical');
-for k = 1:length(Chain)
-    if Chain(k) == 'H'
-        B = H;
+for k = 1:length(Map.Chain) 
+    if strcmpi(Map.Chain(k), 'H')
+        DelLoc  = Map.hDel;
+        GeneNumLoc  = Map.hGeneNum; 
+        GeneNameLoc  = Map.hGeneName; 
+        SeqLoc  = Map.hSeq;
+        LengthLoc  = Map.hLength;
         Vmap = DB.Vmap;
         Jmap = DB.Jmap;
         Dmap = DB.Dmap;
     else
-        B = L;
+        DelLoc  = Map.lDel;
+        GeneNumLoc  = Map.lGeneNum; 
+        GeneNameLoc  = Map.lGeneName; 
+        SeqLoc  = Map.lSeq;
+        LengthLoc  = Map.lLength;
         Vmap = [DB.Vkmap; DB.Vlmap];
         Jmap = [DB.Jkmap; DB.Jlmap];
         VkCount = size(DB.Vkmap, 1);
@@ -40,14 +47,14 @@ for k = 1:length(Chain)
     
     for j = 1:size(VDJdata, 1)
         %Extract necessary info
-        VmapNum = VDJdata{j, B.GeneNumLoc(1)};
-        JmapNum = VDJdata{j, B.GeneNumLoc(end)};
-        Vname = VDJdata{j, B.GeneNameLoc(1)};
-        Jname = VDJdata{j, B.GeneNameLoc(end)};
-        Vdel = VDJdata{j, B.DelLoc(1)};
-        Jdel = VDJdata{j, B.DelLoc(end)};
-        Seq = VDJdata{j, B.SeqLoc};
-        SegLen = cell2mat(VDJdata(j, B.LengthLoc));
+        VmapNum = VDJdata{j, GeneNumLoc(1)};
+        JmapNum = VDJdata{j, GeneNumLoc(end)};
+        Vname = VDJdata{j, GeneNameLoc(1)};
+        Jname = VDJdata{j, GeneNameLoc(end)};
+        Vdel = VDJdata{j, DelLoc(1)};
+        Jdel = VDJdata{j, DelLoc(end)};
+        Seq = VDJdata{j, SeqLoc};
+        SegLen = cell2mat(VDJdata(j, LengthLoc));
         
         %Make sure all necessary info is there
         if isempty(VmapNum) 
@@ -107,17 +114,17 @@ for k = 1:length(Chain)
             NewJdel = Jdel - dJ;
     
             %Redo the D alignment for heavy chain
-            if Chain(k) == 'H'
+            if Map.Chain(k) == 'H'
                 SeqMDN = Seq(SegLen(1)+1:end-SegLen(end));
                 Dmatch = findGeneMatch(SeqMDN, Dmap, 'D', 0);
                 SegLen(2:4) = Dmatch{1, 4};
-                VDJdata(j, [B.GeneNumLoc(2) B.GeneNameLoc(2)]) = Dmatch(1, 1:2);
-                VDJdata(j, B.DelLoc) = {NewVdel Dmatch{1, 3}(1) Dmatch{1, 3}(3) NewJdel};
-                VDJdata(j, B.LengthLoc) = num2cell(SegLen);                
+                VDJdata(j, [GeneNumLoc(2) GeneNameLoc(2)]) = Dmatch(1, 1:2);
+                VDJdata(j, DelLoc) = {NewVdel Dmatch{1, 3}(1) Dmatch{1, 3}(3) NewJdel};
+                VDJdata(j, LengthLoc) = num2cell(SegLen);                
             else
                 SegLen(2) = length(Seq) - SegLen(1) - SegLen(end);
-                VDJdata(j, B.DelLoc) = {NewVdel NewJdel};
-                VDJdata(j, B.LengthLoc) = num2cell(SegLen);                
+                VDJdata(j, DelLoc) = {NewVdel NewJdel};
+                VDJdata(j, LengthLoc) = num2cell(SegLen);                
             end
 
             %Mark entries that have been updated
@@ -128,7 +135,7 @@ end
 
 %Update those that have changed
 if max(UpdateIdx) > 0 
-    VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), VDJheader, DB, Chain, 'germline', 'first');
-    VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), VDJheader, DB);
+    VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), Map, DB, Map.Chain, 'germline', 'first');
+    VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), Map, DB);
     showStatus(sprintf('  Corrected %d V or J ends', sum(UpdateIdx)));
 end

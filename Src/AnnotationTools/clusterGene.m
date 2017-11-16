@@ -21,20 +21,19 @@
 %
 %  See also buildTreeLink
 
-function [VDJdata, BadVDJdata] = clusterGene(VDJdata, VDJheader, DevPerc)
+function [VDJdata, BadVDJdata] = clusterGene(VDJdata, Map, DevPerc)
 %Determine chain and extract key locations
-[H, L, Chain] = getAllHeaderVar(VDJheader);
-if strcmpi(Chain, 'HL')
-    FunctLoc = [H.FunctLoc L.FunctLoc];
-    ExtractIdx = [H.CDR3Loc(2) H.GeneNameLoc(1) H.GeneNameLoc(end) L.CDR3Loc(2) L.GeneNameLoc(1) L.GeneNameLoc(end)];
+if strcmpi(Map.Chain, 'HL')
+    FunctLoc = [Map.hFunct Map.lFunct];
+    ExtractIdx = [Map.hCDR3(2) Map.hGeneName(1) Map.hGeneName(end) Map.lCDR3(2) Map.lGeneName(1) Map.lGeneName(end)];
     SortOrder = [1 3 4 2 5 6];
-elseif strcmpi(Chain, 'H')
-    FunctLoc = H.FunctLoc;
-    ExtractIdx = [H.CDR3Loc(2) H.GeneNameLoc(1) H.GeneNameLoc(end)];
+elseif strcmpi(Map.Chain, 'H')
+    FunctLoc = Map.hFunct;
+    ExtractIdx = [Map.hCDR3(2) Map.hGeneName(1) Map.hGeneName(end)];
     SortOrder = [1 2 3];
-elseif strcmpi(Chain, 'L')
-    FunctLoc = L.FunctLoc;
-    ExtractIdx = [L.CDR3Loc(2) L.GeneNameLoc(1) L.GeneNameLoc(end)];
+elseif strcmpi(Map.Chain, 'L')
+    FunctLoc = Map.lFunct;
+    ExtractIdx = [Map.lCDR3(2) Map.lGeneName(1) Map.lGeneName(end)];
     SortOrder = [1 2 3];
 end
 
@@ -55,7 +54,7 @@ VDJdata(BadLoc, :) = [];
 ClustCell = VDJdata(:, ExtractIdx);
 [ClustCell, SortIdx] = sortrows(ClustCell, SortOrder);
 VDJdata = VDJdata(SortIdx, :);
-VDJdata(:, H.GrpNumLoc) = num2cell(zeros(size(VDJdata, 1), 1)); %Reset Groups to 0
+VDJdata(:, Map.GrpNum) = num2cell(zeros(size(VDJdata, 1), 1)); %Reset Groups to 0
 
 %Reduce gene name to locus+family only
 for c = 2:3:size(ClustCell, 2)
@@ -83,7 +82,7 @@ CalcPerClust = cumsum(CalcPerClust / sum(CalcPerClust)) * 100;
 
 %Perform finer clustering per unique crude cluster
 GrpNumCt = 0; %buildTreeLink will provide a group number clust from 1 to N
-S = buildTreeLink('getheadervar', VDJheader); %For speed, get custom header naming struct S
+S = buildTreeLink('getheadervar', Map); %For speed, get custom header naming struct S
 DelIdx = zeros(size(VDJdata, 1), 1, 'logical'); %Delete duplicate sequences
 for j = 1:max(CrudeClustIdx)
     %Perform fine clustering on crude clusters
@@ -95,14 +94,14 @@ for j = 1:max(CrudeClustIdx)
 
     %If only 1-member, skip everything and update group number only
     if size(Tdata, 1) == 1
-        VDJdata{ClustIdx, H.ChildCountLoc} = 0;
-        VDJdata{ClustIdx, H.GrpNumLoc} = GrpNumCt + 1;
+        VDJdata{ClustIdx, Map.ChildCount} = 0;
+        VDJdata{ClustIdx, Map.GrpNum} = GrpNumCt + 1;
         GrpNumCt = GrpNumCt + 1;
         continue;
     end
     
     %Pad sequences CDR3 length also have same Seq Length (required for cluster)
-    [Tdata, BadVDJdataT] = padtrimSeqGroup(Tdata, VDJheader, 'cdr3length', 'max', 'Seq');
+    [Tdata, BadVDJdataT] = padtrimSeqGroup(Tdata, Map, 'cdr3length', 'max', 'Seq');
     if size(BadVDJdataT, 1) > 0
         BadVDJdata = cat(1, BadVDJdata, BadVDJdataT);
         clear BadVDJdataT;
@@ -122,10 +121,10 @@ for j = 1:max(CrudeClustIdx)
     end
 
     %Find clusters and adjust the group numbers
-    [~, Tdata] = buildTreeLink(Tdata, VDJheader, DevPerc, S); %This will start groups 1 to N
-    GrpNum2 = cell2mat(Tdata(:, H.GrpNumLoc)) + GrpNumCt; %This will shift group numbers to unique N+x to N+y
+    [~, Tdata] = buildTreeLink(Tdata, Map, DevPerc, S); %This will start groups 1 to N
+    GrpNum2 = cell2mat(Tdata(:, Map.GrpNum)) + GrpNumCt; %This will shift group numbers to unique N+x to N+y
     GrpNumCt = max(GrpNum2); %Keep track of highest gorup num
-    Tdata(:, H.GrpNumLoc) = num2cell(GrpNum2); %Fix the group number
+    Tdata(:, Map.GrpNum) = num2cell(GrpNum2); %Fix the group number
     VDJdata(ClustIdx, :) = Tdata;
 end
 

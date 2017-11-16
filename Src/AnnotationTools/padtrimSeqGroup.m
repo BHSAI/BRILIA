@@ -37,39 +37,46 @@
 %
 %  See also clusterGene, conformGeneGroup, padtrimSeq.
 
-function [VDJdata, BadVDJdata] = padtrimSeqGroup(VDJdata, VDJheader, GroupBy, KeepMode, BasedOn)
-[H, L, Chain] = getAllHeaderVar(VDJheader);
+function [VDJdata, BadVDJdata] = padtrimSeqGroup(VDJdata, Map, GroupBy, KeepMode, BasedOn)
 BadVDJdata = {};
 if size(VDJdata, 1) == 0; return; end
 
 %Pad or trim Seq and RefSeq based on one of the two sequence type lengths
 UpdateIdx = zeros(size(VDJdata, 1), 1, 'logical');
-for k = 1:length(Chain)
-    if Chain(k) == 'H'
-        B = H;
-    else
-        B = L;
+for k = 1:length(Map.Chain)
+    if strcmpi(Map.Chain(k), 'H')
+        GrpNumLoc   = Map.GrpNum;
+        SeqLoc      = Map.hSeq;
+        RefSeqLoc   = Map.hRefSeq;
+        LengthLoc   = Map.hLength;
+        CDR3Loc     = Map.hCDR3;
+    elseif strcmpi(Map.Chain(k), 'L')
+        GrpNumLoc   = Map.GrpNum;
+        SeqLoc      = Map.lSeq;
+        RefSeqLoc   = Map.lRefSeq;
+        LengthLoc   = Map.lLength; 
+        CDR3Loc     = Map.lCDR3;
     end
-
+    
     %Replace any empty or 1xN CDR3s or CDR3e column with 0
     for j = 1:size(VDJdata, 1)
-        if isempty(VDJdata{j, B.CDR3Loc(3)}) || length(VDJdata{j, B.CDR3Loc(3)}) > 1
-            VDJdata{j, B.CDR3Loc(3)} = 0;
+        if isempty(VDJdata{j, CDR3Loc(3)}) || length(VDJdata{j, CDR3Loc(3)}) > 1
+            VDJdata{j, CDR3Loc(3)} = 0;
         end
-        if isempty(VDJdata{j, B.CDR3Loc(4)}) || length(VDJdata{j, B.CDR3Loc(4)}) > 1
-            VDJdata{j, B.CDR3Loc(4)} = 0;
+        if isempty(VDJdata{j, CDR3Loc(4)}) || length(VDJdata{j, CDR3Loc(4)}) > 1
+            VDJdata{j, CDR3Loc(4)} = 0;
         end
     end
 
     %Get the length of sequences
     SeqLengths = zeros(size(VDJdata, 1), 1);
     for j = 1:length(SeqLengths)
-        SeqLengths(j) = length(VDJdata{j, B.SeqLoc});
+        SeqLengths(j) = length(VDJdata{j, SeqLoc});
     end
 
     %Identify start and end locations of CDR3 region
-    CDR3starts = cell2mat(VDJdata(:, B.CDR3Loc(3)));
-    CDR3ends = cell2mat(VDJdata(:, B.CDR3Loc(4)));
+    CDR3starts = cell2mat(VDJdata(:, CDR3Loc(3)));
+    CDR3ends = cell2mat(VDJdata(:, CDR3Loc(4)));
     CDR3lengths = CDR3ends - CDR3starts + 1;
 
     %Remove those without CDR3s
@@ -88,19 +95,19 @@ for k = 1:length(Chain)
     %Determine how to group sequences
     switch lower(GroupBy)
         case 'grpnum'
-            GrpNum = cell2mat(VDJdata(:, B.GrpNumLoc));
+            GrpNum = cell2mat(VDJdata(:, GrpNumLoc));
             [~, ~, UnqIdx] = unique(GrpNum);
         case 'cdr3length'
             [~, ~, UnqIdx] = unique(CDR3lengths);
     end
 
     %Determine which seq to base trimming on, Seq or RefSeq
-    if strcmpi(KeepMode, 'trim') && strcmpi(BasedOn, 'RefSeq');
-        EvalSeqLoc = B.RefSeqLoc; %Uses flanking X's in RefSeq to decide trim
-        OtherSeqLoc = B.SeqLoc; %Will trim Seq to keep the lengths the same
+    if strcmpi(KeepMode, 'trim') && strcmpi(BasedOn, 'RefSeq')
+        EvalSeqLoc = RefSeqLoc; %Uses flanking X's in RefSeq to decide trim
+        OtherSeqLoc = SeqLoc; %Will trim Seq to keep the lengths the same
     else
-        EvalSeqLoc = B.SeqLoc; %Uses flanking X's in Seq ot decide trim
-        OtherSeqLoc = B.RefSeqLoc; %Will trim RefSeq to keep the lengths the same
+        EvalSeqLoc = SeqLoc; %Uses flanking X's in Seq ot decide trim
+        OtherSeqLoc = RefSeqLoc; %Will trim RefSeq to keep the lengths the same
     end
 
     %Trim/pad sequences of a group
@@ -162,8 +169,8 @@ for k = 1:length(Chain)
             %Extract variables to update
             EvalSeq = VDJdata{GrpIdx(j), EvalSeqLoc};
             OtherSeq = VDJdata{GrpIdx(j), OtherSeqLoc};
-            Vlen = VDJdata{GrpIdx(j), B.LengthLoc(1)};
-            Jlen = VDJdata{GrpIdx(j), B.LengthLoc(end)};
+            Vlen = VDJdata{GrpIdx(j), LengthLoc(1)};
+            Jlen = VDJdata{GrpIdx(j), LengthLoc(end)};
             CDR3start = CDR3starts(GrpIdx(j));
             CDR3end = CDR3ends(GrpIdx(j));
 
@@ -193,11 +200,11 @@ for k = 1:length(Chain)
             NewCDR3start = CDR3start + LeftAdd(j);
             NewCDR3end = CDR3end + LeftAdd(j);
 
-            VDJdata(GrpIdx(j), [EvalSeqLoc OtherSeqLoc B.LengthLoc(1) B.LengthLoc(end) B.CDR3Loc(3) B.CDR3Loc(4)]) = {NewEvalSeq NewOtherSeq NewVlen NewJlen NewCDR3start NewCDR3end};
+            VDJdata(GrpIdx(j), [EvalSeqLoc OtherSeqLoc LengthLoc(1) LengthLoc(end) CDR3Loc(3) CDR3Loc(4)]) = {NewEvalSeq NewOtherSeq NewVlen NewJlen NewCDR3start NewCDR3end};
             UpdateIdx(GrpIdx(j)) = 1;
         end
     end
 end
 
 %Update only SHMs, as all other updates are handled already
-VDJdata(UpdateIdx, :) = countSHM(VDJdata(UpdateIdx, :), VDJheader);
+VDJdata(UpdateIdx, :) = countSHM(VDJdata(UpdateIdx, :), Map);

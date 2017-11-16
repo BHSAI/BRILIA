@@ -12,14 +12,13 @@
 %    VDJdata: modified VDJdata where pseudogenes and ORF suggestion are
 %      removed if amongst function gene suggestions.
 
-function VDJdata = fixDegenVDJ(VDJdata, VDJheader, DB)
+function VDJdata = fixDegenVDJ(VDJdata, Map, DB)
 %Determine chain and extract key locations
-[H, L, Chain] = getAllHeaderVar(VDJheader);
-if strcmpi(Chain, 'HL')
+if strcmpi(Map.Chain, 'HL')
     VDJ = {'V', 'D', 'J', 'Vk', 'Jk', 'Vl', 'Jl'};
-elseif strcmpi(Chain, 'H')
+elseif strcmpi(Map.Chain, 'H')
     VDJ = {'V', 'D', 'J'};
-elseif strcmpi(Chain, 'L')
+elseif strcmpi(Map.Chain, 'L')
     VDJ = {'Vk', 'Jk', 'Vl', 'Jl'};
 end
 
@@ -35,26 +34,26 @@ for x = 1:length(VDJ)
     %Determine location of gene name and map number
     switch VDJ{x}
         case 'V'
-            GeneNameLoc = H.GeneNameLoc(1);
-            GeneNumLoc  = H.GeneNumLoc(1);
+            GeneNameLoc = Map.hGeneName(1);
+            GeneNumLoc  = Map.hGeneNum(1);
         case 'D'
-            GeneNameLoc = H.GeneNameLoc(2);
-            GeneNumLoc  = H.GeneNumLoc(2);
+            GeneNameLoc = Map.hGeneName(2);
+            GeneNumLoc  = Map.hGeneNum(2);
         case 'J'
-            GeneNameLoc = H.GeneNameLoc(3);
-            GeneNumLoc  = H.GeneNumLoc(3);
+            GeneNameLoc = Map.hGeneName(3);
+            GeneNumLoc  = Map.hGeneNum(3);
         case 'Vk'
-            GeneNameLoc = L.GeneNameLoc(1);
-            GeneNumLoc  = L.GeneNumLoc(1);
+            GeneNameLoc = Map.lGeneName(1);
+            GeneNumLoc  = Map.lGeneNum(1);
         case 'Jk'
-            GeneNameLoc = L.GeneNameLoc(2);
-            GeneNumLoc  = L.GeneNumLoc(2);
+            GeneNameLoc = Map.lGeneName(2);
+            GeneNumLoc  = Map.lGeneNum(2);
         case 'Vl'
-            GeneNameLoc = L.GeneNameLoc(1);
-            GeneNumLoc  = L.GeneNumLoc(1);
+            GeneNameLoc = Map.lGeneName(1);
+            GeneNumLoc  = Map.lGeneNum(1);
         case 'Jl'
-            GeneNameLoc = L.GeneNameLoc(2);
-            GeneNumLoc  = L.GeneNumLoc(2);
+            GeneNameLoc = Map.lGeneName(2);
+            GeneNumLoc  = Map.lGeneNum(2);
     end
     
     %Make sure the database exists and is not empty
@@ -64,7 +63,7 @@ for x = 1:length(VDJ)
     Xmap = DB.(DBname);
     
     %Determine the Locus of the database
-    if length(VDJ{x}) == 1;
+    if length(VDJ{x}) == 1
         Locus = 'H';
     else
         Locus = upper(VDJ{x}(2));
@@ -79,7 +78,7 @@ for x = 1:length(VDJ)
     end
 
     %Iteratively find groups
-    GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
+    GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
     UnqGrpNum = unique(GrpNum);
     for y = 1:length(UnqGrpNum)
         %Find the sequences per grp, and the Xnum
@@ -125,7 +124,7 @@ end
 
 %Update those that have changed
 if max(UpdateIdx) > 0
-    VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), VDJheader, DB, Chain, 'germline', 'first'); %must do first seq of all cluster
-    VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), VDJheader, DB);
+    VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), Map, DB, Map.Chain, 'germline', 'first'); %must do first seq of all cluster
+    VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), Map, DB);
     fprintf('%s: Corrected %d pseudogene entries \n', mfilename, sum(UpdateIdx));
 end
