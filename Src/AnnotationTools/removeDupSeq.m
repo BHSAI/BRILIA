@@ -14,7 +14,7 @@ UnqGrpNum = unique(GrpNum);
 DelIdx = zeros(size(VDJdata, 1), 1, 'logical');
 for y = 1:length(UnqGrpNum)
     if ~mod(y, 100)
-        showStatus(sprintf('  Removing duplicate seq %d / %d.', y, length(UnqGrpNum)), []);
+        showStatus(sprintf('  Checking for duplicate seq (%d/%d).', y, length(UnqGrpNum)), []);
     end
     GrpIdx = GrpNum == UnqGrpNum(y);
     Tdata = VDJdata(GrpIdx, :);

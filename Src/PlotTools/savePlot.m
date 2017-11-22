@@ -17,7 +17,7 @@
 %    Param-Value pairs are defined as:   
 %      Parmaeter Name  Value        Description
 %      --------------- ---------    ---------------------------------------
-%      Save            'n', 'y'     To save or not to save. Default 'n'.
+%      Save            'n', 'y'     To save or not to save. Default 'y'.
 %      SaveAs          String       The name to save the file. Will add
 %                                     appropriate extensions.
 %      SavePre         String       Any additional name to add BEFORE the

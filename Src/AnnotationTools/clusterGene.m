@@ -68,8 +68,7 @@ for c = 1:3:size(ClustCell, 2)
 end
 ClustStr = cell(size(ClustCell, 1), 1); 
 for j = 1:size(ClustStr, 1)
-    RepPat = repmat('%s-', 1, size(ClustCell, 2));
-    ClustStr{j} = sprintf(RepPat, ClustCell{j, :});
+    ClustStr{j} = sprintf('%s-', ClustCell{j, :});
 end
 [~, ~, CrudeClustIdx] = unique(ClustStr, 'stable');
 
@@ -121,9 +120,9 @@ for j = 1:max(CrudeClustIdx)
     end
 
     %Find clusters and adjust the group numbers
-    [~, Tdata] = buildTreeLink(Tdata, Map, DevPerc, S); %This will start groups 1 to N
+    [~, Tdata] = buildTreeLink(Tdata, Map, DevPerc, S);  %This will start groups 1 to N
     GrpNum2 = cell2mat(Tdata(:, Map.GrpNum)) + GrpNumCt; %This will shift group numbers to unique N+x to N+y
-    GrpNumCt = max(GrpNum2); %Keep track of highest gorup num
+    GrpNumCt = max(GrpNum2);                  %Keep track of highest group num
     Tdata(:, Map.GrpNum) = num2cell(GrpNum2); %Fix the group number
     VDJdata(ClustIdx, :) = Tdata;
 end

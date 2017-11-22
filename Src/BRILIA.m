@@ -164,7 +164,7 @@ addParameter(P, 'SeqRange', [1 Inf], @(x) isnumeric(x) || ischar(x));
 addParameter(P, 'Resume', 'n', @(x) ischar(x) && ismember(lower(x), {'y', 'n'})); %Resumes from known raw file
 addParameter(P, 'ResumeFrom', '', @(x) ischar(x)); %File directory storing the *Raw.csv file(s).
 addParameter(P, 'OutputFile', [], @(x) ischar(x) || iscell(x) || isempty(x));
-addParameter(P, 'BatchSize', 1000, @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'BatchSize', 30000, @(x) isnumeric(x) && x >= 1);
 addParameter(P, 'AnnotOnly', 'n', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
 
 

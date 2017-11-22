@@ -6,8 +6,9 @@
    - calcPairDistMEX replaces calcSHMHAMdist, calcHAMdist, and calcPairDist.
    - calcAlignScoreMEX replaces calcAlignScore.
    - trimMatchResultsMEX replaces trimMatchResults.
+ - MEX routines are stored under Root/Src/MEX folder
  - Improved code for accessing VDJdata via VDJheader index locations. Uses a map structure instead of parsing header every time.
-
+ 
 ---------------------------------------------------------------------------
 ## Patch notice for version 3.0.14
  - Allows for annotation-only usage of BRILIA via the 'annotonly' 'y' command. Default is 'n' which would do lineage-based annotation. If 'y', will only do VDJ annotation without correction (good for non-repertoire data).

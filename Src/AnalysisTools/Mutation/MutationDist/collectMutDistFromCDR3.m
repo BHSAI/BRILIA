@@ -5,7 +5,7 @@
 %are computed PER each unique V and J gene.
 %
 function MutDistData = collectMutDistFromCDR3(varargin)
-[VDJdata, VDJheader, FileName, FilePath, varargin] = getPlotVDJdata(varargin{:});
+[VDJdata, VDJheader, ~, ~, varargin] = getPlotVDJdata(varargin{:});
 P = inputParser;
 addParameter(P, 'Chain', 'H', @(x) ismember({upper(x)}, {'H', 'L'}));
 parse(P, varargin{:})
@@ -13,7 +13,7 @@ Chain = P.Results.Chain;
 
 %Determine which chain datat to extract
 [H, L, ChainT] = getAllHeaderVar(VDJheader);
-if isempty(strfind(ChainT, Chain))
+if ~contains(ChainT, Chain)
     warning('%s: No data for this Ig chain - %s', mfilename, Chain);
     return
 end
@@ -64,7 +64,6 @@ end
 GrpNum = cell2mat(VDJdata(:, B.GrpNumLoc));
 UnqGrpNum = unique(GrpNum);
 for y = 1:length(UnqGrpNum)
-    y
     GrpIdx = find(UnqGrpNum(y) == GrpNum);
     CDR3s = VDJdata{GrpIdx(1), B.CDR3Loc(3)};
     CDR3e = VDJdata{GrpIdx(1), B.CDR3Loc(4)};

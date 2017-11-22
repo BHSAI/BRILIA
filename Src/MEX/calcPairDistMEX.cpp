@@ -87,7 +87,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
     
     if (nrhs < 1 || nrhs > 2) {
-        mexErrMsgIdAndTxt("calcShmHamDistMEX:output", "Need 1 or 2 inputs.");
+        mexErrMsgIdAndTxt("calcShmHamDistMEX:input", "Need 1 to 2 inputs.");
     }
     
     bool IsCell = false;
@@ -97,7 +97,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
         } else {
             IsCell = true;
             if (nlhs > 2)
-                mexErrMsgIdAndTxt("calcShmHamDistMEX:input", "No 3rd output when using cell array inputs of sequences.");
+                mexErrMsgIdAndTxt("calcShmHamDistMEX:output", "No 3rd output when using cell array inputs of sequences.");
         }
     } else {
         IsCell = false;
