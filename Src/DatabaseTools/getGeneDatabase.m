@@ -142,7 +142,7 @@ DatabaseFolder = [DBPath DatabaseNames{DatabaseIdx} filesep];
 %Get DB and display reference acknowledgement
 DB = processIMGTfasta(DatabaseFolder);
 
-if isempty(varargin) || ~strcmpi(varargin{1}, 'suppress')
+if isempty(varargin) || ~any(contains(varargin, 'suppress', 'ignorecase', true))
     fprintf('  Germline gene databases were downloaded from http://www.imgt.org.\n');
     fprintf('  IMGT founder and director: Marie-Paule Lefranc, Montpellier, France\n');
     fprintf('\n');

@@ -49,7 +49,7 @@ addParameter(P, 'SaveAs', '', @ischar);
 addParameter(P, 'SavePre', '', @ischar);
 addParameter(P, 'Format', 'png', @(x) any(validatestring(lower(x), {'tif', 'jpg', 'png', 'fig'})));
 addParameter(P, 'DPI', 300, @isnumeric);
-[Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInputT(P, varargin{:});
+[Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
 if ReturnThis
    varargout = {Ps, Pu, ExpPs, ExpPu};
    return;

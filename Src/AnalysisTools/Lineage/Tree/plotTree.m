@@ -87,7 +87,8 @@ addParameter(P, 'FigSpacer', 0.01, @(x) isnumeric(x) && x >= 0)
 addParameter(P, 'SaveAs', '', @(x) ischar(x) || isempty(x));
 addParameter(P, 'SaveDir', '', @(x) ischar(x) || isempty(x));
 addParameter(P, 'SaveSubDir', 'Tree', @(x) ischar(x) || isempty(x));
-addParameter(P, 'StatusHandle', [], @(x) ishandle(x) || isempty(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
+addParameter(P, 'StatusHandle', [], @(x) isempty(x) || ishandle(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
+addParameter(P, 'ShowOnly', false, @islogical);
 
 if ~(~isempty(varargin) && ischar(varargin{1}) && ismember(lower(varargin{1}), {'getinput', 'getinputs', 'getvarargin'}))
     [VDJdata, VDJheader, ~, FilePath, varargin] = getPlotVDJdata(varargin{:});
@@ -125,6 +126,7 @@ SaveAs = Ps.SaveAs;
 SaveDir = Ps.SaveDir;
 SaveSubDir = Ps.SaveSubDir;
 StatusHandle = Ps.StatusHandle;
+ShowOnly = Ps.ShowOnly;
 
 %Check if Min/Max values are valid
 if DotMinSize > DotMaxSize
@@ -147,30 +149,39 @@ SaveAs = FullSaveName;
 
 %--------------------------------------------------------------------------
 %Create a default figure
-DefaultFormat = {'FontName', 'Arial', 'FontSize', 10, ...
-                 'TitleFontName', 'Arial', 'TitleFontSize', 12, ...
-                 'TickLength', [0.005 0.005], 'TickDir', 'both' ...
-                 'YTickLabelMode', 'manual', 'YTickLabel', '',  ...
-                 'XTickLabelMode', 'auto', ...
-                 'box', 'on'};
-Gx = figure('Visible', Visible, 'renderer', 'painters', 'Units', 'inches');
-Ax = axes(Gx, 'Units', 'inches');
-drawnow;
 
-Gx = resizeFigure(Gx, 'FigWidth', FigWidth, 'FigHeight', FigMaxHeight, 'Recenter', 'n');
-XaxisName = [strrep(upper(DistanceUnit), 'PERC', ' %') ' Distance'];
-xlabel(Ax, XaxisName);
-setAxes(Ax, DefaultFormat{:});
-setAxes(Ax, ExpPu{:}); %Any axes setting will override defaults
-drawnow;
+
+% DefaultFormat = {'FontName', 'Arial', 'FontSize', 10, ...
+%                  'TitleFontName', 'Arial', 'TitleFontSize', 12, ...
+%                  'TickLength', [0.005 0.005], 'TickDir', 'both' ...
+%                  'YTickLabelMode', 'manual', 'YTickLabel', '',  ...
+%                  'XTickLabelMode', 'auto', ...
+%                  'box', 'on'};
+% Gx = figure('Visible', Visible, 'renderer', 'painters', 'Units', 'inches');
+% Ax = axes(Gx, 'Units', 'inches');
+% drawnow;
+% 
+% Gx = resizeFigure(Gx, 'FigWidth', FigWidth, 'FigHeight', FigMaxHeight, 'Recenter', 'n');
+% XaxisName = [strrep(upper(DistanceUnit), 'PERC', ' %') ' Distance'];
+% xlabel(Ax, XaxisName);
+% setAxes(Ax, DefaultFormat{:});
+% setAxes(Ax, ExpPu{:}); %Any axes setting will override defaults
+% drawnow;
 
 %--------------------------------------------------------------------------
 %Begin drawing trees
 ImageNames = cell(length(UnqGrpNum), 1);
 ImageGrpNums = zeros(length(UnqGrpNum), 1);
 for y = 1:length(UnqGrpNum)
-    if mod(y, 5) == 0
-        showStatus(sprintf('Drawing Tree %d / %d', y, length(UnqGrpNum)), StatusHandle);
+    if ~ShowOnly 
+        if y == 1
+            [Gx, Ax] = makeDefaultFigure(Visible, FigWidth, FigMaxHeight, DistanceUnit, ExpPu);
+        end
+        if mod(y, 5) == 0
+            showStatus(sprintf('Drawing Tree %d / %d', y, length(UnqGrpNum)), StatusHandle);
+        end
+    else
+        [Gx, Ax] = makeDefaultFigure('on', FigWidth, FigMaxHeight, DistanceUnit, ExpPu);
     end
     
     %Get the tree data for the group
@@ -255,10 +266,10 @@ for y = 1:length(UnqGrpNum)
         end
         
         %Figure out what the text width would be
-        HorzSpacer = 0.01;
+        HorzSpacer = 0.01; %inches, adding 0.01 in right side spacer
         TempText = text(1, 1, CDR3legend{1}, 'FontName', 'Courier', 'FontSize', ReqLegendFontSize, 'Units', 'inches'); %Use courier for even spacing. Include spacing at end.
         TextExt = get(TempText, 'Extent');
-        TextWidth = TextExt(3) + HorzSpacer; %inches, adding 0.01 in right side spacer
+        TextWidth = TextExt(3) + HorzSpacer; 
         delete(TempText)
         
         Xlim(2) = Xlim(1) + (MaxHorzCoord - Xlim(1)) * Ax.Position(3) / (Ax.Position(3) - TextWidth); %Remember, dots can bleed into text.
@@ -426,31 +437,58 @@ for y = 1:length(UnqGrpNum)
         end
     end
     
-    SavePre = sprintf('.Grp%d', UnqGrpNum(y));
-    SuggestedSaveName = prepSaveTarget('SaveAs', SaveAs, 'SavePrefix', SavePre);
-    FullSaveName = savePlot(Gx, 'SaveAs', SuggestedSaveName, ExpPu{:});
-    ImageGrpNums(y) = UnqGrpNum(y);
-    ImageNames{y} = FullSaveName;
+    if ~ShowOnly 
+        SavePre = sprintf('.Grp%d', UnqGrpNum(y));
+        SuggestedSaveName = prepSaveTarget('SaveAs', SaveAs, 'SavePrefix', SavePre);
+        FullSaveName = savePlot(Gx, 'SaveAs', SuggestedSaveName, ExpPu{:});
+        ImageGrpNums(y) = UnqGrpNum(y);
+        ImageNames{y} = FullSaveName;
+    end
 end
 
 if strcmpi(Visible, 'off') 
     close(Gx);
 end
 
-%Create the tree search table
-DelLoc = ImageGrpNums == 0;
-ImageGrpNums(DelLoc) = [];
-ImageNames(DelLoc) = [];
-TreeSearchTable = getTreeSearchTable(VDJdata, VDJheader);
-[~, ~, TableIdx] = intersect(ImageGrpNums, cell2mat(TreeSearchTable(2:end, 1)));
-TreeSearchTable = TreeSearchTable([1; TableIdx+1], :);
-for j = 1:length(ImageNames) %Remove the NewFilePath from the TreeFiles
-    [FilePath, FileName, ~] = parseFileName(ImageNames{j});
-    ImageNames{j} = FileName;
+if ShowOnly
+    varargout{1} = [];
+    varargout{2} = [];
+    varargout{3} = [];
+else
+    %Create the tree search table
+    DelLoc = ImageGrpNums == 0;
+    ImageGrpNums(DelLoc) = [];
+    ImageNames(DelLoc) = [];
+    TreeSearchTable = getTreeSearchTable(VDJdata, VDJheader);
+    [~, ~, TableIdx] = intersect(ImageGrpNums, cell2mat(TreeSearchTable(2:end, 1)));
+    TreeSearchTable = TreeSearchTable([1; TableIdx+1], :);
+    for j = 1:length(ImageNames) %Remove the NewFilePath from the TreeFiles
+        [FilePath, FileName, ~] = parseFileName(ImageNames{j});
+        ImageNames{j} = FileName;
+    end
+    TreeSearchTable(2:end, end) = ImageNames;
+    writeDlmFile(TreeSearchTable, [FilePath 'TreeSearchTable.csv']);
+    varargout{1} = ImageGrpNums;
+    varargout{2} = ImageNames;
+    varargout{3} = TreeSearchTable;
 end
-TreeSearchTable(2:end, end) = ImageNames;
-writeDlmFile(TreeSearchTable, [FilePath 'TreeSearchTable.csv']);
 
-varargout{1} = ImageGrpNums;
-varargout{2} = ImageNames;
-varargout{3} = TreeSearchTable;
+function varargout = makeDefaultFigure(Visible, FigWidth, FigMaxHeight, DistanceUnit, ExpPu)
+DefaultFormat = {'FontName', 'Arial', 'FontSize', 10, ...
+                 'TitleFontName', 'Arial', 'TitleFontSize', 12, ...
+                 'TickLength', [0.005 0.005], 'TickDir', 'both' ...
+                 'YTickLabelMode', 'manual', 'YTickLabel', '',  ...
+                 'XTickLabelMode', 'auto', ...
+                 'box', 'on'};
+Gx = figure('Visible', Visible, 'renderer', 'painters', 'Units', 'inches');
+Ax = axes(Gx, 'Units', 'inches');
+drawnow;
+
+Gx = resizeFigure(Gx, 'FigWidth', FigWidth, 'FigHeight', FigMaxHeight, 'Recenter', 'n');
+XaxisName = [strrep(upper(DistanceUnit), 'PERC', ' %') ' Distance'];
+xlabel(Ax, XaxisName);
+setAxes(Ax, DefaultFormat{:});
+setAxes(Ax, ExpPu{:}); %Any axes setting will override defaults
+drawnow;
+varargout{1} = Gx;
+varargout{2} = Ax;
