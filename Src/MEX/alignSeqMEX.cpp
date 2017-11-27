@@ -326,7 +326,7 @@ void alignSeqMEX(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double 
         mwSize Len, a, b, q = LenA+LenB-2; // pos counter for SeqA, SeqB, and pScore
         int  AllowedMiss = 0;
         bool pMatch[LenB];
-        int  pScore[LenA+LenB-1] = {0};
+        int  pScore[LenA+LenB-1];
         
         //SeqB 1st nt is over the right edge of SeqA
         a = LenA-1;
@@ -381,7 +381,7 @@ void alignSeqMEX(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double 
                 }
                 break;
             default:  //Find middle highest
-                int Loc[LenB+LenA-1] = {0};
+                int Loc[LenB+LenA-1];
                 int p = 0;
                 for (q = 0; q < LenB+LenA-1; q++) {
                     if (pScore[q] == *pMaxScore) 

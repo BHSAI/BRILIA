@@ -140,12 +140,17 @@ if GrpMinSize > GrpMaxSize
 end
 
 %Determine where to save
-if isempty(SaveAs)
-    FullSaveName = prepSaveTarget('SaveDir', FilePath, 'SaveSubDir', SaveSubDir, 'SaveAs', 'Tree.png', 'MakeSaveDir', 'y');
+if ~ShowOnly
+    if isempty(SaveAs)
+        FullSaveName = prepSaveTarget('SaveDir', FilePath, 'SaveSubDir', SaveSubDir, 'SaveAs', 'Tree.png', 'MakeSaveDir', 'y');
+    else
+        FullSaveName = prepSaveTarget('SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', SaveAs, 'MakeSaveDir', 'y');
+    end
+    SaveAs = FullSaveName;
 else
-    FullSaveName = prepSaveTarget('SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', SaveAs, 'MakeSaveDir', 'y');
+    SaveAs = '';
 end
-SaveAs = FullSaveName;
+
 
 %--------------------------------------------------------------------------
 %Create a default figure
