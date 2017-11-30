@@ -151,28 +151,6 @@ else
     SaveAs = '';
 end
 
-
-%--------------------------------------------------------------------------
-%Create a default figure
-
-
-% DefaultFormat = {'FontName', 'Arial', 'FontSize', 10, ...
-%                  'TitleFontName', 'Arial', 'TitleFontSize', 12, ...
-%                  'TickLength', [0.005 0.005], 'TickDir', 'both' ...
-%                  'YTickLabelMode', 'manual', 'YTickLabel', '',  ...
-%                  'XTickLabelMode', 'auto', ...
-%                  'box', 'on'};
-% Gx = figure('Visible', Visible, 'renderer', 'painters', 'Units', 'inches');
-% Ax = axes(Gx, 'Units', 'inches');
-% drawnow;
-% 
-% Gx = resizeFigure(Gx, 'FigWidth', FigWidth, 'FigHeight', FigMaxHeight, 'Recenter', 'n');
-% XaxisName = [strrep(upper(DistanceUnit), 'PERC', ' %') ' Distance'];
-% xlabel(Ax, XaxisName);
-% setAxes(Ax, DefaultFormat{:});
-% setAxes(Ax, ExpPu{:}); %Any axes setting will override defaults
-% drawnow;
-
 %--------------------------------------------------------------------------
 %Begin drawing trees
 ImageNames = cell(length(UnqGrpNum), 1);
