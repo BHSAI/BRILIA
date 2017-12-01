@@ -108,12 +108,13 @@ addParameter(P, 'SuppressIntro', 'n', @(x) ischar(x) && ismember(lower(x), {'y',
 
 while true
     if ~HasShownCredit && nargin == 0 
-        showCredits(Version);
+        showCredits('bhsai, imgt');
         HasShownCredit = true;
+        fprintf('\nType the inputs for BRILIA, ''exit'', or ''help''.\nWarning: File paths with spaces must be wrapped in quotes. Ex: "C:\\Temp Dir\\"\n');
     end
     
     if isempty(varargin)
-        Input = input('\nType the inputs for BRILIA, ''exit'', or ''help''.\nWarning: File paths with spaces must be wrapped in quotes. Ex: "C:\\Temp Dir\\"\n> ', 's');
+        Input = input('BRILIA> ', 's');
         if strcmpi(Input, 'exit'); return; end
         QuoteLoc = regexp(Input, '"');
         if mod(length(QuoteLoc), 2) ~= 0
@@ -160,7 +161,7 @@ while true
         end
 
         %Redirect to BRILIA subfunction
-        SubFuncNames = {'plotTree', 'runAnalysis', 'setCores', 'showHelp', 'GUI_BRILIA', 'GUI_plotTree'}; %For security, only accept allowed function calls!
+        SubFuncNames = {'pwd', 'cd', 'dir', 'ls', 'plotTree', 'runAnalysis', 'setCores', 'showHelp', 'GUI_BRILIA', 'GUI_plotTree'}; %For security, only accept allowed function calls!
         if ismember(varargin{1}, SubFuncNames)
             try
                 FH = str2func(varargin{1});
@@ -221,7 +222,7 @@ while true
     SuppressIntro = Ps.SuppressIntro;
 
     if ~HasShownCredit && ~SuppressIntro
-        showCredits(Version);
+        showCredits('bhsai, imgt');
         HasShownCredit = true;
     end
     
