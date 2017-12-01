@@ -12,7 +12,7 @@
 %  See also compileHelpText
 
 function showHelp(Name, varargin)
-CurDir = cd;
+CurDir = pwd;
 
 %If HelpDir is given, see if it exists
 HelpDir = '';
