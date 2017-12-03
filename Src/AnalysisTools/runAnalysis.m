@@ -32,6 +32,7 @@ end
 
 plotTree(VDJdata, VDJheader, 'SaveDir', SaveDir, 'SaveSubDir', 'Tree', 'SaveAs', 'Tree.png');
 
+GeneUsage = getGeneUsage(InputFile, 'all');
 MotifData = collectMotifData(VDJdata, VDJheader);
 HotMotifData = getHotMotifData(MotifData);
 
@@ -45,7 +46,7 @@ try
     SearchTable{j, 1} = 'Trinucleotide Mutability Data';
     j = j+1;
 catch
-    error('%s: Could not run printMotifData, not normalized.', mfilename);
+    warning('%s: Could not run printMotifData, not normalized.', mfilename);
 end
 
 try
@@ -54,7 +55,7 @@ try
     SearchTable{j, 1} = 'Normalized Trinucleotide Mutability Data';
     j = j+1;
 catch
-    error('%s: Could not run printMotifData, normalize.', mfilename);
+    warning('%s: Could not run printMotifData, normalize.', mfilename);
 end
 
 try
@@ -63,7 +64,16 @@ try
     SearchTable{j, 1} = 'Hotspot Mutation Frequencies Plot';
     j = j+1;
 catch
-    error('%s: Could not run plotHotMotifBarGraph.', mfilename);
+    warning('%s: Could not run plotHotMotifBarGraph.', mfilename);
+end
+
+try
+    SearchTable{j, 3} = plotGeneUsage(GeneUsage, 'SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', 'GeneUsage.png', 'Visible', 'off');
+    SearchTable{j, 2} = 'VDJ gene usage frequency chart per clonotype.';
+    SearchTable{j, 1} = 'VDJ Gene Usage Plots';
+    j = j+1;
+catch
+    warning('%s: Could not run plotGeneUsage.', mfilename);
 end
 
 % try
@@ -72,7 +82,7 @@ end
 %     SearchTable{j, 1} = 'Hotspot Mutation Similarity Plot';
 %     j = j+1;
 % catch
-%     error('%s: Could not run plotHotMotifDendrogram.', mfilename);
+%     warning('%s: Could not run plotHotMotifDendrogram.', mfilename);
 % end
 
 %--------------------------------------------------------------------------

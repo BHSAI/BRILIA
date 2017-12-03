@@ -69,7 +69,7 @@
 
 function varargout = plotTree(varargin)
 P = inputParser;
-addParameter(P, 'GrpMinSize', 2, @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'GrpMinSize', 0, @(x) isnumeric(x) && x >= 1);
 addParameter(P, 'GrpMaxSize', Inf, @(x) isnumeric(x) && x >= 1);
 addParameter(P, 'DistanceUnit', 'hamperc', @(x) any(validatestring(lower(x), {'shm', 'ham', 'shmperc', 'hamperc'})));
 addParameter(P, 'DotMaxSize', 300, @(x) isnumeric(x) && x >= 1);
@@ -156,17 +156,6 @@ end
 ImageNames = cell(length(UnqGrpNum), 1);
 ImageGrpNums = zeros(length(UnqGrpNum), 1);
 for y = 1:length(UnqGrpNum)
-    if ~ShowOnly 
-        if y == 1
-            [Gx, Ax] = makeDefaultFigure(Visible, FigWidth, FigMaxHeight, DistanceUnit, ExpPu);
-        end
-        if mod(y, 5) == 0
-            showStatus(sprintf('Drawing Tree %d / %d', y, length(UnqGrpNum)), StatusHandle);
-        end
-    else
-        [Gx, Ax] = makeDefaultFigure('on', FigWidth, FigMaxHeight, DistanceUnit, ExpPu);
-    end
-    
     %Get the tree data for the group
     GrpIdx = GrpNum == UnqGrpNum(y);
     GrpSize = sum(GrpIdx);
@@ -192,6 +181,17 @@ for y = 1:length(UnqGrpNum)
         [DotColor, UnqDotColor] = mapDotColor_CDR3(CDR3Name, UnqCDR3seq, 'ColorMap', DotColorMap);
     end
 
+    if ~ShowOnly 
+        if y == 1
+            [Gx, Ax] = makeDefaultFigure(Visible, FigWidth, FigMaxHeight, DistanceUnit, ExpPu);
+        end
+        if mod(y, 5) == 0
+            showStatus(sprintf('Drawing Tree %d / %d', y, length(UnqGrpNum)), StatusHandle);
+        end
+    else
+        [Gx, Ax] = makeDefaultFigure('on', FigWidth, FigMaxHeight, DistanceUnit, ExpPu);
+    end
+    
     %Clear and add title now. Required early to get the axes tight inset.
     cla(Ax);
     set(get(Ax, 'Title'), 'String', TreeName);

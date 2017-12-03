@@ -295,7 +295,7 @@ function BinIdxT = searchNumeric(M,QueryNum)
 if iscell(QueryNum) %Have a list
     while iscell(QueryNum) %Unwrap a cell, until it is no longer one
         QueryNumT = QueryNum{1};
-        if ~iscell(QueryNumT); 
+        if ~iscell(QueryNumT) 
             break;
         else
             QueryNum = QueryNumT;

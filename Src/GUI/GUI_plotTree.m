@@ -84,23 +84,15 @@ if ~isempty(Gx)
 end
 
 try 
-    P = plotTree('getinput');
+    GetGrpNum = str2double(get(handles.edit_GetGrpNum, 'String'));
+    GetSeqNum = str2double(get(handles.edit_GetSeqNum, 'String'));
+    GrpMinSize = str2double(get(handles.edit_GetSizeRange1, 'String'));
+    GrpMaxSize = str2double(get(handles.edit_GetSizeRange2, 'String'));
+    hCDR3 = get(handles.edit_GetCDR3seq, 'String');
     
-    P.GetGrpNum = str2double(get(handles.edit_GetGrpNum, 'String'));
-    if P.GetGrpNum == 0; P.GetGrpNum = []; end
-    
-    P.GetSeqNum = str2double(get(handles.edit_GetSeqNum, 'String'));
-    if P.GetSeqNum == 0; P.GetSeqNum = []; end
-
-    P.GetSizeRange = [str2double(get(handles.edit_GetSizeRange1, 'String')) ...
-                      str2double(get(handles.edit_GetSizeRange2, 'String')) ];
-    if P.GetSizeRange(end) == 0; P.GetSizeRange = []; end
-        
-    P.GetCDR3seq = get(handles.edit_GetCDR3seq, 'String');
-    
-    P.ShowOnly = true;
-    
-    plotTree(handles.VDJdata, handles.VDJheader, P)
+    VDJdata = filterVDJdata2(handles.VDJdata, handles.VDJheader, 'Logic', 'and', 'GetGrpNum', GetGrpNum, 'GetSeqNum', GetSeqNum, 'GrpMinSize', GrpMinSize, 'GrpMaxSize', GrpMaxSize, 'hCDR3', hCDR3);
+    if isempty(VDJdata); return; end
+    plotTree(VDJdata, handles.VDJheader, 'ShowOnly', true, 'Visible', 'on');
 catch
 end
     
