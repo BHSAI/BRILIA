@@ -9,6 +9,8 @@
 %
 %  CellData = readDlmFile(..., 'LineRange', LineRange)
 %
+%  [CellData, Delimiter] = readDlmFile(..., 'LineRange', LineRange)
+%
 %  INPUT
 %    InputFile: full name of the file to be open
 %    Delimiter ['' ';' ',' '\t']: Delimiter for the file. The default is
@@ -18,6 +20,7 @@
 %
 %  OUTPUT
 %    CellData: cell array of string data
+%    Delimiter: the delimiter, in case of when using autodetection
 %
 %  WARNING
 %    If the delimited file has improper delimiter usage, such as a single
@@ -29,7 +32,7 @@
 %
 %  See also writeDlmFile
 
-function CellData = readDlmFile(varargin)
+function [CellData, Delimiter] = readDlmFile(varargin)
 CellData = {};
 
 %Look for Delimiter and LineRange inputs
