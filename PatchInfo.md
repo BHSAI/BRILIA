@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------
 ## Patch notice for version 3.1.1
  - Fixed a bug caused where sequences with start index going beyond the 3' end caused trimGeneEdge to error. Encountering this sequence will generate a WARNING message, and continue the annotation.
- - Enabled BRILIA to be run within it's own environment to prevent having to reinitialize multiple processors per run. BRILIA can now be started via "BRILIA.exe" (Windows) or "run_BRILIA.sh [mcr library path]". 
+ - Enabled BRILIA to be run within it's own environment to prevent having to reinitialize multiple processors per run. BRILIA can now be started via "BRILIA.exe" (Windows) or "run_BRILIA.sh [mcr library path]" (Linux). 
 
 ---------------------------------------------------------------------------
 ## Patch notice for version 3.1.0
