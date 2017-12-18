@@ -173,7 +173,7 @@ while true
                     return
                 end
             catch ME
-                rethrow(ME);
+                disp(ME);
             end
         end
 
@@ -235,6 +235,7 @@ while true
         if isempty(InputFile)
             if nargin == 0
                 fprintf('No file was selected.\n\n');
+                varargin = [];
                 continue
             else
                 return

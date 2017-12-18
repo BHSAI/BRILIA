@@ -25,7 +25,10 @@ if usejava('jvm') && ~feature('ShowFigureWindows')
             return
         end
         FileInput = input('File name: ', 's');
-        if exist(FileInput, 'file') || exist(fullfile(pwd, FileInput), 'file')
+        if isempty(FileInput)
+            FileNames = {};
+            return
+        elseif exist(FileInput, 'file') || exist(fullfile(pwd, FileInput), 'file')
             break
         else
             fprintf('Could not find file "%s".\n', FileInput);
