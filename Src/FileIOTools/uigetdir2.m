@@ -4,10 +4,13 @@
 %
 %  PathNames = uigetdir2(StartPath, Title, FilterExt)
 %
+%  PathNames = uigetdir2(StartPath, Title, ..., 'multiselect')
+%
 %  INPUT
 %    StartPath: the initial path to start the dialog. Defaults to pwd.
 %    DialogTitle: the title for the dialog. Defaults to 'Open directories'.
 %    FilterExt: a cell array of filter extensions to use. Ex: {'csv','txt'}
+%    'multiselect': will force multiple selections
 %
 %  OUTPUT
 %    PathNames: path names to multiple directories, stored in cell array.

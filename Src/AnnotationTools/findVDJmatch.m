@@ -43,7 +43,6 @@
 %  See also findVJmatch
 
 function [VDJdata, varargout] = findVDJmatch(VDJdata, Map, DB, varargin)
-%Parse the input
 P = inputParser;
 addParameter(P, 'Update', 'y', @(x) ismember(lower(x(1)), {'y', 'n'}));
 addParameter(P, 'DJreserve', 9, @isnumeric);
@@ -60,7 +59,7 @@ if Map.hSeq == 0 %Make sure header exists for right chain
     if nargout >=2
         varargout{1} = BadIdx;
     end
-    return; 
+    return
 end
 SeqLoc      = Map.hSeq;
 OverSeq5Loc = Map.hOverSeq5;

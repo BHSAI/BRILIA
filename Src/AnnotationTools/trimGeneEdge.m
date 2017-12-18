@@ -50,6 +50,9 @@ for y = 1:length(UnqGrpNum)
             %Ensure CDR3s and e span the range of RefSeq
             if CDR3s < 1
                 CDR3s = 1;
+            elseif CDR3s+2 > length(RefSeq)
+                fprintf('WARNING:%s: start of heavy cdr3 is beyond the sequence\n  Seq = %s\n  RefSeq = %s\n  CDR3s = %d\n  CDR3e = %d\n', mfilename, Tdata{1, Map.hSeq}, RefSeq, CDR3s, CDR3e);
+                continue;
             end
             if CDR3e > length(RefSeq)
                 CDR3e = length(RefSeq);
@@ -229,7 +232,7 @@ for y = 1:length(UnqGrpNum)
             %Correct only if there is a change
             if sum(Vcut + Jcut + D5cut + D3cut) > 0
                 %Be cautious of trimming D's too much
-                if VMDNJ(3)-D5cut-D3cut < 3;
+                if VMDNJ(3)-D5cut-D3cut < 3
                     %If there's no triple mismatch, ignore trim to preserve D
                     if D5trimLen1 == 0 
                         D5cut = 0;
@@ -254,10 +257,10 @@ for y = 1:length(UnqGrpNum)
                 NewDel = [VdelCur+Vcut  D5delCur+D5cut  D3delCur+D3cut  JdelCur+Jcut];
                 
                 %Check to ensure the VMDNJ and del makes sense
-                if NewVMDNJ(1)*NewVMDNJ(3)*NewVMDNJ(5) == 0; %Try not to lose the VDJ.
+                if NewVMDNJ(1)*NewVMDNJ(3)*NewVMDNJ(5) == 0 %Try not to lose the VDJ.
                    continue; 
                 end 
-                if min(NewVMDNJ) < 0; %Don't fix errors
+                if min(NewVMDNJ) < 0 %Don't fix errors
                    warning('%s: Sequence group # %d has negative VMDNJ', mfilename, UnqGrpNum(y));
                    continue; 
                 end
@@ -283,6 +286,9 @@ for y = 1:length(UnqGrpNum)
             %Ensure CDR3s and e span the range of RefSeq
             if CDR3s < 1
                 CDR3s = 1;
+            elseif CDR3s+2 > length(RefSeq)
+                fprintf('WARNING:%s: start of light cdr3 is beyond the sequence\n  Seq = %s\n  RefSeq = %s\n  CDR3s = %d\n  CDR3e = %d\n', mfilename, Tdata{1, Map.lSeq}, RefSeq, CDR3s, CDR3e);
+                continue;
             end
             if CDR3e > length(RefSeq)
                 CDR3e = length(RefSeq);

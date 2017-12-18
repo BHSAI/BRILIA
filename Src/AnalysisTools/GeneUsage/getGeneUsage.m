@@ -32,7 +32,7 @@ for f = 1:length(FileNames)
         case 'L'
             GeneLoc = Map.lGeneName;
         case 'HL'
-            GeneLoc = [Map.hGeneName Map.lGeneName];
+            GeneLoc = [Map.hGeneName(:); Map.lGeneName(:)];
     end
     NumGenes = length(GeneLoc);
     

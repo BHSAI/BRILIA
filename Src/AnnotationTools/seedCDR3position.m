@@ -119,7 +119,7 @@ parfor j = 1:size(VDJdata, 1)
     %Do seed alignments, forward sense
     AlignScores = zeros(size(Xseed, 1), 3);
     for x = 1:size(Xseed, 1)
-       [Score, StartAt, MatchAt,a] = alignSeqMEX(Xseed{x}, Seq, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
+       [Score, StartAt, MatchAt] = alignSeqMEX(Xseed{x}, Seq, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
        if StartAt(2) > 0
             AnchorLoc = Nleft - StartAt(2) + 2; %Comes from (Nleft + 1) - (StartAt(2) - 1) = PositionAnchorSeed - MissingSeqCount
        else

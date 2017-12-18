@@ -1,5 +1,5 @@
 /*  
-calcShmHamDistMEX computes the hamming distance and SHM distance from seqA 
+calcPairDistMEX computes the hamming distance and SHM distance from seqA 
 to seqB, and vice versa. 
 
 Score = calcShmHamDistMEX(SeqA, SeqB)

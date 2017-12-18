@@ -26,37 +26,11 @@ end
 
 %Check to see if there is a file type override
 if strcmpi(InFileExt, '.fa') || strcmpi(InFileExt, '.fasta')
-    [FID, MSG] = fopen(FullFileName, 'r');
-    if FID < 0 
-        error('%s: Error opening fasta file [ %s ].\n  %s', mfilename, FullFileName, MSG);
-    end
-    A = fgetl(FID);
-    SeqCount = 0;
-    while ischar(A)
-        if ~isempty(A) && A(1) == '>'
-            SeqCount = SeqCount + 1;
-        end
-        A = fgetl(FID);
-    end
+    Info = fastainfo(FullFileName);
+    SeqCount = Info.NumberOfEntries;
 elseif strcmpi(InFileExt, '.fastq')
-    [FID, MSG] = fopen(FullFileName, 'r');
-    if FID < 0 
-        error('%s: Error opening fastq file [ %s ].\n  %s', mfilename, FullFileName, MSG);
-    end
-    A = fgetl(FID);
-    SeqCount = 0;
-    while ischar(A)
-        if ~isempty(A) && A(1) == '@'
-            SeqCount = SeqCount + 1;
-            for j = 1:3
-                A = fgetl(FID);
-                if ~ischar(A)
-                    break
-                end
-            end
-        end
-        A = fgetl(FID);
-    end
+    Info = fastqinfo(FullFileName);
+    SeqCount = Info.NumberOfEntries;
 elseif ismember(lower(InFileExt), {'.csv', '.tsv', '.ssv'})
     [FID, MSG] = fopen(FullFileName, 'r');
     if FID < 0

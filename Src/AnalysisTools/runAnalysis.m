@@ -22,7 +22,8 @@ SaveSubDir = Ps.SaveSubDir;
 SaveDir = Ps.SaveDir;
 InputFile = Ps.InputFile;
 
-[VDJdata, VDJheader, ~, FilePath] = openSeqData(InputFile);
+[VDJdata, VDJheader, FileName, FilePath] = openSeqData(InputFile);
+InputFile = fullfile(FilePath, FileName);
 if isempty(VDJdata)
     return;
 end
