@@ -58,7 +58,7 @@
 %    > SeqFile.fasta Species Mouse Strain C57BL Chain H CheckSeqDir Y NumProc 4 SeqRange [1,100]
 
 function varargout = BRILIA(varargin)
-Version = '3.1.1';
+Version = '3.1.2';
 varargout = cell(1, nargout);
 HasShownCredit = false;
 

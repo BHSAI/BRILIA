@@ -28,8 +28,11 @@ Map = [];
 
 if nargin > 0 && ischar(varargin{1}) && exist(varargin{1}, 'file')
     FullFileName = varargin{1};
+    varargin(1) = [];
 elseif nargin == 0 || isempty(varargin{1})
     FullFileName = getBriliaFiles('', 'single');
+    if isempty(FullFileName); return; end
+    if nargin >=1; varargin(1) = []; end
     FullFileName = FullFileName{1};
 else
     FullFileName = [];
@@ -85,6 +88,14 @@ else
     end
 end
 
-if nargout >= 5
+%Filter for relevant data
+if ~isempty(varargin)
+    CharLoc = cellfun(@ischar, varargin);
+    [~, GetIdx, ~] = intersect(lower(strrep(VDJheader, '-', '')), lower(strrep(varargin(CharLoc), '-', ''))); %Still debating with h-seq vs hSeq notation
+    VDJdata = VDJdata(:, GetIdx);
+    VDJheader = VDJheader(:, GetIdx);
+end
+
+if nargout >= 5 || ~isempty(varargin)
     Map = getVDJmapper(VDJheader);
 end

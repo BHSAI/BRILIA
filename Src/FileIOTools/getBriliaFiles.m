@@ -16,7 +16,9 @@ if nargin == 0 || isempty(FileNames)
         FileNames = uigetdir2('', 'Select the BRILIA output files or folders.', 'multiselect');
     end
     if numel(FileNames) == 0
-        error('%s: No file(s) selected.', mfilename);
+        warning('%s: No file(s) selected.', mfilename);
+        FileNames = {};
+        return
     end
 elseif ischar(FileNames)
     FileNames = {FileNames};
