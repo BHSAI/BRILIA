@@ -20,7 +20,7 @@
 %
 %    C  Param         Value                      Details
 %    -  ------------  -------------------------  -----------------------------
-%    d  Chain         h* | l | hl                IGG heavy and/or light chain.
+%    d  Chain         h* | l | hl                IgG heavy and/or light chain.
 %    d  Species       human | mouse | macaque    Database by species.
 %    d  Strain        all* | c57bl | balb        Database by strain, only for mouse.
 %    d  CheckSeqDir   y* | n                     Check for rev-comp seq?
@@ -34,9 +34,9 @@
 %    i  FileType      fasta | fastq | delimited  (will autodetect)
 %    i  Resume        y | n*                     Resume interrupted job? Must have files in the Temp folder and use the same database.
 %    i  ResumeFrom    [FolderName]               Resume from Raw.csv files from a prior job's folder containg the Raw.csv. Must use same database.
-%    i  SeqRange      # | [#,#] (incl. brack)    The #th sequence, or #th to #th sequences to process. Default, does all.
+%    i  SeqRange      # | [#,#] (incl. brackets) The #th sequence, or #th to #th sequences to process. Default, does all.
 %    i  SettingFile   [SettingsFile.txt]         Preset setting txt file.
-%    o  AnnotOnly     y | n*                     Do only annotation and skip lineage-based correction?                   
+%    o  AnnotOnly     y | n*                     Do only annotation and skip lineage-based correction.                   
 %    o  OutputFile    [OutputFile.csv]           Specify if default output file names are unwanted.
 %
 %  OUTPUT FILES
@@ -58,7 +58,7 @@
 %    > SeqFile.fasta Species Mouse Strain C57BL Chain H CheckSeqDir Y NumProc 4 SeqRange [1,100]
 
 function varargout = BRILIA(varargin)
-Version = '3.1.2';
+Version = '3.1.3';
 varargout = cell(1, nargout);
 HasShownCredit = false;
 

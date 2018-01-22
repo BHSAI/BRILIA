@@ -49,11 +49,11 @@ for k = 1:length(varargin)
         case 'first'
             GroupOpt = 'first';
         case 'h'
-            Chain = 'H';
+            Map.Chain = 'H';
         case 'l'
-            Chain = 'L';
+            Map.Chain = 'L';
         case 'hl'
-            Chain = 'HL';
+            Map.Chain = 'HL';
     end
 end
 

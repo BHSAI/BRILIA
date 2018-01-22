@@ -7,7 +7,7 @@
 %
 %  INPUT
 %    VDJdata: main BRILIA data cell
-%    VDJheader: main BRILIA header cell
+%    Map: Structured map of BRILIA data types (getVDJmapper)
 %
 %  OUTPUT
 %    VDJdata: modified VDJdata with cluster sequences reordered and
