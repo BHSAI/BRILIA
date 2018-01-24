@@ -1,3 +1,8 @@
+--------------------------------------------------------------------------
+## Patch notice for version 3.1.3
+ - Added Zebrafish to the database
+ - Reworked codes for important database VDJ genes from IMGT
+
 ---------------------------------------------------------------------------
 ## Patch notice for version 3.1.2
  - Added error messages and error-skipping features around the padtrimSeqGroup.m code.

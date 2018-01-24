@@ -36,7 +36,6 @@ for k = 1:length(Map.Chain)
         FunctLoc = Map.lFunct;
         CDR3Loc = Map.lCDR3;
     end
-
     
     for j = 1:size(VDJdata,1)
         %Extract necessary information
@@ -59,17 +58,17 @@ for k = 1:length(Map.Chain)
         %Make sure info makes sense (I for invalid)
         if min(VMDNJ) < 0 || sum(VMDNJ) ~= length(Seq)
             VDJdata{j,FunctLoc} = 'I';
-            continue; 
+            continue
         end
         if CDR3s < 1 || CDR3e > length(Seq)
             VDJdata{j,FunctLoc} = 'I';
-            continue; 
+            continue
         end
 
         %See if the CDR3 nt length is a multiple of 3 for in-frame junction
         if mod(CDR3e - CDR3s + 1,3) > 0
             VDJdata{j,FunctLoc} = 'N';
-            continue;
+            continue
         end
 
         %See if CDR3 length is >= 5 AA and <= 30 AA including 104C and 118W

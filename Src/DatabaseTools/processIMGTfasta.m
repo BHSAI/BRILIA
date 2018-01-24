@@ -315,7 +315,7 @@ if isempty(DB)
                 %Set the search pattern depending on 118W or 118F
                 if f == 3 %For IGHJ
                     Pattern = 'TGG'; %W
-                else %For IGKJ
+                else %For IGKJ or IGLJ
                     Pattern = 'TT[TC]GG[ACGT]'; %FG
                 end
 
@@ -333,7 +333,15 @@ if isempty(DB)
                     CurSeq = Jalign{j};
                     CurSeq(AnchorPos) = '!'; %Just a marker;
                     CurSeq = strrep(CurSeq, '-', '');
-                    CDR3anchors(j) = find(CurSeq == '!');
+                    
+                    %See if there is an F or W residue [FIX CODE for IGLJ3P*01, Mouse]
+                    SpecialJ = 'IGLJ3P*01';
+                    if contains(SeqName{j}, SpecialJ, 'ignorecase', true) && contains(SpeciesName, 'mouse', 'ignorecase', true)
+                        fprintf('%s: Mouse Gene %s anchor manually set to 10th nt.\n', mfilename, SpecialJ);
+                        CDR3anchors(j) = 10;
+                    else
+                        CDR3anchors(j) = find(CurSeq == '!');
+                    end
                 end
 
                 %Fill in the Xmap anchor
