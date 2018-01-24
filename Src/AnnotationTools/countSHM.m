@@ -11,6 +11,9 @@
 %    VDJdata: modified VDJdata where SHM count info are filled
 
 function VDJdata = countSHM(VDJdata,Map)
+if ~isstruct(Map) %Backward compatability
+    Map = getVDJmapper(Map);
+end
 %Count SHMs per segment
 GrpNum = cell2mat(VDJdata(:,Map.GrpNum));
 UnqGrpNum = unique(GrpNum);

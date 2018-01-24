@@ -54,7 +54,7 @@ addParameter(P, 'CloneCount', [], @isnumeric);
 addParameter(P, 'BranchLength', [], @isnumeric);
 addParameter(P, 'BranchWidth', [], @isnumeric);
 addParameter(P, 'SHMperc', [], @(x) isnumeric(x) && (x>=0) && (x<=100)); %For clustering purposes. Set empty to force user to input it later.
-addParameter(P, 'Species', '', @(x) ischar(x) && ismember(lower(x), {'human', 'mouse', ''})); %Note, anything empty for DB filter will prompt user input.
+addParameter(P, 'Species', '', @(x) ischar(x) && ismember(lower(x), getGeneDatabase('getlist'))); %Note, anything empty for DB filter will prompt user input.
 addParameter(P, 'Strain', '', @ischar);
 addParameter(P, 'Ddirection', '', @(x) ischar(x) && ismember(lower(x), {'all', 'fwd', 'inv', ''}));
 addParameter(P, 'Vfunction', '', @(x) ischar(x) && min(ismember(regexpi(lower(x), ', ', 'split'), {'all', 'f', 'p', 'orf', ''}))==1);
@@ -94,27 +94,27 @@ end
 %Set how many unique VDJ germline seq to make
 CloneCount = round(CloneCount);
 while isempty(CloneCount) || (CloneCount <= 0) %Must check isempty first before checking odd value of CloneCount.
-    CloneCount = round(input('How many productive VDJ seq, or B cell clone, do  you want? Default 1000.  '));
+    CloneCount = round(input('How many productive VDJ seq, or B cell clone, do  you want? Default 10.  '));
     if isempty(CloneCount)
-        CloneCount = 1000;
+        CloneCount = 10;
     end
 end
 
 %Set up the clonally-related sequences per group, including germline VDJ
 BranchLength = round(BranchLength);
 while isempty(BranchLength) || (BranchLength < 0) %Must check isempty first before checking odd value of CloneCount.
-    BranchLength = round(input('How many linear descendant per lineage branch? Default 0.  '));
+    BranchLength = round(input('How many linear descendant per lineage branch? Default 5.  '));
     if isempty(BranchLength)
-        BranchLength = 0;
+        BranchLength = 5;
     end
 end
 
 %Set up how many branches per group to make
 BranchWidth = round(BranchWidth);
 while isempty(BranchWidth) || (BranchWidth < 0) %Must check isempty first before checking odd value of CloneCount.
-    BranchWidth = round(input('How many lineage branch to per clonal gorup? Default 0.  '));
+    BranchWidth = round(input('How many lineage branch to per clonal gorup? Default 2.  '));
     if isempty(BranchWidth)
-        BranchWidth = 0;
+        BranchWidth = 2;
     end
 end
 
@@ -143,16 +143,16 @@ end
 %Setup the Chain (Might as well use both now)
 Chain = lower(Chain);
 while isempty(Chain) || ~ismember(Chain, {'h', 'l', 'hl'})
-    Chain = lower(input('What IG chain do you want? HL, H, L ', 's'));
+    Chain = lower(input('What IG chain do you want? H (default), L, HL', 's'));
     if isempty(Chain)
-        Chain = 'hl';
+        Chain = 'h';
     end
 end
 
 %Setup the Vfunction
 Vfunction = lower(Vfunction);
 while isempty(Vfunction) || ~ismember(lower(Vfunction), {'all', 'f', 'p', 'orf'})
-    Vfunction = lower(input('What V function? F, P, ORF, All ', 's'));
+    Vfunction = lower(input('What V function? F (default), P, ORF, All ', 's'));
     if isempty(Vfunction)
         Vfunction = 'F';
     end
@@ -161,7 +161,7 @@ end
 %Setup the Ddirection
 Ddirection = lower(Ddirection);
 while isempty(Ddirection) || ~ismember(lower(Ddirection), {'all', 'dfwd', 'drev'})
-    Ddirection = lower(input('What D direction? All, Dfwd, Drev ', 's'));
+    Ddirection = lower(input('What D direction? All (default), Dfwd, Drev ', 's'));
     if isempty(Ddirection)
         Ddirection = 'all';
     end
@@ -389,7 +389,8 @@ while SeqNum <= SeqCount
 end
 
 %Perform final updates and renumber sequences
-VDJdata = updateVDJdata(VDJdata, VDJheader, DB);
+Map = getVDJmapper(VDJheader);
+VDJdata = updateVDJdata(VDJdata, Map, DB);
 VDJdata = renumberVDJdata(VDJdata, VDJheader, 'seq', 'grp');
 
 %Create seq names and update
@@ -433,9 +434,9 @@ DotLoc = find(SaveName == '.');
 SaveNamePre = SaveName(1:DotLoc(end)-1);%Get the prefix
 
 %Save the BRILIA annotation
-VDJdata = findCDR1(VDJdata, VDJheader, DB);
-VDJdata = findCDR2(VDJdata, VDJheader, DB);
-VDJdata = findCDR3(VDJdata, VDJheader, DB, 'imgt');
+VDJdata = findCDR1(VDJdata, Map, DB);
+VDJdata = findCDR2(VDJdata, Map, DB);
+VDJdata = findCDR3(VDJdata, Map, DB, 'imgt');
 saveSeqData(SaveAs, VDJdata, VDJheader); 
 
 %Save just the input file format only

@@ -1,0 +1,11 @@
+Date = '05-Sep-2017';
+Species = 'mouse';
+Strain = 'all';
+Chain = 'H';
+Ddirection = 'all';
+Vfunction = 'all';
+DevPerc = 5;
+FileType = 'delimited';
+Delimiter = ',';
+CheckSeqDir = 'n';
+NumProc = 'max';

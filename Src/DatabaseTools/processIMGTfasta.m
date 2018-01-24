@@ -59,8 +59,11 @@ if isempty(varargin) || isempty(varargin{1})
     DatabaseFolder = uigetdir(cd, 'Select directory storing fasta files');
 else
     DatabaseFolder = varargin{1};
+    if ~exist(DatabaseFolder, 'dir')
+        error('%s: Could not find the directory "%s".', mfilename, DatabaseFolder);
+    end
 end
-if ~strcmpi(DatabaseFolder(end), filesep)
+if DatabaseFolder(end) ~= filesep
     DatabaseFolder = [DatabaseFolder filesep];
 end
 
@@ -70,8 +73,8 @@ SpeciesName = DatabaseFolder(SlashLoc(end-1)+1:SlashLoc(end)-1);
 SpeciesName = strrep(SpeciesName, ' ', '_');
 
 %Find the GeneTable folder and file if it exists.
-if exist([DatabaseFolder 'GeneTable'], 'dir') > 0
-    GeneTableFiles = dir([DatabaseFolder 'GeneTable' filesep '*.csv']);
+if exist(fullfile(DatabaseFolder, 'GeneTable'), 'dir') > 0
+    GeneTableFiles = dir(fullfile(DatabaseFolder, 'GeneTable', '*.csv'));
 else
     GeneTableFiles = [];
 end
@@ -79,23 +82,22 @@ end
 %Order this
 FileOrder = {'IGHV', 'IGHD', 'IGHJ', 'IGKV', 'IGKJ', 'IGLV', 'IGLJ'};
 FastaFiles = dir([DatabaseFolder '*.fa*']);
-DBlist = cell(7, 2); %fasta file, gene table file
+DBlist = cell(length(FileOrder), 2); %fasta file, gene table file
 for j = 1:length(FastaFiles)
-    IGname = regexpi(FastaFiles(j).name, 'IG[HKL][VDJ]', 'match');
-    if ~isempty(IGname)
-        CellLoc = findCell(FileOrder, IGname, 'MatchCase', 'Any');
-        if CellLoc(1) > 0
-            DBlist{CellLoc, 1} = FastaFiles(j).name;
+    IgName = regexpi(FastaFiles(j).name, 'IG[HKL][VDJ]', 'match');
+    if ~isempty(IgName)
+        CellLoc = find(contains(FileOrder, IgName, 'IgnoreCase', true));
+        if ~isempty(CellLoc)
+            DBlist{CellLoc(1), 1} = fullfile(DatabaseFolder, FastaFiles(j).name);
         end
     end
     
     if ~isempty(GeneTableFiles)
-        IGname = regexpi(GeneTableFiles(j).name, 'IG[HKL][VDJ]', 'match');
-        if ~isempty(IGname)
-            IGname = upper(IGname{1});
-            CellLoc = findCell(FileOrder, IGname, 'MatchCase', 'Any');
-            if CellLoc(1) > 0
-                DBlist{CellLoc, 2} = [DatabaseFolder 'GeneTable' filesep GeneTableFiles(j).name];
+        IgName = regexpi(GeneTableFiles(j).name, 'IG[HKL][VDJ]', 'match');
+        if ~isempty(IgName)
+            CellLoc = find(contains(FileOrder, IgName, 'IgnoreCase', true));
+            if ~isempty(CellLoc)
+                DBlist{CellLoc(1), 2} = fullfile(DatabaseFolder, 'GeneTable', GeneTableFiles(j).name);
             end
         end
     end
@@ -105,7 +107,7 @@ end
 CurCheckSum = 0;
 for f = 1:size(DBlist, 1)
     if isempty(DBlist{f}) || ~ischar(DBlist{f, 1})
-        continue; 
+        continue
     end
     TempDir = dir(DBlist{f, 1});
     if ~isempty(TempDir)
@@ -114,15 +116,15 @@ for f = 1:size(DBlist, 1)
 end
 
 %Set DB to empty if changes to database are detected
-CsvFileName = [DatabaseFolder SpeciesName '.csv'];
-MatFileName = [DatabaseFolder SpeciesName '.mat'];
+CsvFileName = fullfile(DatabaseFolder, [SpeciesName '.csv']);
+MatFileName = fullfile(DatabaseFolder, [SpeciesName '.mat']);
 DB = [];
-FastaCheckSum = 0;
 if exist(MatFileName, 'file')
-    load(MatFileName);
-    if FastaCheckSum ~= CurCheckSum
+    MatFile = load(MatFileName);
+    if MatFile.FastaCheckSum ~= CurCheckSum
         DB = []; %Delete to alert this to redo processing
-    else
+    else %See if you need to recreate the csv file because it was deleted
+        DB = MatFile.DB;
         if ~exist(CsvFileName, 'file') && ~isempty(DB)
             writeGeneDatabaseToCsv(DB, CsvFileName);
         end
@@ -137,16 +139,11 @@ if isempty(DB)
     %Ref: http://www.imgt.org/IMGTScientificChart/Numbering/CDR1-IMGTgaps.html
     %Ref: http://www.imgt.org/IMGTScientificChart/Numbering/CDR2-IMGTgaps.html
 
-    %CDR1 loc is the 27 to 38 AA residues
-    CDR1start = 26*3 + 1;
-    CDR1end = 38*3;
-
-    %CDR2 loc is the 56 to 65 AA residues
-    CDR2start = 55*3 + 1;
-    CDR2end = 65*3;
-
-    %CDR3 loc is the 105 AA residue, BUT, BRILIA uses the 104C anchor instead.
-    CDR3anchor = 103*3 + 1;
+    CDR1Bgn = 26*3 + 1;  %CDR1 is 27th to 38th AA
+    CDR1End = 38*3;
+    CDR2Bgn = 55*3 + 1;  %CDR2 is 56th to 65th AA
+    CDR2End = 65*3;
+    CDR3Anc = 103*3 + 1; %CDR3 begins on 105th AA, BUT, BRILIA uses the 104C as the anchor
 
     %--------------------------------------------------------------------------
     %Fill in the database information
@@ -161,10 +158,10 @@ if isempty(DB)
     end
 
     %Setup the NT, AA, Name map.
-    SeqLoc = findCell(MapHeader, 'Seq');
-    GeneNameLoc = findCell(MapHeader, 'GeneName');
-    EntryNumLoc = findCell(MapHeader, 'EntryNum');
-    CDR3Loc = findCell(MapHeader, 'AnchorDist');
+    SeqLoc = contains(MapHeader, 'Seq');
+    GeneLoc = contains(MapHeader, 'GeneName');
+    EntryLoc = contains(MapHeader, 'EntryNum');
+    AnchorLoc = contains(MapHeader, 'AnchorDist');
     for f = 1:size(DBlist, 1)
         if ~isempty(DBlist{f, 1})
             [SeqName, Seq] = fastaread(DBlist{f, 1});
@@ -185,13 +182,13 @@ if isempty(DB)
                 Function = SeqInfo{4};
 
                 %Need to do this for the V's
-                if max(f == [1, 4, 6]) > 0
+                if any(f == [1, 4, 6])
                     %Get the default locations first.
-                    CDR1s = CDR1start;
-                    CDR1e = CDR1end;
-                    CDR2s = CDR2start;
-                    CDR2e = CDR2end;
-                    CDR3a = CDR3anchor;
+                    CDR1s = CDR1Bgn;
+                    CDR1e = CDR1End;
+                    CDR2s = CDR2Bgn;
+                    CDR2e = CDR2End;
+                    CDR3a = CDR3Anc;
 
                     %FR1 can sometimes have 26a, 26b, etc. Need to shift CDRs
                     AddOn = 0;
@@ -222,6 +219,18 @@ if isempty(DB)
                     while CDR3a <= length(CurSeq) && CurSeq(CDR3a) == '.'
                         AddOn = AddOn + 1;
                         CDR3a = CDR3a + 1;
+                    end
+                    
+                    %Sometimes, FR3 has an extra residue (ie, zebrafish).
+                    Score1a = alignSeqMEX('TGT', CurSeq(CDR3a:CDR3a+2));
+                    Score1b = alignSeqMEX('TGC', CurSeq(CDR3a:CDR3a+2));
+                    Score2a = alignSeqMEX('TGT', CurSeq(CDR3a+3:CDR3a+5));
+                    Score2b = alignSeqMEX('TGC', CurSeq(CDR3a+3:CDR3a+5));
+                    Score1 = max([Score1a(1) Score1b(1)]);
+                    Score2 = max([Score2a(1) Score2b(1)]);
+                    if Score1 < Score2
+                        fprintf('%s: Shift 104C anchor by 3. %s -> %s\n', mfilename, CurSeq(CDR3a:end), CurSeq(CDR3a+3:end));
+                        CDR3a = CDR3a + 3;
                     end
 
                     %Create a CDR tracking mat
@@ -261,11 +270,11 @@ if isempty(DB)
                         CDR2e = CDR2idx(end);
                     end
                     if ~isempty(CDR3idx)
-                        CDR3anc = CDR3idx(1);
+                        CDR3a = CDR3idx(1);
                     end
 
                     %Recalc CDR3anchor as 1st codon nt distance from 3' end
-                    AnchorDist = length(CurSeq) - CDR3anc + 1;
+                    AnchorDist = length(CurSeq) - CDR3a + 1;
                     if AnchorDist < 0
                         AnchorDist = 0;
                     end
@@ -289,7 +298,7 @@ if isempty(DB)
             end
 
             %Need to adjust Xmap for J AnchorDist
-            if max(f == [3, 5, 7]) > 0
+            if any(f == [3, 5, 7])
                 [Jalign, JconsSeq] = alignMultSeq(Seq');
                 TempSeq = zeros(1, length(JconsSeq));
 
@@ -305,20 +314,20 @@ if isempty(DB)
                     MatchLoc = regexpi(Jalign{j}, Pattern);
                     TempSeq(MatchLoc) = TempSeq(MatchLoc) + 1;
                 end
-                AnchorLoc = find(TempSeq == max(TempSeq));
-                AnchorLoc = AnchorLoc(1);
+                AnchorPos = find(TempSeq == max(TempSeq));
+                AnchorPos = AnchorPos(1);
 
                 %Establish the CDR3 anchor point
                 CDR3anchors = zeros(length(Seq), 1);
                 for j = 1:length(SeqName)
                     CurSeq = Jalign{j};
-                    CurSeq(AnchorLoc) = '!'; %Just a marker;
+                    CurSeq(AnchorPos) = '!'; %Just a marker;
                     CurSeq = strrep(CurSeq, '-', '');
                     CDR3anchors(j) = find(CurSeq == '!');
                 end
 
                 %Fill in the Xmap anchor
-                Xmap(:, CDR3Loc) = num2cell(CDR3anchors);
+                Xmap(:, AnchorLoc) = num2cell(CDR3anchors);
             end
 
             %Need to adjust Xmap for D fwd and rev
@@ -327,11 +336,11 @@ if isempty(DB)
                 TempMap(1:2:end, :) = Xmap;
                 for j = 1:size(Xmap, 1)
                     Xmap{j, SeqLoc} = seqrcomplement(Xmap{j, 1});
-                    Xmap{j, GeneNameLoc} = ['r' Xmap{j, 2}];
+                    Xmap{j, GeneLoc} = ['r' Xmap{j, 2}];
                 end
                 TempMap(2:2:end, :) = Xmap;
                 Xmap = TempMap;
-                Xmap(:, EntryNumLoc) = num2cell(1:size(Xmap,1));
+                Xmap(:, EntryLoc) = num2cell(1:size(Xmap,1));
                 clear TempMap;
             end
             DB.(MapNames{f}) = Xmap;

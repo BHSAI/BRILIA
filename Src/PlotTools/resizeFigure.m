@@ -102,6 +102,7 @@ if H > 0
     GxPosition(4) = H;
 end
 set(Gx, 'Position', GxPosition);
+set(Gx, 'PaperPosition', [0 0 GxPosition(3:4)]);
 set(Gx, 'Units', OrigGxUnits);
 
 %Reset axes units to orignal units

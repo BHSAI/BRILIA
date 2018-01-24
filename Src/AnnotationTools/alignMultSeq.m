@@ -35,7 +35,7 @@ LeftPadCt = zeros(length(SeqSet),2);
 SeqA = SeqSet{1};
 for b = 2:length(SeqSet)
     SeqB = SeqSet{b};
-    [~, ~, StartAt] = alignSeq(SeqA,SeqB,'Alphabet','Any');
+    [~, StartAt] = alignSeqMEX(SeqA,SeqB, 0, 'r');
     if StartAt(2) < 0 %Need to pad SeqA
         LeftPadCt(b,1) = abs(StartAt(2));
     elseif StartAt(2) > 1 %need to pad SeqB

@@ -73,7 +73,7 @@ for j = 1:NumClones
         end
         GeneIdx{n} = find(ismember(UnqGeneNames{n}, GeneName));
     end
-    GeneCombVec = combvec2(GeneIdx{:});
+    GeneCombVec = combvec(GeneIdx{:});
     GeneCombCell = cell(NumGenes, 1);
     for k = 1:NumGenes
         GeneCombCell{k} = GeneCombVec(k, :);
