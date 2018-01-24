@@ -54,6 +54,14 @@
 %    prevent having to spend time searching for this.
 
 function DB = processIMGTfasta(varargin)
+%See if you want to force the process without checksum checking for changes
+ForceProcess = false;
+ForceLoc = startsWith(varargin, 'force', 'ignorecase', true);
+if any(ForceLoc)
+    ForceProcess = true;
+    varargin(ForceLoc) = [];
+end
+
 %Find the folder where the database is stored
 if isempty(varargin) || isempty(varargin{1})
     DatabaseFolder = uigetdir(cd, 'Select directory storing fasta files');
@@ -119,7 +127,7 @@ end
 CsvFileName = fullfile(DatabaseFolder, [SpeciesName '.csv']);
 MatFileName = fullfile(DatabaseFolder, [SpeciesName '.mat']);
 DB = [];
-if exist(MatFileName, 'file')
+if exist(MatFileName, 'file') && ~ForceProcess
     MatFile = load(MatFileName);
     if MatFile.FastaCheckSum ~= CurCheckSum
         DB = []; %Delete to alert this to redo processing
@@ -222,15 +230,17 @@ if isempty(DB)
                     end
                     
                     %Sometimes, FR3 has an extra residue (ie, zebrafish).
-                    Score1a = alignSeqMEX('TGT', CurSeq(CDR3a:CDR3a+2));
-                    Score1b = alignSeqMEX('TGC', CurSeq(CDR3a:CDR3a+2));
-                    Score2a = alignSeqMEX('TGT', CurSeq(CDR3a+3:CDR3a+5));
-                    Score2b = alignSeqMEX('TGC', CurSeq(CDR3a+3:CDR3a+5));
-                    Score1 = max([Score1a(1) Score1b(1)]);
-                    Score2 = max([Score2a(1) Score2b(1)]);
-                    if Score1 < Score2
-                        fprintf('%s: Shift 104C anchor by 3. %s -> %s\n', mfilename, CurSeq(CDR3a:end), CurSeq(CDR3a+3:end));
-                        CDR3a = CDR3a + 3;
+                    if length(CurSeq) >= CDR3a+5
+                        Score1a = sum('TGT' == CurSeq(CDR3a:CDR3a+2));
+                        Score1b = sum('TGC' == CurSeq(CDR3a:CDR3a+2));
+                        Score2a = sum('TGT' == CurSeq(CDR3a+3:CDR3a+5));
+                        Score2b = sum('TGC' == CurSeq(CDR3a+3:CDR3a+5));
+                        Score1 = max([Score1a(1) Score1b(1)]);
+                        Score2 = max([Score2a(1) Score2b(1)]);
+                        if Score1 < Score2
+                            fprintf('%s: %s - Shift 104C anchor by 3. %s -> %s\n', mfilename, GeneName, CurSeq(CDR3a:end), CurSeq(CDR3a+3:end));
+                            CDR3a = CDR3a + 3;
+                        end
                     end
 
                     %Create a CDR tracking mat
