@@ -582,7 +582,10 @@ while true
                 Map = getVDJmapper(VDJheader);
 
                 %Remove the incompletes from clustering
-                IncompleteLoc = ismember(VDJdata(:, Map.hFunct), 'I');
+                IncompleteLoc = zeros(size(VDJdata, 1), 1, 'logical');
+                for c = 1:length(Map.Chain)
+                    IncompleteLoc = IncompleteLoc | ismember(VDJdata(:, Map.([lower(Map.Chain(c)) 'Funct'])), 'I');
+                end
                 if size(VDJdata, 1) ~= 0
                     saveSeqData(ErrFileName, VDJdata(IncompleteLoc, :), VDJheader, 'append');
                     VDJdata(IncompleteLoc, :) = [];
