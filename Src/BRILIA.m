@@ -22,6 +22,7 @@
 %    -  ------------  -------------------------  -----------------------------
 %    d  Chain         h* | l | hl                IgG heavy and/or light chain.
 %    d  Species       human | mouse | macaque    Database by species.
+%                     zebrafish
 %    d  Strain        all* | c57bl | balb        Database by strain, only for mouse.
 %    d  CheckSeqDir   y* | n                     Check for rev-comp seq?
 %    d  Ddirection    all* | fwd | rev           D gene direction.
@@ -58,7 +59,7 @@
 %    > SeqFile.fasta Species Mouse Strain C57BL Chain H CheckSeqDir Y NumProc 4 SeqRange [1,100]
 
 function varargout = BRILIA(varargin)
-Version = '3.1.3';
+Version = '3.1.4';
 varargout = cell(1, nargout);
 HasShownCredit = false;
 
@@ -66,17 +67,13 @@ HasShownCredit = false;
 %For running in matlab, make sure BRILIA paths are added correctly
 if ~isdeployed
     CurPaths = regexp(path, pathsep, 'split')';
-    PathParts = regexp(mfilename('fullpath'), filesep, 'split');
-    if ~isempty(PathParts) && isempty(PathParts{1})
-        PathParts{1} = filesep;
-    end
-    MainPath = fullfile(PathParts{1:end-2});
-    if ~any(strcmp(CurPaths, MainPath))
+    MainPath = fileparts(fileparts(mfilename('fullpath')));
+    if ~any(strcmpi(CurPaths, MainPath))
         if strcmpi(input('Add BRILIA path to matlab? y or n: ', 's'), 'y')
             fprintf('Adding BRILIA path to Matlab.\n');
             addpath(genpath(MainPath));
         else
-            return;
+            return
         end
     end
 end
@@ -84,67 +81,93 @@ end
 %--------------------------------------------------------------------------
 %Handle various inputs from matlab or OS command lines
 P = inputParser;
-addParameter(P, 'InputFile', '', @(x) ischar(x) || iscell(x) || isempty(x));
-addParameter(P, 'Chain', 'H', @(x) ismember({upper(x)}, {'H', 'L', 'HL'}));
-addParameter(P, 'CheckSeqDir', 'y', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
-addParameter(P, 'Ddirection', 'all', @(x) ischar(x) && ismember(lower(x), {'all', 'fwd', 'rev', ''}));
-addParameter(P, 'DevPerc', 5, @(x) isnumeric(x) && (x>=0) && (x<=100));
-addParameter(P, 'Delimiter', '', @(x) ischar(x) && ismember(x, {';', ',', '\t', ''}));
-addParameter(P, 'FileType', '', @ischar); %Will make input reader determine file type
-addParameter(P, 'NumProc', 'max', @(x) ischar(x) || isnumeric(x));
-addParameter(P, 'SettingFile', '', @ischar);
-addParameter(P, 'Species', '', @(x) ischar(x) && any(contains(getGeneDatabase('getlist'), x, 'ignorecase', true)));
-addParameter(P, 'Strain', 'all', @ischar);
-addParameter(P, 'StatusHandle', [], @(x) ishandle(x) || isempty(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
-addParameter(P, 'Vfunction', 'all', @(x) ischar(x) && min(ismember(regexpi(lower(x), ',', 'split'), {'all', 'f', 'p', 'orf', ''}))==1);
-addParameter(P, 'SeqRange', [1,Inf], @(x) isnumeric(x) || ischar(x));
-addParameter(P, 'Resume', 'n', @(x) ischar(x) && ismember(lower(x), {'y', 'n'})); %Resumes from known raw file
-addParameter(P, 'ResumeFrom', '', @(x) ischar(x)); %File directory storing the *Raw.csv file(s).
-addParameter(P, 'OutputFile', [], @(x) ischar(x) || iscell(x) || isempty(x));
-addParameter(P, 'BatchSize', 30000, @(x) isnumeric(x) && x >= 1);
-addParameter(P, 'AnnotOnly', 'n', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
-addParameter(P, 'AutoExit', 'y', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
-addParameter(P, 'SuppressIntro', 'n', @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
+addParameter(P, 'InputFile',     '',      @(x) ischar(x) || iscell(x) || isempty(x));
+addParameter(P, 'Chain',         'H',     @(x) ismember({upper(x)}, {'H', 'L', 'HL'}));
+addParameter(P, 'CheckSeqDir',   'y',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
+addParameter(P, 'Ddirection',    'all',   @(x) ischar(x) && ismember(lower(x), {'all', 'fwd', 'rev', ''}));
+addParameter(P, 'DevPerc',       5,       @(x) isnumeric(x) && (x>=0) && (x<=100));
+addParameter(P, 'Delimiter',     '',      @(x) ischar(x) && ismember(x, {';', ',', '\t', ''}));
+addParameter(P, 'FileType',      '',      @ischar); %Will make input reader determine file type
+addParameter(P, 'NumProc',       'max',   @(x) ischar(x) || isnumeric(x));
+addParameter(P, 'SettingFile',   '',      @ischar);
+addParameter(P, 'Species',       '',      @(x) ischar(x) && any(contains(getGeneDatabase('getlist'), x, 'ignorecase', true)));
+addParameter(P, 'Strain',        'all',   @ischar);
+addParameter(P, 'StatusHandle',  [],      @(x) ishandle(x) || isempty(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
+addParameter(P, 'Vfunction',     'all',   @(x) ischar(x) && min(ismember(regexpi(lower(x), ',', 'split'), {'all', 'f', 'p', 'orf', ''}))==1);
+addParameter(P, 'SeqRange',      [1,Inf], @(x) isnumeric(x) || ischar(x));
+addParameter(P, 'Resume',        'n',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'})); %Resumes from known raw file
+addParameter(P, 'ResumeFrom',    '',      @(x) ischar(x)); %File directory storing the *Raw.csv file(s).
+addParameter(P, 'OutputFile',    [],      @(x) ischar(x) || iscell(x) || isempty(x));
+addParameter(P, 'BatchSize',     30000,   @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'AnnotOnly',     'n',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
+addParameter(P, 'AutoExit',      'y',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
+
+%Determine the BRILIA run mode
+if nargin == 0
+    RunMode = 3;     %Running from EXE or Matlab without inputs
+else
+    if isdeployed
+        RunMode = 2; %Running from EXE with inputs
+    else
+        RunMode = 1; %Running from matlab with inputs
+    end
+end
 
 while true
-    if ~HasShownCredit && nargin == 0 
-        showCredits('bhsai, imgt');
-        HasShownCredit = true;
-        fprintf('\nType the inputs for BRILIA, ''exit'', or ''help''.\nWarning: File paths with spaces must be wrapped in quotes. Ex: "C:\\Temp Dir\\"\n');
-    end
-    
-    if isempty(varargin)
-        Input = input('BRILIA> ', 's');
-        if strcmpi(Input, 'exit'); return; end
-        QuoteLoc = regexp(Input, '"');
-        if mod(length(QuoteLoc), 2) ~= 0
-            if nargin == 0
-                fprintf('Uneven number of quotes, ".\n');
+    if RunMode == 3
+        if ~HasShownCredit
+            showCredits('bhsai', 'imgt');
+            HasShownCredit = true;
+            fprintf('\nType input commands, ''exit'', or ''help''.  (Wrap files with spaces in quotes, like "C:\\Temp Dir\\)":\n'); %Only show this once
+        end
+        
+        Input = input('BRILIA> ', 's'); %If empty, will ask user to choose file
+        if strcmpi(Input, 'exit')
+            return
+        end
+    else
+        for k = 1:length(varargin)
+            if isnumeric(varargin{k})
+                varargin{k} = mat2str(varargin{k});
             else
-                error('%s: Uneven number of quotes, ".', mfilename);
+                varargin{k} = strrep(varargin{k}, ' ', '^'); %Sub spaces with ^ to prevent error parsing
             end
         end
-        for q = 1:2:length(QuoteLoc)
-            Input(QuoteLoc(q):QuoteLoc(q+1)) = strrep(Input(QuoteLoc(q):QuoteLoc(q+1)), ' ', '~');
+        if nargin > 1
+            Input = [sprintf('%s ', varargin{1:end-1}) varargin{end}];
+        else
+            Input = varargin{1};
         end
-        CellInput = regexp(Input, '\s+|,', 'split'); 
-        varargin = strrep(strrep(CellInput, '~', ' '), '"', '');
     end
+        
+    %Check to make sure there are paired number of quotes ".
+    QuoteLoc = regexp(Input, '"');
+    if mod(length(QuoteLoc), 2) > 0
+        if RunMode == 3
+            fprintf('Error: Uneven number of quotes ( " ) in inputs.\n');
+            continue
+        else
+            error('%s: Uneven number of quotes ( " ) in inputs.\n', mfilename);
+        end
+    end
+        
+    %Format string inputs with quotes to proper BRILIA inputs
+    for q = 1:2:length(QuoteLoc)
+        Input(QuoteLoc(q):QuoteLoc(q+1)) = strrep(Input(QuoteLoc(q):QuoteLoc(q+1)), ' ', '^');
+    end
+    CellInput = regexp(Input, '\s+|,', 'split'); 
+    varargin = strrep(strrep(CellInput, '^', ' '), '"', '');
     varargin = cleanCommandLineInput(varargin{:});
 
     %Special parsing of first input
     if ~isempty(varargin) && ischar(varargin{1})
         %Getting version
         if ismember(lower(varargin{1}), {'getversion', 'version'})
-            if nargout == 0
+            if RunMode == 3
                 fprintf('BRILIA VERSION %s\n\n', Version);
-            else
-                varargout{1} = Version;
-            end
-            if nargin == 0
-                varargin = [];
                 continue
             else
+                varargout{1} = Version;
                 return
             end
         end
@@ -152,8 +175,7 @@ while true
         %Getting help for this
         if ismember(lower(varargin{1}), {'help'})
             showHelp('BRILIA');
-            if nargin == 0
-                varargin = [];
+            if RunMode == 3
                 continue
             else
                 return
@@ -166,33 +188,36 @@ while true
             try
                 FH = str2func(varargin{1});
                 FH(varargin{2:end});
-                if nargin == 0
-                    varargin = [];
-                    continue
-                else
-                    return
-                end
             catch ME
                 disp(ME);
+            end
+            if RunMode == 3
+                continue
+            else
+                return
             end
         end
 
         %Check it's a file, correct varargin for parm-value parsing later.
-        if exist(varargin{1}, 'file') || exist(fullfile(pwd, varargin{1}), 'file')
+        if exist(varargin{1}, 'file') || isempty(varargin{1})
             varargin = ['InputFile' varargin];
         end
     end
 
+    %Parse the inputs and return if this was a code-2-code summon
     try
         [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
+        if ReturnThis
+           varargout = {Ps, Pu, ExpPs, ExpPu};
+           return
+        end
     catch ME
-        disp(ME);
-        varargin = [];
-        continue
-    end
-    if ReturnThis
-       varargout = {Ps, Pu, ExpPs, ExpPu};
-       return;
+        fprintf('%s: Error parsing input at line = %d.\n', mfilename, ME.stack(1).line);
+        if RunMode == 3
+            continue
+        else
+            return
+        end
     end
 
     %Override defaults with what is in the SettingFile
@@ -201,7 +226,7 @@ while true
     end
 
     BatchSize = Ps.BatchSize;
-    Chain = Ps.Chain;
+    MainChain = Ps.Chain;
     CheckSeqDir = Ps.CheckSeqDir;
     Ddirection = Ps.Ddirection;
     Delimiter = Ps.Delimiter;
@@ -219,10 +244,10 @@ while true
     Vfunction = Ps.Vfunction;
     AnnotOnly = Ps.AnnotOnly;
     AutoExit = Ps.AutoExit;
-    SuppressIntro = Ps.SuppressIntro;
 
-    if ~HasShownCredit && ~SuppressIntro
-        showCredits('bhsai, imgt');
+    %Show credits AFTER input parsing for Unmode 1 or 2
+    if ~HasShownCredit
+        showCredits('bhsai', 'imgt');
         HasShownCredit = true;
     end
     
@@ -233,9 +258,8 @@ while true
     if isempty(InputFile) %Ask user to choose
         InputFile = openFileDialog('*.fa*;*.*sv', 'Select the input sequence files', 'multiselect', 'on');
         if isempty(InputFile)
-            if nargin == 0
+            if RunMode == 3
                 fprintf('No file was selected.\n\n');
-                varargin = [];
                 continue
             else
                 return
@@ -243,10 +267,10 @@ while true
         end
     elseif ischar(InputFile) %Store single file as cell too
         [InputFilePath, InFileName, ~] = parseFileName(InputFile, 'ignorefilecheck'); %Ignore file check for now, as that's done next.
-        InputFile = {[InputFilePath InFileName]}; %Ensure file path is always there
+        InputFile = {fullfile(InputFilePath, InFileName)}; %Ensure file path is always there
     end
 
-    %Make sure same number of output files as input files are specified
+    %Make sure # of output files = # of input files
     if ~isempty(OutputFile)
         if ischar(OutputFile)
             OutputFile = {OutputFile};
@@ -256,26 +280,30 @@ while true
         end
     end
 
-    %Check to make sure input files exists
+    %Delete input files that do not exist
     DelFiles = zeros(1, length(InputFile), 'logical');
     for f = 1:length(InputFile)
         if ~exist(InputFile{f}, 'file')
             DelFiles(f) = 1;
-            continue;
+            continue
         end
         [~, FileName, FileExt] = parseFileName(InputFile{f});
         if ~ismember(lower(FileExt), {'.fa', '.fasta', '.fastq', '.csv', '.tsv', '.ssv', '.txt'})
-            warning('%s: Unfamiliar file type (%s) for file (%s). \n  -> Can still process if the "FileType" and "Delimiter" parameters are set.', mfilename, FileExt, FileName);
+            warning('%s: Unfamiliar file type "%s" for file "%s". \n  -> Can still process if the "FileType" and "Delimiter" parameters are set.', mfilename, FileExt, FileName);
         end
     end
-    InputFile(DelFiles) = [];
-    if isempty(InputFile) %No valid files to process
-        if nargin ~= 0
-            error('%s: No valid input files were provided.', mfilename);
-        else
+    if any(DelFiles)
+        fprintf('%s: Could not find the following input files:\n', mfilename);
+        fprintf('  %s\n', InputFile{DelFiles});
+        InputFile(DelFiles) = [];
+    end
+    
+    if isempty(InputFile)
+        if RunMode == 3
             fprintf('No valid input files were provided.\n');
-            varargin = [];
             continue
+        else
+            error('%s: No valid input files were provided.', mfilename);
         end
     end
 
@@ -283,11 +311,8 @@ while true
     if isempty(OutputFile)
         OutputFile = cell(size(InputFile));
         for f = 1:length(OutputFile)
-            [OutputFilePath, OutputFileName, ~] = parseFileName(InputFile{f});
-            DotLoc = find(OutputFileName == '.');
-            SaveFilePath = [OutputFilePath OutputFileName(1:DotLoc(end)-1) filesep];
-            OutputFileName = [OutputFileName(1:DotLoc(end)-1) '.BRILIAv' Version(1) '.csv'];
-            OutputFile{f} = [SaveFilePath OutputFileName];
+            [OutPath, ~, ~, OutFilePre] = parseFileName(InputFile{f});
+            OutputFile{f} = fullfile(OutPath, OutFilePre, [OutFilePre '.BRILIAv' Version(1) '.csv']);
         end
     else
         OutputFile(DelFiles) = [];
@@ -296,50 +321,54 @@ while true
     %==========================================================================
     %BRILIA processing begins 
 
-    %Load databases and filter reference genes according to specifications
-    if isempty(varargin) %User did not specify species and chain, so ask user.
-        [~, ~, FileExt] = parseFileName(InputFile{1});
-
-        %Select the straing
-        if ~isempty(FileExt) && ismember(lower(FileExt), {'.fa', '.fasta', '.fastq'})
-            ChainList = {'H', 'L'};
-            fprintf('Note: only delimited files can do H+L chains.\n'); 
-        else
+    %See if the user specified everything when using RunMode = 3
+    if RunMode == 3 
+        %Selecting the H or L chain
+        if ~any(cellfun(@(x) strcmpi(x, 'chain'), varargin)) 
+            fprintf('What IG chain is it?\n');
             ChainList = {'H', 'L', 'HL'};
-        end
-        fprintf('What IG chain is it?\n');
-        dispList(ChainList);
-        Attempt = 0;
-        while true
-            Selection = input('Select option: ', 's');
-            if isempty(Selection)
-                Selection = '1';
-            end
-            try 
-                Selection = round(str2double(Selection));
-                if Selection > 0 && Selection <= length(ChainList)
-                    Chain = ChainList{Selection};
-                    break;
+            dispList(ChainList);
+            Attempt = 0;
+            while true
+                try 
+                    Selection = round(input('Select option (no selection = 1): '));
+                    if isempty(Selection)
+                        Selection = 1;
+                        break
+                    elseif Selection >= 1 && Selection <= length(ChainList)
+                        break
+                    end
+                    Attempt = Attempt + 1;
+                catch
+                    Attempt = Attempt + 1;
                 end
-            catch
+                if Attempt >= 5
+                    fprintf('Error: Did not choose correct option.\n');
+                    break
+                end
             end
-            Attempt = Attempt + 1;
             if Attempt >= 5
-                error('%s: Did not choose correct option.', mfilename);
+                continue %return to beginning of input
             end
+            MainChain = ChainList{Selection};
         end
-
-        %Set these to empty to make the next functions ask the user.
-        Species = '';
-        Strain = ''; 
-        Ddirection = ''; 
-        Vfunction = '';
+        
+        if ~any(cellfun(@(x) strcmpi(x, 'Species'), varargin)) 
+            Species = '';
+        end
+        if ~any(cellfun(@(x) strcmpi(x, 'Strain'), varargin))
+            Strain = '';
+        end
+        if ~any(cellfun(@(x) strcmpi(x, 'Ddirection'), varargin)) 
+            Ddirection = '';
+        end
+        if ~any(cellfun(@(x) strcmpi(x, 'Vfunction'), varargin)) 
+            Vfunction = '';
+        end
     end
-    if strcmpi(SuppressIntro, 'y')
-        DB = getGeneDatabase(Species, 'suppress');
-    else
-        DB = getGeneDatabase(Species);
-    end
+    
+    %Load databases and filter reference genes according to specifications
+    DB = getGeneDatabase(Species);
     DB = filterGeneDatabase(DB, 'Strain', Strain, 'Ddirection', Ddirection, 'Vfunction', Vfunction);
 
     %Set the number of processors to use
@@ -353,47 +382,42 @@ while true
         %File Management
 
         %Specify the Temp folder and Raw and Err annotation files
-        [OutputFilePath, OutputFileName, ~] = parseFileName(OutputFile{f}, 'ignorefilecheck');
-        DotLoc = find(OutputFileName == '.');
-        ErrFileName = [OutputFileName(1:DotLoc(end)) 'Err.csv'];
-        RawFileName = [OutputFileName(1:DotLoc(end)) 'Raw.csv'];
-        TempDir = [OutputFilePath 'Temp' filesep];
+        [OutPath, OutFile, ~, OutFilePre] = parseFileName(OutputFile{f}, 'ignorefilecheck');
+        TempDir = fullfile(OutPath, 'Temp', filesep);
+        ErrFileName = fullfile(TempDir, [OutFilePre '.Err.csv']);
+        RawFileName = fullfile(TempDir, [OutFilePre '.Raw.csv']);
 
         %If using ResumeFrom, try to move Raw.csv into the TempDir.
         if ~isempty(ResumeFrom)
             %Get just the folder path in case user specified a file instead
-            [ResumePath, ResumeName, ResumeExt] = parseFileName(ResumeFrom);
-            if isempty(ResumePath)
-                error('%s: Could not find folder to resume from. \n  "%s"', mfilename, ResumePath);
-            end
+            [ResumePath, ResumeName, ResumeExt] = parseFileName(ResumeFrom, 'ignorefilecheck');
             if isempty(ResumeExt)
-                ResumePath = cat(2, ResumePath, ResumeName, filesep);
+                ResumePath = fullfile(ResumePath, ResumeName, filesep);
+            end
+            if ~exist(ResumePath, 'dir')
+                error('%s: Could not find folder to resume from at "%s"', mfilename, ResumeFrom);
             end
             showStatus(sprintf('Resuming from %s ...', ResumePath), StatusHandle); 
 
             %If *Raw.csv files exist, copy it to temp dir and resume.
-            RawFileStruct = dir([ResumePath '*Raw.csv']); 
+            RawFileStruct = dir(fullfile(ResumePath, '*Raw.csv'));
             if isempty(RawFileStruct)
-                error('%s: Could not find Raw file needed for resuming from at "%s"', mfilename, ResumePath);
+                error('%s: Could not find *Raw.csv files required for resuming at "%s".', mfilename, ResumePath);
             end
-
-            %Copy over raw files into the TempDir
             prepTempDir(TempDir);
-            for q = 1:length(RawFileStruct)
-                copyfile([ResumePath RawFileStruct(q).name], [TempDir RawFileStruct(q).name], 'f');
-            end
+            arrayfun(@(x) copyfile(fullfile(ResumePath, x.name), fullfile(TempDir, x.name), 'f'), RawFileStruct);
             Resume = 'y';
         end
 
         %If Resume = 'y', make sure temp dir is not empty
         if strcmpi(Resume, 'y') 
-            if ~exist(TempDir, 'dir') || (exist(TempDir, 'dir') && isempty(dir([TempDir '*Raw.csv'])))
+            if ~exist(TempDir, 'dir') || ( exist(TempDir, 'dir') && isempty(dir([TempDir '*Raw.csv'])) )
                 warning('%s: Could not resume. Cannot find temp dir with *Raw.csv files at "%s".', mfilename, TempDir); 
                 Resume = 'n';
             end
         end
 
-        %Begin initial raw annotation of Resume = 'n' 
+        %Begin initial raw annotation when Resume = 'n' 
         if strcmpi(Resume, 'n')
             %Determine if any temp raw annotation files already exists, which must be deleted
             prepTempDir(TempDir);
@@ -411,8 +435,8 @@ while true
             end
 
             %Part 1 performs initial annotations in batches
-            [~, FileNameOnly, ~] = parseFileName(InputFile{f});
-            showStatus(sprintf('Opening %s ...', FileNameOnly), StatusHandle); 
+            [~, InFileName, InFileExt] = parseFileName(InputFile{f});
+            showStatus(sprintf('Opening %s ...', InFileName), StatusHandle); 
             for j = 1:BatchSize:SeqCount
                 %Determine the seq range
                 SeqRange = [j j+BatchSize-1];
@@ -422,9 +446,18 @@ while true
                 if SeqRange(1) < 1
                     SeqRange(1) = 1;
                 end
+                
+                %Correct chain from HL to H if dealing with fasta/q
+                Chain = MainChain;
+                if ~isempty(InFileExt) && ismember(lower(FileExt), {'.fa', '.fasta', '.fastq'})
+                    if strcmpi(Chain, 'HL')
+                        fprintf('Warning: Only delimited files can do H+L chains. Defaulting to H.\n'); 
+                        Chain = 'H';
+                    end
+                end
 
                 %Open the file and get the sequences within range
-                showStatus(sprintf('Processing sequences %d to %d (total = %d) ...', SeqRange(1), SeqRange(end), SeqCount), StatusHandle);
+                showStatus(sprintf('Processing sequences %d to %d (out of %d) ...', SeqRange(1), SeqRange(end), SeqCount), StatusHandle);
                 [VDJdata, VDJheader] = convertInput2VDJdata(InputFile{f}, 'FileType', FileType, 'Delimiter', Delimiter, 'Chain', Chain, 'SeqRange', SeqRange);
                 Map = getVDJmapper(VDJheader);
 
@@ -432,14 +465,14 @@ while true
                 showStatus('Fixing input sequences', StatusHandle);
                 [VDJdata, BadIdx] = fixInputSeq(VDJdata, Map);
                 if max(BadIdx) ~= 0
-                    saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
+                    saveSeqData(ErrFileName, VDJdata(BadIdx, :), VDJheader, 'append');
                     VDJdata(BadIdx, :) = [];
                 end
 
                 %If nothing is left, might be due to wrong delimiter choice
                 if isempty(VDJdata)
-                    warning('%s: No sequences. Might have incorrect delimiter. Currently using %s.', mfilename, Delimiter');
-                    continue; 
+                    warning('%s: No sequences. Recheck delimiter of input file, which is now set as "%s".', mfilename, Delimiter);
+                    continue
                 end 
 
                 %Find potential CDR3 start and end locations using V and J gene seed
@@ -455,37 +488,34 @@ while true
                 showStatus('Finding initial-guess V(D)J annotations ...', StatusHandle)
                 [VDJdata, BadIdx] = findVDJmatch(VDJdata, Map, DB, 'Update', 'Y');
                 if max(BadIdx) ~= 0
-                    saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
+                    saveSeqData(ErrFileName, VDJdata(BadIdx, :), VDJheader, 'append');
                     VDJdata(BadIdx, :) = [];
                 end
 
                 %Search for initial VJ alignment matches
                 [VDJdata, BadIdx] = findVJmatch(VDJdata, Map, DB, 'Update', 'Y');
                 if max(BadIdx) ~= 0
-                    saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
+                    saveSeqData(ErrFileName, VDJdata(BadIdx, :), VDJheader, 'append');
                     VDJdata(BadIdx, :) = [];
                 end
 
+                showStatus('Moving Nonprod/Invalid/Incomplete Seq to Err file ...', StatusHandle)
+                VDJdata = labelNonVDJ(VDJdata, Map, 0.4); 
+                
                 %Send all Non-functional to error
                 FunctLoc = [Map.hFunct Map.lFunct];
                 FunctLoc(FunctLoc == 0) = [];
                 BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
-                for w = 1:size(VDJdata, 1)
-                    for k = 1:length(FunctLoc)
-                        if isempty(VDJdata{w, FunctLoc(k)})
-                            BadIdx(w) = 1;
-                            break;
-                        end
-                        if ~isempty(VDJdata{w, FunctLoc(k)}) && VDJdata{w, FunctLoc(k)} ~= 'Y'
-                            BadIdx(w) = 1;  
-                            break;
-                        end
-                    end
+                for k = 1:length(FunctLoc)
+                    BadIdx = BadIdx | cellfun(@(x) ismember(upper(x), {'N', 'I'}), VDJdata(:, FunctLoc(k)));
                 end
-                if max(BadIdx) ~= 0
-                    saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
+                if any(BadIdx)
+                    saveSeqData(ErrFileName, VDJdata(BadIdx, :), VDJheader, 'append');
                     VDJdata(BadIdx, :) = [];
                 end
+                
+                %Send all non-VDJ to error too
+                
 
                 %Finish scheme if annotonly
                 if strcmpi(AnnotOnly, 'y')
@@ -543,15 +573,21 @@ while true
             for t = 1:length(FileList)
                 %Check if a Final.csv file already exists to skip
                 TempRawFileName = FileList(t).name;
-                TempOutputFileName = strrep(TempRawFileName, 'Raw.csv', 'Final.csv');
-                if exist(TempOutputFileName, 'file')
-                    continue
-                end
-
+                TempOutFileName = strrep(TempRawFileName, 'Raw.csv', 'Final.csv');
+                if exist(fullfile(TempDir, TempOutFileName), 'file'); continue; end
+                
                 %Reload the sequence file with same-length CDR3s
                 showStatus(sprintf('Processing %s ...', TempRawFileName), StatusHandle);
-                [VDJdata, VDJheader] = openSeqData([TempDir TempRawFileName]);
+                [VDJdata, VDJheader] = openSeqData(fullfile(TempDir, TempRawFileName));
                 Map = getVDJmapper(VDJheader);
+
+                %Remove the incompletes from clustering
+                IncompleteLoc = ismember(VDJdata(:, Map.hFunct), 'I');
+                if size(VDJdata, 1) ~= 0
+                    saveSeqData(ErrFileName, VDJdata(IncompleteLoc, :), VDJheader, 'append');
+                    VDJdata(IncompleteLoc, :) = [];
+                end
+                if size(VDJdata, 1) < 1; continue; end
 
                 %Fix insertion/deletion in V framework
                 showStatus('Fixing indels in V genes ...', StatusHandle)
@@ -569,7 +605,7 @@ while true
                 showStatus('Clustering by lineage ...', StatusHandle)
                 [VDJdata, BadVDJdataT] = clusterGene(VDJdata, Map, DevPerc);
                 if size(BadVDJdataT, 1) ~= 0
-                    saveSeqData([TempDir ErrFileName], BadVDJdataT, VDJheader, 'append');
+                    saveSeqData(ErrFileName, BadVDJdataT, VDJheader, 'append');
                     clear BadVDJdataT;
                 end
                 if size(VDJdata, 1) == 0; continue; end
@@ -615,86 +651,93 @@ while true
                     end
                 end
                 if max(BadIdx) ~= 0
-                    saveSeqData([TempDir ErrFileName], VDJdata(BadIdx, :), VDJheader, 'append');
+                    saveSeqData(ErrFileName, VDJdata(BadIdx, :), VDJheader, 'append');
                 end
                 VDJdata(BadIdx, :) = [];
 
                 %Save the functional annotations
                 VDJdata = buildVDJalignment(VDJdata, Map, DB); %Adds the alignment information
-                saveSeqData([TempDir TempOutputFileName], VDJdata, VDJheader, 'append');
+                saveSeqData([TempDir TempOutFileName], VDJdata, VDJheader, 'append');
                 clear VDJdata BadVDJdata
             end
             %======================================================================
             %Move folder to the correct destination folder
 
             %Combine final annotations to a single file, then move to destination
-            FinalFileStruct = dir([TempDir '*Final.csv']);
-            FinalFileList = cell(length(FinalFileStruct), 1);
-            for q = 1:length(FinalFileList)
-                FinalFileList{q} = [TempDir FinalFileStruct(q).name];
-            end
-            if exist([TempDir OutputFileName], 'file') %If a real output file was interrupted and left in Temp folder, delete.
+            FinalFileList = arrayfun(@(x) fullfile(TempDir, x.name), dir(fullfile(TempDir, '*Final.csv')), 'unif', false);
+            PrevFinalFile = fullfile(TempDir, OutFile);
+            if exist(PrevFinalFile, 'file') %If a real output file was interrupted and left in Temp folder, delete.
                 try
-                    delete([TempDir OutputFileName]);
+                    delete(PrevFinalFile);
                 catch
-                    warning('%s: Could not delete incomplete final file [ %s ].', mfilename, [TempDir OutputFileName]);
+                    warning('%s: Could not delete incomplete final file "%s".', mfilename, PrevFinalFile);
                 end
             end
             if length(FinalFileList) > 1
-                combineSeqData(FinalFileList, [TempDir OutputFileName]);
+                SrcFile = fullfile(TempDir, OutFile);
+                DstFile = fullfile(OutPath, OutFile);
+                combineSeqData(FinalFileList, SrcFile);
                 try
-                    movefile([TempDir OutputFileName], [OutputFilePath, OutputFileName], 'f');
+                    movefile(SrcFile, DstFile, 'f');
                     delete(FinalFileList{:});
                 catch
-                    warning('%s: Could not move Final files from [ %s ] to destination [ %s ].', mfilename, [TempDir OutputFileName], [OutputFilePath OutputFileName]);
+                    warning('%s: Could not move Final files from "%s" to destination "%s".', mfilename, SrcFile, DstFile);
                 end
             elseif length(FinalFileList) == 1
+                SrcFile = FinalFileList{1};
+                DstFile = fullfile(OutPath, OutFile);
                 try
-                    movefile(FinalFileList{1}, [OutputFilePath, OutputFileName], 'f');
+                    movefile(SrcFile, DstFile, 'f');
                 catch
-                    warning('%s: Could not move Final files from [ %s ] to destination [ %s ].', mfilename, FinalFileList{1}, [OutputFilePath OutputFileName]);
+                    warning('%s: Could not move Final files from "%s" to destination "%s".', mfilename, SrcFile, DstFile);
                 end
             end
         end
 
         %Combine raw annotations to a single file, then move to destination
-        RawFileStruct = dir([TempDir '*Raw.csv']); 
-        RawFileList = cell(length(RawFileStruct), 1);
-        for q = 1:length(RawFileList)
-            RawFileList{q} = [TempDir RawFileStruct(q).name];
-        end
+        RawFileList = arrayfun(@(x) fullfile(TempDir, x.name), dir(fullfile(TempDir, '*Raw.csv')), 'unif', false);
         if length(RawFileList) > 1
+            [~, RawFileNameOnly] = parseFileName(RawFileName);
+            SrcFile = RawFileName;
+            DstFile = fullfile(OutPath, RawFileNameOnly);
             try
-                combineSeqData(RawFileList, [TempDir RawFileName]);
-                movefile([TempDir RawFileName], [OutputFilePath, RawFileName]);
+                combineSeqData(RawFileList, SrcFile);
+                movefile(SrcFile, DstFile);
                 delete(RawFileList{:});
             catch
-                warning('%s: Could not move Raw files from [ %s ] to destination [ %s ].', mfilename, TempDir, [OutputFilePath RawFileName]);
+                warning('%s: Could not move Raw files from "%s" to destination "%s".', mfilename, TempDir, DstFile);
             end
         elseif length(RawFileList) == 1
+            [~, RawFileNameOnly] = parseFileName(RawFileName);
+            SrcFile = RawFileList{1};
+            DstFile = fullfile(OutPath, RawFileNameOnly);
             try
-                movefile(RawFileList{1}, [OutputFilePath, RawFileName], 'f');
+                movefile(SrcFile, DstFile, 'f');
             catch
-                warning('%s: Could not move Raw files from [ %s ] to destination [ %s ].', mfilename, RawFileList{1}, [OutputFilePath RawFileName]);
+                warning('%s: Could not move Raw files from "%s" to destination "%s".', mfilename, SrcFile, DstFile);
             end
         end
 
         %Move the err file out
-        if exist([TempDir ErrFileName], 'file')
+        if exist(ErrFileName, 'file')
+            [~, ErrFileNameOnly] = parseFileName(ErrFileName);
+            SrcFile = ErrFileName;
+            DstFile = fullfile(OutPath, ErrFileNameOnly);
             try
-                movefile([TempDir ErrFileName], [OutputFilePath, ErrFileName], 'f');
+                movefile(SrcFile, DstFile, 'f');
             catch
-                warning('%s: Could not move Err files from [ %s ] to destination [ %s ].', mfilename, [TempDir ErrFileName], [OutputFilePath ErrFileName]);
+                warning('%s: Could not move Err files from "%s" to destination "%s".', mfilename, SrcFile, DstFile);
             end
         end
 
-        %If isempty TempDir, delete
         prepTempDir(TempDir, 'delete');
-
         showStatus(sprintf('Finished in %0.1f sec.', toc), StatusHandle);
     end
     varargout{1} = OutputFile;
     
-    if strcmpi(AutoExit, 'y'); return; end
-    varargin = []; %Empty this to make sure loop asks for next input.
+    if RunMode == 3 && strcmpi(AutoExit, 'n')
+        continue 
+    else 
+        return
+    end
 end

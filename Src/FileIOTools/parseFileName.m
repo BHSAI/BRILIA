@@ -7,13 +7,15 @@
 %
 %  [FilePath, FileName, FileExt] = parseFileName(FullName, 'ignorefilecheck')
 %
+%  [FilePath, FileName, FileExt, FileNamePre] = parseFileName(FullName, 'ignorefilecheck')
+%
 %  INPUT
 %    FullName: file path and name to be parsed
 %    'ignorefilecheck': use this to prevent parseFileName from checking if
-%      file exists, especially when file path is not provided in the
+%      file exists, ONLY when file path is not provided in the
 %      FullName. This is used mainly for parsing a save file name. Note
 %      that without this option, FilePath will return [] if file does not
-%      exists. If ignorefilecheck, will return current directly as file
+%      exist. If ignorefilecheck, will return current directory as file the
 %      path.
 %
 %  OUTPUT
@@ -21,6 +23,7 @@
 %      'C:\Users\User1\PathFolder\'
 %    FileName: File name including any extensions, if any 'test.csv'
 %    FileExt: File extension only, including the dot. Ex: '.csv'
+%    FileNamePre: File name excluding any extensions.
 %
 %  EX: 
 %    F = 'C:\Users\Desktop\testing.xlsx';
@@ -28,47 +31,52 @@
 %      FilePath =  C:\Users\Desktop\
 %      FileName =  testing.xlsx
 %      FileExt =  .xlsx
-function [FilePath, FileName, FileExt] = parseFileName(FullName, varargin)
-%See if you want to check for file existence
-CheckFileExists = 'y';
-if ~isempty(varargin)
-    if strcmpi(varargin{1}, 'ignorefilecheck')
-        CheckFileExists = 'n';
-    end
+function [FilePath, FileName, FileExt, FileNamePre] = parseFileName(FullName, varargin)
+%Check for file existence
+if any(contains(varargin, 'ignorefilecheck'))
+    IgnoreFileCheck = true;
+else
+    IgnoreFileCheck = false;
 end
 
 %Establish defaults
 FileName = [];
 FileExt = [];
+FileNamePre = [];
+HasPath = false;
+
+%Switch the incorrect slashes
+SlashType  = '\/';
+WrongSlash = SlashType(~(SlashType == filesep));
+FullName = strrep(FullName, WrongSlash, filesep);
 
 %Case when no file path is given, assume cd is file path
-SlashLoc = regexp(FullName, filesep); %Location of fwd or bwd slashes
-if isempty(SlashLoc)
+SlashLoc = find(FullName == filesep);
+if isempty(SlashLoc) %No path was given
+    FilePath = [pwd filesep]; %Assume FilePath is cd for now
     FileName = FullName;
-    DotLoc = find(FileName == '.');
-    if ~isempty(DotLoc)
-        if length(FileName) - DotLoc(end) <= 7 %.xxxx file extension 
-            FileExt = FileName(DotLoc(end):end);
-        end
+   
+else %Path was given
+    HasPath = true;
+    FilePath = FullName(1:SlashLoc(end));
+    if SlashLoc(end) < length(FullName)
+        FileName = FullName(SlashLoc(end)+1:end);
     end
-    
-    %Make sure the file does exist before specifying the file path as cd
-    FilePath = [cd filesep]; %Assume FilePath is cd for now
-    if ~exist([FilePath FileName], 'file') && CheckFileExists == 'y'
-        FilePath = [];
-    end
-    return
 end
 
-%If filepath was given, parse and determine everything
-FilePath = FullName(1:SlashLoc(end));
-if SlashLoc(end) < length(FullName)
-    FileName = FullName(SlashLoc(end)+1:end);
+%Determine ext and filename without ext
+if ~isempty(FileName) 
     DotLoc = find(FileName == '.');
     if ~isempty(DotLoc)
         if length(FileName) - DotLoc(end) <= 7 %.xxxx file extension 
             FileExt = FileName(DotLoc(end):end);
+            FileNamePre = FileName(1:DotLoc(end)-1);
         end
     end
-    return
+end
+
+%If no path was given, file doew not exist, and ignorefilecheck option not
+%given, return an empty path to show this file does not exist
+if ~HasPath && ~exist(fullfile(pwd, FileName), 'file') && ~IgnoreFileCheck
+    FilePath = [];
 end

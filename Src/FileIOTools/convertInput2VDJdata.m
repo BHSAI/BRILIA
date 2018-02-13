@@ -86,26 +86,32 @@ elseif strcmpi(P.FileType, 'delimited')
     InputData = readDlmFile(P.FullFileName, 'delimiter', P.Delimiter, 'LineRange', P.SeqRange + 1); %For LineRange, we assume 1st line is header, hence get the next one.
 
     %Note: Only delimited files can take in paired sequences
-    Htemp = getHeavyHeaderVar(InputHeader);
-    Ltemp = getLightHeaderVar(InputHeader);
-    InSeqNameLoc = max([Htemp.SeqNameLoc Ltemp.SeqNameLoc]);       
-    if InSeqNameLoc == 0; InSeqNameLoc = 1; end %Assume.
-
-    InTemplateLoc = max([Htemp.TemplateLoc Ltemp.TemplateLoc]);
-    if InTemplateLoc == 0 && size(InputData, 2) >= 4
-        InTemplateLoc = 4; %Assume this
-    end 
-
-    if strcmpi(P.Chain, 'HL')        
-        InSeqLoc = Htemp.SeqLoc;
-        if InSeqLoc == 0; InSeqLoc = 2; end %Assume this
-       
-        InSeqLocL = Ltemp.SeqLoc;
-        if InSeqLocL == 0; InSeqLoc = 3; end %Assume this
+    InTemplateLoc = find(contains(InputHeader, {'Template', 'TempCount', 'TempCt', 'Copy'}, 'IgnoreCase', true));
+    InSeqNameLoc = find(contains(InputHeader, 'SeqName', 'IgnoreCase', true));
+    InHSeqLoc = find(ismember(lower(strrep(InputHeader, '-', '')), 'hseq'));
+    InLSeqLoc = find(ismember(lower(strrep(InputHeader, '-', '')), 'lseq'));
+    InXSeqLoc = find(ismember(lower(strrep(InputHeader, '-', '')),  'seq'));
+    
+    if isempty(InHSeqLoc) && isempty(InLSeqLoc) && isempty(InXSeqLoc)
+        error('%s: Could not find the "Seq" or "H-Seq" or "L-Seq" column header in the file "%s".', mfilename, P.FullFileName);
+    end
+    
+    if isempty(InHSeqLoc) && isempty(InLSeqLoc)
+        InSeqLoc = InXSeqLoc;
+    elseif isempty(InHSeqLoc) && ~isempty(InLSeqLoc)
+        InSeqLoc = InLSeqLoc;
+        P.Chain = 'L';
+    elseif ~isempty(InHSeqLoc) && isempty(InLSeqLoc) 
+        InSeqLoc = InHSeqLoc;
+        P.Chain = 'H';
     else
-        InSeqLoc = min([Htemp.SeqLoc Ltemp.SeqLoc]);
-        if InSeqLoc == 0; InSeqLoc = 2; end %Assume this
-    end        
+        InSeqLoc = [InHSeqLoc InLSeqLoc];
+        P.Chain = 'HL';
+    end
+    
+    if length(InSeqLoc) > 3
+        error('%s: Too many "Seq" or "H-Seq" or "L-Seq" in the column header in the file "%s".', mfilename, P.FullFileName);
+    end
 end
         
 %Create the VDJdata default matrix
@@ -123,7 +129,7 @@ if InTemplateLoc > 0 %Update template loc if possible.
             VDJdata(j, H.TemplateLoc) = InputData(j, InTemplateLoc);
         elseif ischar(InputData{j, InTemplateLoc}) %Check if it is a number
             if min(isstrprop(InputData{j, InTemplateLoc}, 'digit')) == 1
-                VDJdata{j, H.TemplateLoc} = eval(InputData{j, InTemplateLoc});
+                VDJdata{j, H.TemplateLoc} = convStr2Num(InputData{j, InTemplateLoc});
             end
         end
     end
@@ -135,8 +141,8 @@ if strcmpi(P.Chain, 'H')
 elseif strcmpi(P.Chain, 'L')
     VDJdata(:, L.SeqLoc) = InputData(:, InSeqLoc);
 else
-    VDJdata(:, H.SeqLoc) = InputData(:, InSeqLoc);
-    VDJdata(:, L.SeqLoc) = InputData(:, InSeqLocL);
+    VDJdata(:, H.SeqLoc) = InputData(:, InSeqLoc(1));
+    VDJdata(:, L.SeqLoc) = InputData(:, InSeqLoc(2));
 end
 
 if nargout >= 3

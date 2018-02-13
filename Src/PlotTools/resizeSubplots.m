@@ -35,7 +35,7 @@
 %    subplot(2, 2, 4)
 %    plot(3, 3, 'k')
 %    ylabel('blah')
-%    resizeSubplots(Gx, 'ScaleVertical', 'n', 'MatchWidth', 'y', 'Border', 0.01)
+%    resizeSubplots(Gx, 'ScaleVertical', 'n', 'MatchWidth', 'y', 'FigSpacer', 0.01)
 
 function varargout = resizeSubplots(varargin)
 [Gx, varargin] = getOpenGCF(varargin{:});

@@ -154,6 +154,7 @@ else
     if iscell(varargin{1}) && iscell(varargin{2}) %VDJdata and VDJheader were given
         VDJdata = varargin{1};
         VDJheader = varargin{2};
+        varargin(1:2) = [];
     elseif ischar(varargin{1}) %has to be char, but can't tell if it's a file name or header name
         if ~isempty(varargin{1} == '.') %Filenames have periods
             FileName = varargin{1};
@@ -244,8 +245,10 @@ for j = 1:size(InputCell,1)
     %Save the cumulative results
     if strcmp(Logic,'AND')
         SeqBinIdx = SeqBinIdx & BinIdxT;
-    else strcmp(Logic,'OR')
+    elseif strcmp(Logic,'OR')
         SeqBinIdx = SeqBinIdx | BinIdxT;
+    else
+        error('%s: Unrecognized Logic Operator. AND or OR only.', mfilename);
     end    
 end
 
@@ -340,11 +343,12 @@ BinIdxT = BinIdxT & ValidIdx;
 
 function BinIdxT = searchAlphaNum(M,QueryAlphaNum)
 %Search for match to query
-BinIdxT = zeros(size(M),'logical');
-FindMatchIdx = findCell(M,QueryAlphaNum,'MatchCase','any','MatchWord','partial');
-if ~isempty(FindMatchIdx) && FindMatchIdx(1) ~= 0
-    BinIdxT(FindMatchIdx) = 1;
-end
+BinIdxT = contains(M, QueryAlphaNum, 'IgnoreCase', true);
+% BinIdxT = zeros(size(M),'logical');
+% FindMatchIdx = findCell(M,QueryAlphaNum,'MatchCase','any','MatchWord','partial');
+% if ~isempty(FindMatchIdx) && FindMatchIdx(1) ~= 0
+%     BinIdxT(FindMatchIdx) = 1;
+% end
 
 function BinIdxT = searchProp(M,QueryProp)
 %Prepare Query

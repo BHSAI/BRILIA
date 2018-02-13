@@ -50,8 +50,8 @@ if isempty(FileExt) || isempty(FilePath)
 end
 
 [VDJheader, Delimiter] = readDlmFile(FullFileName, 'LineRange', [1 1]);
-VDJinfo = readDlmFile('DataHeaderInfo.csv');
-[~, Idx1, Idx2] = intersect(VDJheader, VDJinfo(:,1), 'stable');
+VDJinfo = readDlmFile(fullfile(findRoot, 'Tables', 'DataHeaderInfo.csv'));
+[~, Idx1, Idx2] = intersect(VDJheader, VDJinfo(:, 1), 'stable');
 
 if length(Idx1) == length(VDJheader) %You have all the info!
     IntLoc = find(startsWith(VDJinfo(Idx2, 2), 'int', 'ignorecase', true));
@@ -91,9 +91,11 @@ end
 %Filter for relevant data
 if ~isempty(varargin)
     CharLoc = cellfun(@ischar, varargin);
-    [~, GetIdx, ~] = intersect(lower(strrep(VDJheader, '-', '')), lower(strrep(varargin(CharLoc), '-', ''))); %Still debating with h-seq vs hSeq notation
-    VDJdata = VDJdata(:, GetIdx);
-    VDJheader = VDJheader(:, GetIdx);
+    if any(CharLoc)
+        [~, GetIdx, ~] = intersect(lower(strrep(VDJheader, '-', '')), lower(strrep(varargin(CharLoc), '-', ''))); %Still debating with h-seq vs hSeq notation
+        VDJdata = VDJdata(:, GetIdx);
+        VDJheader = VDJheader(:, GetIdx);
+    end
 end
 
 if nargout >= 5 || ~isempty(varargin)

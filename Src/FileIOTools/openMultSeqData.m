@@ -37,6 +37,7 @@ if nargin > 0
     elseif iscell(varargin{1})
         FileExist = cellfun(@(x) exist(x, 'file')>0, varargin{1});
         FileNames = varargin{1}(FileExist);
+        varargin{1} = [];
     else
         FileNames = {};
     end
