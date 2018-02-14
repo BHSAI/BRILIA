@@ -3,8 +3,8 @@ VDJdata,DataType,Description
 SeqName,str,Original sequence name
 SeqNum,int,BRILIA-assigned sequence number
 GroupNum,int,BRILIA-assigned group number
-TemplateCount,int,DNA copy count
-TreeChildCount,int,Number of child seq for this seq
+TemplateCount,int,Number of times this seq was observed in the data
+TreeChildCount,int,Number of immediate children seq for this seq
 #HEAVY CHAIN FIELDS,,
 H-Seq,str,Sequence of VDJ gene (X are wild card letters)
 H-RefSeq,str,Predicted parent sequence (1st in group is germline sequence)
