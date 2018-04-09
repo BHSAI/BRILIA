@@ -36,7 +36,9 @@
 %      DotColorMap     Mx3 matrix  A RGB colormap matrix used to decide how
 %                                    to color each tree node. Default is a 
 %                                    jet colormap.
-%      Legend          'y', 'n'     Will draw a color-coded CDR3 legend.
+%      GrpMinSize      N >= 0      Minimum tree size to draw
+%      GrpMaxSize      N >= 1      Maximum tree size to draw
+%      Legend          'y', 'n'    Will draw a color-coded CDR3 legend.
 %                                    Default is y.
 %      LegendFontSize  10          Font size of the Legend
 %      Xmax            N > 0       X axis maximum value.
@@ -430,7 +432,14 @@ for y = 1:length(UnqGrpNum)
 end
 
 if strcmpi(Visible, 'off') 
-    close(Gx);
+    try
+        close(Gx);
+    catch
+        varargout{1} = [];
+        varargout{2} = [];
+        varargout{3} = [];
+        return
+    end
 end
 
 if ShowOnly

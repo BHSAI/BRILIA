@@ -8,11 +8,14 @@ else
     OS = 'Linux';
 end
 
-MexDir = fullfile(RootDir, 'Src', 'MEX');
+%Create the target location
 MexTargetDir = fullfile(RootDir, 'Src', 'MEX', OS);
 [Success, Msg] = mkdir(MexTargetDir);
+
+%Find all mex cpp files under the root dir
+MexFiles = dir(fullfile(RootDir, '**', '*.cpp'));
+MexFileNames = arrayfun(@(x) fullfile(x.folder, x.name), MexFiles, 'unif', false);
 assert(Success > 0, '%s: Could not create directory "%s".\n  %s', mfilename, MexTargetDir, Msg)
-MexFiles = dir(fullfile(MexDir, '*.cpp'));
-for f = 1:length(MexFiles)
-    mex(fullfile(MexDir, MexFiles(f).name), '-outdir', MexTargetDir);
+for f = 1:length(MexFileNames)
+    mex(MexFileNames{f}, '-outdir', MexTargetDir);
 end

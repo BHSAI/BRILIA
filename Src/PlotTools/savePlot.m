@@ -93,7 +93,7 @@ if strcmpi(Save, 'y')
     
     %Assemble the full save name, and save depending on file ext.
     %NOTE: Use the painters renderer to prevent plot cutoff bugs in matlab.
-    FullSaveName = [SavePath SaveFile];
+    FullSaveName = fullfile(SavePath, SaveFile);
     switch SaveExt
         case '.tif'
             print(Gx, FullSaveName, '-dtiff', ['-r' num2str(DPI)], '-painters');

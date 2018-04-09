@@ -6,10 +6,10 @@
    A = 'ACGTTACGTT';
    B = 'ACGT';
    [c, d] = calcStrSimilarityMEX(A, B)
- *  
- * C = {'ACGT', 'ACTTGCA', 'ACGTTACGTTCA'}
- * [c, d] = calcStrSimilarityMEX(C)
- *
+    
+   C = {'ACGT', 'ACTTGCA', 'ACGTTACGTTCA'}
+   [c, d] = calcStrSimilarityMEX(C)
+  
    
  */
 

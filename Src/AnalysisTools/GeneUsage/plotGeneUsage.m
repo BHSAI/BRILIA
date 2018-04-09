@@ -1,4 +1,4 @@
-function varargout = plotGeneUsage(GeneUsage, varargin)
+function varargout = plotGeneUsage(S, varargin)
 P = inputParser;
 addParameter(P, 'FigWidth', 6, @(x) isnumeric(x) && x > 1);
 addParameter(P, 'FigHeight', 6, @(x) isnumeric(x) && x > 1);
