@@ -1,17 +1,26 @@
 /*
- calcStrSimilarityMEX will compare two strings to determine the % 
- similarity with respect to the shorter sequences.
+calcStrHamDistMEX will compare two strings to determine the hamming 
+distance and similarity fraction with respect to the shorter string.
  
- Example:
-   A = 'ACGTTACGTT';
-   B = 'ACGT';
-   [c, d] = calcStrSimilarityMEX(A, B)
-    
-   C = {'ACGT', 'ACTTGCA', 'ACGTTACGTTCA'}
-   [c, d] = calcStrSimilarityMEX(C)
+  [Ham, Sim] = calcStrHamDistMEX(StrA, StrB)
+
+  INPUT
+    StrA: string (case-insensitive)
+    StrB: string (case-insensitive)
   
-   
- */
+  OUTPUT
+    Ham: Hamming distance
+    Sim: Simliarity fraction of the shorter string
+ 
+  
+  EXAMPLE
+    StrA = 'ACGTTACGTT';
+    StrB = 'ACGTTC';
+    [Ham, Sim] = calcStrHamDistMEX(StrA, StrB)
+    
+    Str = {'ACGTTC', 'ACTTGCA', 'ACGTTACGTTCA'}
+    [Ham, Sim] = calcStrHamDistMEX(Str)
+*/
 
 #include "mex.h"
 #include <string>
@@ -19,12 +28,12 @@
 void calcStrHammingMEX(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double *pHamDist) {
     mwSize MinLen = LenA < LenB ? LenA : LenB;
     for (int j = 0; j < MinLen; j++) {
-        if (tolower(pSeqB[j]) == tolower(pSeqA[j]))
+        if (tolower(pSeqB[j]) != tolower(pSeqA[j]))
             *pHamDist = *pHamDist + 1;
     }
 }
 
-void calcStrSimilarityMEX(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double *pHamDist, double *pSimDist) {
+void calcStrHamDistMEX(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double *pHamDist, double *pSimDist) {
     mwSize MinLen = LenA < LenB ? LenA : LenB;
     for (int j = 0; j < MinLen; j++) {
         if (tolower(pSeqB[j]) == tolower(pSeqA[j]))
@@ -37,26 +46,26 @@ void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
     
     if (nrhs < 1 || nrhs > 2) {
-        mexErrMsgIdAndTxt("calcStrSimilarityMEX:input", "Need 1 to 2 inputs.");
+        mexErrMsgIdAndTxt("calcStrHamDistMEX:input", "Need 1 to 2 inputs.");
     }
     
     if (nlhs > 2) {
-        mexErrMsgIdAndTxt("calcStrSimilarityMEX:input", "Too many outputs (max 2).");
+        mexErrMsgIdAndTxt("calcStrHamDistMEX:input", "Too many outputs (max 2).");
     }
     
     bool IsCell = false;
     if (nrhs == 1) {
         if (!mxIsCell(prhs[0])) {
-            mexErrMsgIdAndTxt("calcStrSimilarityMEX:input", "Input1: Must be a cell array of strings.");
+            mexErrMsgIdAndTxt("calcStrHamDistMEX:input", "Input1: Must be a cell array of strings.");
         } else {
             IsCell = true;
         }
     } else {
         IsCell = false;
         if (!mxIsChar(prhs[0]))
-            mexErrMsgIdAndTxt("calcStrSimilarityMEX:input", "Input1: SeqA must be a string.");
+            mexErrMsgIdAndTxt("calcStrHamDistMEX:input", "Input1: SeqA must be a string.");
         if (!mxIsChar(prhs[1]))
-            mexErrMsgIdAndTxt("calcStrSimilarityMEX:input", "Input2: SeqB must be a string.");
+            mexErrMsgIdAndTxt("calcStrHamDistMEX:input", "Input2: SeqB must be a string.");
     }
 
     if (IsCell) {
@@ -102,7 +111,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
                     mwSize   LenB = mxGetN(pCellB);
                     int Idx1 = j + k*NumSeq;
                     int Idx2 = k + j*NumSeq;
-                    calcStrSimilarityMEX(pSeqA, pSeqB, LenA, LenB, &pHamDist[Idx1], &pSimDist[Idx1]);
+                    calcStrHamDistMEX(pSeqA, pSeqB, LenA, LenB, &pHamDist[Idx1], &pSimDist[Idx1]);
                     pHamDist[Idx2] = pHamDist[Idx1];
                     pSimDist[Idx2] = pSimDist[Idx1];
                 }
@@ -115,7 +124,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
         mwSize   LenA = mxGetN(prhs[0]);
         mxChar *pSeqB = mxGetChars(prhs[1]);
         mwSize   LenB = mxGetN(prhs[1]);
-        calcStrSimilarityMEX(pSeqA, pSeqB, LenA, LenB, &HamDist, &SimDist);
+        calcStrHamDistMEX(pSeqA, pSeqB, LenA, LenB, &HamDist, &SimDist);
 
         if (nlhs >= 1)
             plhs[0] = mxCreateDoubleScalar(HamDist);

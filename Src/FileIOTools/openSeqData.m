@@ -66,7 +66,7 @@ if length(Idx1) == length(VDJheader) %You have all the info!
     
     %Attempt to convert numeric matrix strings to numbers
     MatLoc = startsWith(VDJinfo(Idx2, 2), 'mat', 'ignorecase', true);
-    VDJdata(:, MatLoc) = cellfun(@convStr2Num, VDJdata(:, MatLoc), 'unif', false);
+    VDJdata(:, MatLoc) = cellfun(@convStr2NumMEX, VDJdata(:, MatLoc), 'unif', false);
 else
     StrPat = repmat('%s', 1, length(VDJheader));
     
@@ -81,7 +81,7 @@ else
         for r = 1:size(VDJdata, 1)
             if isnumeric(VDJdata{r, NumLoc(j)}); continue; end
             try 
-                VDJdata{r, NumLoc(j)} = convStr2Num(VDJdata{r, NumLoc(j)});
+                VDJdata{r, NumLoc(j)} = convStr2NumMEX(VDJdata{r, NumLoc(j)});
             catch 
             end
         end

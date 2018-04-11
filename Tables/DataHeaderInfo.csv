@@ -82,3 +82,9 @@ L-J_Align,str,Alignment results for Jk or Jl gene
 H-C_GeneName,str,Constant region annotation
 H-C_Start,int,Constant region 1st nt
 H-C_End,int,Constant region last nt
+hCDR3_Code,str,Reduced AA letter of CDR3
+hCDR3_HPI,int,Sum of Hydropathy index of CDR3
+hCDR3_VDWV,int,VDWV of CDR3
+hCDR3_MW,int,MW of CDR3
+hCDR3_pI,int,Isoelectic point of CDR3
+hCDR3_pH7Charge,int,Net charge of CDR3 at pH7

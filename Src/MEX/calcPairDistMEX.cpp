@@ -16,32 +16,19 @@ EXAMPLE
 
 int nt2int(mxChar charA) {
     switch (charA) {
-        case 'n':
-            return 0;
-        case 'N':
-            return 0;
-        case 'x':
-            return 0;
-        case 'X':
-            return 0;
-        case 'a':
-            return 1;
-        case 'A':
-            return 1;
-        case 'c':
-            return 2;
-        case 'C':
-            return 2;
-        case 'g':
-            return 3;
-        case 'G':
-            return 3;
-        case 't':
-            return 4;
-        case 'T':
-            return 4;
-        default:
-            return 5;
+        case 'n': return 0;
+        case 'N': return 0;
+        case 'x': return 0;
+        case 'X': return 0;
+        case 'a': return 1;
+        case 'A': return 1;
+        case 'c': return 2;
+        case 'C': return 2;
+        case 'g': return 3;
+        case 'G': return 3;
+        case 't': return 4;
+        case 'T': return 4;
+        default:  return 5;
     }
 }
 

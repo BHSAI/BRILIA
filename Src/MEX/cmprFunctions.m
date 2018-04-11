@@ -16,7 +16,9 @@
 %      .Time1: time to run Func1 Iter number of times
 %      .Time2: time to run Func2 Iter number of times
 %      .AssertTest: 1xNout logical array. 1 = match output, 0 = mismatch
-
+%
+%  EXAMPLE
+%    Summary = cmprFunctions('convStr2NumMEX', 'convStr2Num', 1, 1000, '[10, 20, 234.4, -323.123]')
 
 function Summary = cmprFunctions(Func1, Func2, Nout, Iter, varargin)
 

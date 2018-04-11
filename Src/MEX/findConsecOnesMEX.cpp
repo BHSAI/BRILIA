@@ -1,6 +1,25 @@
+/*  
+findConsecOnesMEX will get a 1xN or Mx1 vector and label form 1 to N the
+number of consecutive-matched ones.
+
+  Label = findConsecOnesMEX(Region)
+    
+  INPUT
+    Region: 1xN or Mx1 vector like [0 0 1 1 1 1 0 0 0 0 1 1]
+    
+  OUTPUT
+    Label: vector of size(Region) of regions 1 to N
+
+  EXAMPLE
+    Region = [0 0 1 1 1 1 0 0 0 0 1 1];
+    Label  = findConsecOnesMEX(Region)
+    Label  = 
+             [0 0 1 1 1 1 0 0 0 0 2 2]
+*/
+
 #include "mex.h"
 
-void mxFindConsecOnes(double *MatI, mwSize M, double *MatO) {
+void findConsecOnes(double *MatI, mwSize M, double *MatO) {
     mwSize i;
     double j = 0;
     bool b = false;
@@ -17,7 +36,7 @@ void mxFindConsecOnes(double *MatI, mwSize M, double *MatO) {
     }
 }
 
-void mxFindConsecOnes(bool *MatI, mwSize M, double *MatO) {
+void findConsecOnes(bool *MatI, mwSize M, double *MatO) {
     mwSize i;
     double j = 0;
     bool b = false;
@@ -63,11 +82,11 @@ void mexFunction(int nlhs,        mxArray *plhs[],
     if (mxIsDouble(prhs[0])) {
         double *MatI; 
         MatI = mxGetPr(prhs[0]);
-        mxFindConsecOnes(MatI, P, MatO);
+        findConsecOnes(MatI, P, MatO);
     } else if (mxIsLogical(prhs[0])) {
         bool *MatI;
         MatI = mxGetLogicals(prhs[0]);
-        mxFindConsecOnes(MatI, P, MatO);
+        findConsecOnes(MatI, P, MatO);
     }
 }
 
