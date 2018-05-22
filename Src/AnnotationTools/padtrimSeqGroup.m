@@ -49,7 +49,7 @@ for k = 1:length(Map.Chain)
     LengthLoc = Map.([C 'Length']);
     CDR3Loc   = Map.([C 'CDR3']);
     
-    %Replace any empty or 1xN CDR3s or CDR3e column with 0
+    %Replace any empty or 1xN CDR3s/e column with 0
     for j = 1:size(VDJdata, 1)
         for b = 3:4
             if isempty(VDJdata{j, CDR3Loc(b)}) || length(VDJdata{j, CDR3Loc(b)}) > 1
@@ -66,7 +66,7 @@ for k = 1:length(Map.Chain)
 
     %Remove invalid CDR3s
     InvalidLoc = (CDR3Bgns <= 1) | (CDR3Ends <= 1) | (CDR3Lens <= 5) | (CDR3Ends > SeqLens) | (CDR3Bgns >= CDR3Ends);
-    if sum(InvalidLoc) > 0
+    if any(InvalidLoc)
         BadVDJdata = cat(1, BadVDJdata, VDJdata(InvalidLoc, :));
         VDJdata(InvalidLoc, :) = [];
         CDR3Bgns(InvalidLoc) = [];

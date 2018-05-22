@@ -63,9 +63,9 @@ for k = 1:length(Map.Chain)
         end
         
         %Get basic ref gene information
-        Vseq = Vxmap{VmapNum,M.SeqLoc};
-        CDR1sRef = Vxmap{VmapNum,M.CDR1sLoc};
-        CDR1eRef = Vxmap{VmapNum,M.CDR1eLoc};
+        Vseq = Vxmap{VmapNum,M.Seq};
+        CDR1sRef = Vxmap{VmapNum,M.CDR1s};
+        CDR1eRef = Vxmap{VmapNum,M.CDR1e};
 
         %Make sure all info is provided for ref CDRX calculation 
         if isempty(Vseq); continue; end

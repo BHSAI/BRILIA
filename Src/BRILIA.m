@@ -245,7 +245,7 @@ while true
     AnnotOnly = Ps.AnnotOnly;
     AutoExit = Ps.AutoExit;
 
-    %Show credits AFTER input parsing for Unmode 1 or 2
+    %Show credits AFTER input parsing for runmode 1 or 2
     if ~HasShownCredit
         showCredits('bhsai', 'imgt');
         HasShownCredit = true;

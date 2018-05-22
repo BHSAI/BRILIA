@@ -68,17 +68,17 @@ for k = 1:length(Map.Chain)
         if isempty(JmapNum); continue; end
         
         if Map.Chain(k) == 'H' %Heavy chain, use Vmap Jmap
-            VrefCDR3 = DB.Vmap{VmapNum(1),M.AnchorLoc}; %Location of C from right end of V
-            JrefCDR3 = DB.Jmap{JmapNum(1),M.AnchorLoc}; %Location of W from left end of J
+            VrefCDR3 = DB.Vmap{VmapNum(1),M.Anchor}; %Location of C from right end of V
+            JrefCDR3 = DB.Jmap{JmapNum(1),M.Anchor}; %Location of W from left end of J
         else %Light chain, determine locus and u se Vkmap, Vlmap, Jkmap, Jlmap
             %Determine the locus and anchor loc
             Vname = VDJdata{j,Map.lGeneName(1)};
             if ~isempty(regexpi(Vname,'IGKV','once')) %Kappa
-                VrefCDR3 = DB.Vkmap{VmapNum(1),M.AnchorLoc}; %Location of C from right end of V
-                JrefCDR3 = DB.Jkmap{JmapNum(1),M.AnchorLoc}; %Location of F from left end of J
+                VrefCDR3 = DB.Vkmap{VmapNum(1),M.Anchor}; %Location of C from right end of V
+                JrefCDR3 = DB.Jkmap{JmapNum(1),M.Anchor}; %Location of F from left end of J
             else %Lambda
-                VrefCDR3 = DB.Vlmap{VmapNum(1),M.AnchorLoc}; %Location of C from right end of V
-                JrefCDR3 = DB.Jlmap{JmapNum(1),M.AnchorLoc}; %Location of F from left end of J
+                VrefCDR3 = DB.Vlmap{VmapNum(1),M.Anchor}; %Location of C from right end of V
+                JrefCDR3 = DB.Jlmap{JmapNum(1),M.Anchor}; %Location of F from left end of J
             end
         end
         

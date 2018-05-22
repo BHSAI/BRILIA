@@ -95,18 +95,18 @@ for k = 1:length(Map.Chain)
         HavePseudo = 0; %Assume maybe for now, until you confirm a "F".
         for v = 1:length(Vnum)
             if Map.Chain(k) == 'H'
-                if ~isempty(regexpi(DB.Vmap{Vnum(v),M.FunctLoc},'P','once'))
+                if ~isempty(regexpi(DB.Vmap{Vnum(v),M.Funct},'P','once'))
                     HavePseudo = 1;
                     break
                 end
             else
                 if ~isempty(regexpi(Vname,'IGKV','once')) %Kappa
-                    if ~isempty(regexpi(DB.Vkmap{Vnum(v),M.FunctLoc},'P','once'))
+                    if ~isempty(regexpi(DB.Vkmap{Vnum(v),M.Funct},'P','once'))
                         HavePseudo = 1;
                         break
                     end
                 else %Lambda
-                    if ~isempty(regexpi(DB.Vlmap{Vnum(v),M.FunctLoc},'P','once'))
+                    if ~isempty(regexpi(DB.Vlmap{Vnum(v),M.Funct},'P','once'))
                         HavePseudo = 1;
                         break
                     end

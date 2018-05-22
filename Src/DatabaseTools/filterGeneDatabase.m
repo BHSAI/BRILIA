@@ -81,11 +81,11 @@ if ~isempty(regexpi(DB.FilePath, 'mouse'))
             Xmap = DB.(Fields{j});
             DelThis = zeros(size(Xmap, 1), 1, 'logical');
             for k = 1:size(Xmap, 1)
-                if isempty(regexpi(Xmap{k, M.StrainLoc}, SearchFor, 'once'))
+                if isempty(regexpi(Xmap{k, M.Strain}, SearchFor, 'once'))
                     DelThis(k) = 1;
                 end
             end
-            Xmap(DelThis, M.SeqLoc) = {''};
+            Xmap(DelThis, M.Seq) = {''};
             DB.(Fields{j}) = Xmap;
         end
         FiltOption.Strain = UnqStrain{StrainNum}; %Save the final filter value
@@ -121,14 +121,14 @@ FiltOption.Ddirection = DsearchOptions{SearchDopt}; %Save the final filter value
 switch SearchDopt
     case 2 %Keep only Dfwd by deleting inverse
         for j = 1:size(DB.Dmap, 1)
-            if DB.Dmap{j, M.GeneLoc}(1) == 'r'
-                DB.Dmap{j, M.SeqLoc} = '';
+            if DB.Dmap{j, M.Gene}(1) == 'r'
+                DB.Dmap{j, M.Seq} = '';
             end
         end
     case 3 %Keep only Dinv by deleting forward
         for j = 1:size(DB.Dmap, 1)
-            if DB.Dmap{j, M.GeneLoc}(1) ~= 'r'
-                DB.Dmap{j, M.SeqLoc} = '';
+            if DB.Dmap{j, M.Gene}(1) ~= 'r'
+                DB.Dmap{j, M.Seq} = '';
             end
         end
     otherwise %Don't do anything
@@ -169,11 +169,11 @@ if min(FunctOpt(1)) > 1 %You have to filter
     for j = 1:length(FieldIdx)
         Xmap = DB.(Fields{FieldIdx(j)});
         for k = 1:size(Xmap, 1)
-            CurFunct = upper(Xmap{k, M.FunctLoc});
+            CurFunct = upper(Xmap{k, M.Funct});
             ParLoc = regexp(CurFunct, '\(|\)|\[|\]'); %Delete parenthesis and brackets
             CurFunct(ParLoc) = [];
             if ~ismember({CurFunct}, FunctOptions(FunctOpt))
-                Xmap{k, M.SeqLoc} = '';
+                Xmap{k, M.Seq} = '';
             end
         end
         DB.(Fields{FieldIdx(j)}) = Xmap;

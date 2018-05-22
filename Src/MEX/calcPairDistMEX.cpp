@@ -1,14 +1,47 @@
 /*  
-calcPairDistMEX computes the hamming distance and SHM distance from seqA 
-to seqB, and vice versa. 
+calcPairDistMEX computes the hamming distance and SHM distance from SeqA 
+to SeqB, and vice versa. 
 
-Score = calcShmHamDistMEX(SeqA, SeqB)
+  [Ham, A2B, B2A] = calcShmHamDistMEX(SeqA, SeqB)
 
-INPUT
+  [HamDist, ShmDist] = calcShmHamDistMEX(SeqList)
+ 
+  INPUT
+    SeqA: nt sequence string
+    SeqB: nt sequence string
+    SeqList: Mx1 cell of nt sequence strings
 
-OUTPUT
+  OUTPUT
+    Ham: hamming distance between SeqA and SeqB
+    A2B: BRILIA custom SHM distance from SeqA(parent) to SeqB(child)
+    B2A: BRILIA custom SHM distance from SeqB(child) to SeqA(parent)
+    HamDist: Matrix of hamming distance between sequences in SeqList
+    ShmDist: Matrix of BRILIA's SHM distance. Each row is the parent, 
+      each column is the child.
 
-EXAMPLE
+  EXAMPLE
+    SeqA = 'ACGGAGATGAACAGT'
+    SeqB = 'ATGGAGACGAGTAGT'
+    [Ham, P2C, C2P] = calcPairDistMEX(SeqA, SeqB);
+    Ham =
+          4
+    P2C =
+          4.5000
+    C2P =
+          5
+ 
+    SeqList = {'ACGGAGATGAACAGT', 'ATGGAGACGAGTAGT', 'ATGGATGCGAGTGGA'}
+    [HamDist, ShmDist] = calcPairDistMEX(SeqList);
+    HamDist =
+             0      4      8
+             4      0      4
+             8      4      0
+
+    ShmDist =
+           0.0    4.5   18.5
+           5.0    0.0    6.0
+          18.0    5.0    0.0
+
 */
 
 #include "mex.h"

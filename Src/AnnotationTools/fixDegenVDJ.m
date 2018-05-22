@@ -72,7 +72,7 @@ for x = 1:length(VDJ)
     %Identify location of pseudo genes
     PseudoIdx = zeros(size(Xmap, 1), 1, 'logical');
     for v = 1:size(Xmap, 1)
-        if ~isempty(regexpi(Xmap{v, M.FunctLoc}, 'P|ORF'))
+        if ~isempty(regexpi(Xmap{v, M.Funct}, 'P|ORF'))
             PseudoIdx(v) = 1;
         end
     end

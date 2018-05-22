@@ -187,7 +187,7 @@ for f = 1:length(FieldNames)
     KeepIdx = ones(size(DB.(FieldNames{f}), 1), 1, 'logical');
     Xmap = DB.(FieldNames{f});
     for j = 1:size(Xmap, 1)
-        if isempty(Xmap{j, M.SeqLoc})
+        if isempty(Xmap{j, M.Seq})
             KeepIdx(j) = 0;
         end
     end
@@ -252,9 +252,9 @@ while SeqNum <= SeqCount
         while ValidH == 0
 
             %Select a V, D, J gene
-            Vnum = ceil(rand(1)*size(DB.Vmap, M.SeqLoc));
-            Dnum = ceil(rand(1)*size(DB.Dmap, M.SeqLoc));
-            Jnum = ceil(rand(1)*size(DB.Jmap, M.SeqLoc));
+            Vnum = ceil(rand(1)*size(DB.Vmap, M.Seq));
+            Dnum = ceil(rand(1)*size(DB.Dmap, M.Seq));
+            Jnum = ceil(rand(1)*size(DB.Jmap, M.Seq));
 
             %Determine NT deletions and N1/N2 lengths
             V3del = round(-MeanV3del*log(rand(1)));
@@ -273,26 +273,26 @@ while SeqNum <= SeqCount
             if Nlen  > InsCap; Nlen  = InsCap;  end
 
             %Make sure deletions avoid 104C and 118W codons, and whole D gene
-            Cloc3 = DB.Vmap{Vnum, M.AnchorLoc}-2; %Distance from 3' edge of Vgene to 3rd nt of 104 codon
-            Wloc1 = DB.Jmap{Jnum, M.AnchorLoc}; %Distance from 5' edge of Jgene to 1st nt of 118 codon
+            Cloc3 = DB.Vmap{Vnum, M.Anchor}-2; %Distance from 3' edge of Vgene to 3rd nt of 104 codon
+            Wloc1 = DB.Jmap{Jnum, M.Anchor}; %Distance from 5' edge of Jgene to 1st nt of 118 codon
             if Cloc3 <= 0 || Wloc1 <= 0; continue; end %This will not allow pseudogenes without W/C locations to work.
             if V3del >= Cloc3; continue; end 
             if J5del >= Wloc1; continue; end
-            if (D5del + D3del) >= length(DB.Dmap{Dnum, M.SeqLoc}); continue; end %for simulation, prevent full deletion of D, though it could happen in reality.
+            if (D5del + D3del) >= length(DB.Dmap{Dnum, M.Seq}); continue; end %for simulation, prevent full deletion of D, though it could happen in reality.
 
             %Generate the sequence segments and store length information
-            Vseq = DB.Vmap{Vnum, M.SeqLoc}(1:end-V3del); %Vsegment
+            Vseq = DB.Vmap{Vnum, M.Seq}(1:end-V3del); %Vsegment
             Mseq = generateNregion(Mlen, ACGTprob, FLIPprobVD); %Nvd segment
-            Dseq = DB.Dmap{Dnum, M.SeqLoc}(D5del+1:end-D3del); %D segment
+            Dseq = DB.Dmap{Dnum, M.Seq}(D5del+1:end-D3del); %D segment
             Nseq = generateNregion(Nlen, ACGTprob, FLIPprobDJ); %Ndj segment
-            Jseq = DB.Jmap{Jnum, M.SeqLoc}(J5del+1:end); %Jsegment
+            Jseq = DB.Jmap{Jnum, M.Seq}(J5del+1:end); %Jsegment
 
             Seq = sprintf('%s%s%s%s%s', Vseq, Mseq, Dseq, Nseq, Jseq);
             VMDNJ = [length(Vseq) length(Mseq) length(Dseq) length(Nseq) length(Jseq)]; %All segment lengths
 
             %Check now if you'll get an in-frame CDR3
-            Cloc = VMDNJ(1) + V3del - DB.Vmap{Vnum, M.AnchorLoc} + 1;
-            Wloc = sum(VMDNJ(1:4)) - J5del + DB.Jmap{Jnum, M.AnchorLoc} + 2;
+            Cloc = VMDNJ(1) + V3del - DB.Vmap{Vnum, M.Anchor} + 1;
+            Wloc = sum(VMDNJ(1:4)) - J5del + DB.Jmap{Jnum, M.Anchor} + 2;
             if mod(Wloc-Cloc+1, 3) ~= 0; continue; end %Not in-frame
             if ((Wloc - Cloc + 1) / 3) < 5; continue; end %Too short CDR3
             ReadFrame = mod(Cloc + 2, 3) + 1;
@@ -306,7 +306,7 @@ while SeqNum <= SeqCount
         Tdata([H.SeqNumLoc H.GrpNumLoc H.SeqLoc H.RefSeqLoc H.SeqNameLoc]) = {SeqNum, GrpNum, Seq Seq num2str(SeqNum)}; %Note that Seq and RefSeq are same.
         Tdata(H.LengthLoc) = num2cell(VMDNJ);
         Tdata(H.DelLoc) = {V3del D5del D3del J5del};
-        Tdata(H.GeneNameLoc) = {DB.Vmap{Vnum, M.GeneLoc} DB.Dmap{Dnum, M.GeneLoc} DB.Jmap{Jnum, M.GeneLoc}};
+        Tdata(H.GeneNameLoc) = {DB.Vmap{Vnum, M.Gene} DB.Dmap{Dnum, M.Gene} DB.Jmap{Jnum, M.Gene}};
         Tdata(H.GeneNumLoc) = {Vnum Dnum Jnum}; %{DB.Vmap{Vnum, M.MiscLoc} DB.Dmap{Dnum, M.MiscLoc} DB.Jmap{Jnum, M.MiscLoc}};
         Tdata(H.CDR3Loc) = {CDR3seq length(CDR3seq) Cloc Wloc};
         Tdata(H.FunctLoc) = {'Y'};
@@ -339,23 +339,23 @@ while SeqNum <= SeqCount
             if Nlen  > InsCap; Nlen  = InsCap;  end
 
             %Make sure deletions avoid 104C and 118W codons, and whole D gene
-            Cloc3 = Vxmap{Vnum, M.AnchorLoc} - 2; %Distance from 3' edge of Vgene to 3rd nt of 104 codon
-            Wloc1 = Jxmap{Jnum, M.AnchorLoc}; %Distance from 5' edge of Jgene to 1st nt of 118 codon
+            Cloc3 = Vxmap{Vnum, M.Anchor} - 2; %Distance from 3' edge of Vgene to 3rd nt of 104 codon
+            Wloc1 = Jxmap{Jnum, M.Anchor}; %Distance from 5' edge of Jgene to 1st nt of 118 codon
             if Cloc3 <= 0 || Wloc1 <= 0; continue; end %This will not allow pseudogenes without W/C locations to work.
             if V3del >= Cloc3; continue; end 
             if J5del >= Wloc1; continue; end
 
             %Generate the sequence segments and store length information
-            Vseq = Vxmap{Vnum, M.SeqLoc}(1:end-V3del); %Vsegment
+            Vseq = Vxmap{Vnum, M.Seq}(1:end-V3del); %Vsegment
             Nseq = generateNregion(Nlen, ACGTprob, FLIPprobDJ); %N segment
-            Jseq = Jxmap{Jnum, M.SeqLoc}(J5del+1:end); %Jsegment
+            Jseq = Jxmap{Jnum, M.Seq}(J5del+1:end); %Jsegment
 
             Seq = sprintf('%s%s%s', Vseq, Nseq, Jseq);
             VNJ = [length(Vseq) length(Nseq) length(Jseq)]; %All segment lengths
 
             %Check now if you'll get an in-frame CDR3
-            Cloc = VNJ(1) + V3del - Vxmap{Vnum, M.AnchorLoc} + 1;
-            Wloc = sum(VNJ(1:2)) - J5del + Jxmap{Jnum, M.AnchorLoc} + 2;
+            Cloc = VNJ(1) + V3del - Vxmap{Vnum, M.Anchor} + 1;
+            Wloc = sum(VNJ(1:2)) - J5del + Jxmap{Jnum, M.Anchor} + 2;
             if mod(Wloc-Cloc+1, 3) ~= 0; continue; end %Not in-frame
             if ((Wloc - Cloc + 1) / 3) < 5; continue; end %Too short
             ReadFrame = mod(Cloc + 2, 3) + 1;
@@ -370,7 +370,7 @@ while SeqNum <= SeqCount
         Tdata([L.SeqNumLoc L.GrpNumLoc L.SeqLoc L.RefSeqLoc L.SeqNameLoc]) = {SeqNum, GrpNum, Seq, Seq, num2str(SeqNum)}; %Note that Seq and RefSeq are same.
         Tdata(L.LengthLoc) = num2cell(VNJ);
         Tdata(L.DelLoc) = {V3del J5del};
-        Tdata(L.GeneNameLoc) = {Vxmap{Vnum, M.GeneLoc} Jxmap{Jnum, M.GeneLoc}};
+        Tdata(L.GeneNameLoc) = {Vxmap{Vnum, M.Gene} Jxmap{Jnum, M.Gene}};
         Tdata(L.GeneNumLoc) = {Vnum Jnum}; %{Vxmap{Vnum, M.MiscLoc}, Jxmap{Jnum, M.MiscLoc}};
         Tdata(L.CDR3Loc) = {CDR3seq length(CDR3seq) Cloc Wloc};
         Tdata(L.FunctLoc) = {'Y'};

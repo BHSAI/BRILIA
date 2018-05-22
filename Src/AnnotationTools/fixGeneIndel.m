@@ -75,8 +75,8 @@ for k = 1:length(Map.Chain)
         
         %Construct the sliced Vseq and Vanchor cells
         if ~isempty(Vnum) && Vnum(1) > 0
-            VseqSlice{j} = Vmap{Vnum, M.SeqLoc};
-            VanchorSlice{j} = Vmap{Vnum, M.AnchorLoc};
+            VseqSlice{j} = Vmap{Vnum, M.Seq};
+            VanchorSlice{j} = Vmap{Vnum, M.Anchor};
         end
     end
     

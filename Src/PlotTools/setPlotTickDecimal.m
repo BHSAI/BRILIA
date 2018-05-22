@@ -63,7 +63,14 @@ end
 %Set the X axis decimals
 if Xdecimal >= 0
     for j = 1:length(Axs)
-        Xval = get(Axs(j), 'XTick');
+        %Decide if you want to use XTick value or XTickLabel value
+        Xval = cellfun(@convStr2Num, get(Axs(j), 'XTickLabel'), 'unif', false);
+        if any(cellfun(@(x) isempty(x) || isnan(x) || isinf(x), Xval))
+            Xval = get(Axs(j), 'XTick');
+        else
+            Xval = cell2mat(Xval);
+        end
+        
         Xstr = cell(1, length(Xval));
         StrForm = ['%0.' num2str(Xdecimal) 'f'];
         for x = 1:length(Xstr)
@@ -76,7 +83,14 @@ end
 %Set the Y axis decimals
 if Ydecimal >= 0
     for j = 1:length(Axs)
-        Yval = get(Axs(j), 'YTick');
+        %Decide if you want to use YTick value or YTickLabel value
+        Yval = cellfun(@convStr2Num, get(Axs(j), 'YTickLabel'), 'unif', false);
+        if any(cellfun(@(x) isempty(x) || isnan(x) || isinf(x), Yval))
+            Yval = get(Axs(j), 'YTick');
+        else
+            Yval = cell2mat(Yval);
+        end
+        
         Ystr = cell(1, length(Yval));
         StrForm = ['%0.' num2str(Ydecimal) 'f'];
         for y = 1:length(Ystr)

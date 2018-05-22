@@ -27,7 +27,7 @@ for j = 1:length(varargin)
         if ismember(lower(varargin{j}), {'-append', 'append'})
             AppendThis = 'y';
         elseif strcmpi(varargin{j}, 'Delimiter') && length(varargin) > j+1
-            if ismember(lower(varargin{j+1}), {';' ',' '\t'});
+            if ismember(lower(varargin{j+1}), {';' ',' '\t'})
                 Delimiter = varargin{j+1};
             end
         end

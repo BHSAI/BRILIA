@@ -10,27 +10,27 @@
 %
 %  OUTPUT
 %    M: structure containing standardized header name variable
-%      M.SeqLoc
-%      M.GeneLoc
-%      M.FunctLoc
-%      M.StrainLoc
-%      M.EntryNumLoc
-%      M.GapInfoLoc
-%      M.CDR1sLoc
-%      M.CDR1eLoc
-%      M.CDR2sLoc
-%      M.CDR2eLoc
-%      M.AnchorLoc
+%      M.Seq
+%      M.Gene
+%      M.Funct
+%      M.Strain
+%      M.EntryNum
+%      M.GapInfo
+%      M.CDR1s
+%      M.CDR1e
+%      M.CDR2s
+%      M.CDR2e
+%      M.Anchor
 function M = getMapHeaderVar(MapHeader)
 %Extract relevant column locations
-M.SeqLoc      = findCell(MapHeader,'Seq');
-M.GeneLoc     = findCell(MapHeader,'GeneName');
-M.FunctLoc    = findCell(MapHeader,'Function');
-M.StrainLoc   = findCell(MapHeader,'Strain');
-M.EntryNumLoc = findCell(MapHeader,'EntryNum');
-M.GapInfoLoc  = findCell(MapHeader,'GapInfo');
-M.CDR1sLoc    = findCell(MapHeader,'CDR1start');
-M.CDR1eLoc    = findCell(MapHeader,'CDR1end');
-M.CDR2sLoc    = findCell(MapHeader,'CDR2start');
-M.CDR2eLoc    = findCell(MapHeader,'CDR2end');
-M.AnchorLoc   = findCell(MapHeader,'AnchorDist');
+M.Seq      = findCell(MapHeader,'Seq');
+M.Gene     = findCell(MapHeader,'GeneName');
+M.Funct    = findCell(MapHeader,'Function');
+M.Strain   = findCell(MapHeader,'Strain');
+M.EntryNum = findCell(MapHeader,'EntryNum');
+M.GapInfo  = findCell(MapHeader,'GapInfo');
+M.CDR1s    = findCell(MapHeader,'CDR1start');
+M.CDR1e    = findCell(MapHeader,'CDR1end');
+M.CDR2s    = findCell(MapHeader,'CDR2start');
+M.CDR2e    = findCell(MapHeader,'CDR2end');
+M.Anchor   = findCell(MapHeader,'AnchorDist');

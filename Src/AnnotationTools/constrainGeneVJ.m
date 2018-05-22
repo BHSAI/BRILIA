@@ -82,11 +82,11 @@ for k = 1:length(Map.Chain)
         end
         
         %Calc max Vref del allowed to retain 104C
-        VallowedDel = Vmap{VmapNum, M.AnchorLoc} - 3; %Subtract 3 since you want to preserve codon of C
+        VallowedDel = Vmap{VmapNum, M.Anchor} - 3; %Subtract 3 since you want to preserve codon of C
         if VallowedDel < 0; VallowedDel = 25; end
         
         %Calc max Jref del allowed to retain 118W
-        JallowedDel = Jmap{JmapNum, M.AnchorLoc} - 1; %Subtract 1 since you want to preserve codon of WF
+        JallowedDel = Jmap{JmapNum, M.Anchor} - 1; %Subtract 1 since you want to preserve codon of WF
         if JallowedDel < 0; JallowedDel = 25; end
         
         %Calc Vdel and Jdel adjustments

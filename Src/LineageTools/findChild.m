@@ -1,9 +1,11 @@
 %findChild will return the locations numbers for the children of sequence.
 %
+%  ChildNum = findChild(AncMap, ParentNum)
+%
 %  INPUT
 %    AncMap: ancestry map
-%    ParentNum: absolute parent number for which the child(ren) number(s)
-%      is(are) sought 
+%    ParentNum: parent number for which the child(ren) number(s) is(are) 
+%      sought 
 %
 %  OUTPUT
 %    ChildNum: the child number(s) of the parent

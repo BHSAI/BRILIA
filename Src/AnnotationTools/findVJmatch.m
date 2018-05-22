@@ -71,7 +71,7 @@ DelLoc      = Map.lDel;
 %Place DB into separate tables due to broadcast issues.
 %Find headers since parfor can't handle it
 M = getMapHeaderVar(DB.MapHeader);
-AnchorLoc   = M.AnchorLoc;
+AnchorLoc   = M.Anchor;
 Vxmap = [DB.Vkmap; DB.Vlmap]; %Combined for simplicity
 VkCount = size(DB.Vkmap,1);   %Marks how many are for Vk vs. Vl
 Jkmap = DB.Jkmap;

@@ -62,7 +62,7 @@ end
 
 %Validate input type
 if isa(Validator, 'function_handle')
-    BadFuncStr = {'delete', 'copyfile', 'movefile', 'mkdir', 'rmdir'};
+    BadFuncStr = {'delete', 'copyfile', 'movefile', 'mkdir', 'rmdir'}; %cannot be these for saftey reasons
     ValidatorStr = func2str(Validator);
     ValidatorStrOnly = regexpi(ValidatorStr, '[a-z0-9]+', 'match');
     if any(ismember(BadFuncStr, ValidatorStrOnly))

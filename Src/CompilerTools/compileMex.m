@@ -27,5 +27,5 @@ end
 for f = 1:length(FileNames)
     OutDir = fileparts(FileNames{f});
     mex(FileNames{f}, '-outdir', OutDir);
-    makeMexMFiles(FileNames{f})
+    compileMexMFiles(FileNames{f})
 end

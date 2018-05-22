@@ -186,7 +186,7 @@ if isempty(DB)
                 %Extract seq info
                 CurSeq = upper(Seq{j});               
                 SeqInfo = regexpi(SeqName{j}, '\|', 'split');
-                GeneName = SeqInfo{2};
+                GeneName = SeqInfo{2}; 
                 Function = SeqInfo{4};
 
                 %Need to do this for the V's

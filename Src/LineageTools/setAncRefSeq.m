@@ -22,20 +22,23 @@
 %      AncMap(j, 2) = 0, which is the germline parent 0.
 
 function Tdata = setAncRefSeq(Tdata, Map, AncMap)
-if size(Tdata, 1) ~= AncMap
-    warning('%s: Tdata and AncMap row dimension cannot be different.', mfilename);
+if size(Tdata, 1) ~= size(AncMap, 1)
+    error('%s: Tdata and AncMap row dimension cannot be different.', mfilename);
 end
 
 %Determine chain and mutation locations
-if strcmpi(Map.Chain, 'HL')
-    SeqLoc = [Map.hSeq; Map.lSeq];
-    RefSeqLoc = [Map.hRefSeq; Map.lRefSeq];
-elseif strcmpi(Map.Chain, 'H')
-    SeqLoc = Map.hSeq;
-    RefSeqLoc = Map.hRefSeq;
-elseif strcmpi(Map.Chain, 'L')
-    SeqLoc = Map.lSeq;
-    RefSeqLoc = Map.lRefSeq;
+switch Map.Chain
+    case 'H'
+        SeqLoc = Map.hSeq;
+        RefSeqLoc = Map.hRefSeq;
+    case 'L'
+        SeqLoc = Map.lSeq;
+        RefSeqLoc = Map.lRefSeq;
+    case 'HL'
+        SeqLoc = [Map.hSeq; Map.lSeq];
+        RefSeqLoc = [Map.hRefSeq; Map.lRefSeq];
+    otherwise
+        error('%s: The Map.Chain must be all caps and H, L, or HL.', mfilename);
 end
 
 %For each child seq, you want the RefSeq to be the Seq of the parent.
@@ -46,3 +49,5 @@ for j = 2:size(Tdata, 1)
         Tdata(AncMap(j, 1), RefSeqLoc(c)) = Tdata(AncMap(j, 2), SeqLoc(c));
     end
 end
+
+%FUTURE RELEASE will place fill in the parent column in the data set

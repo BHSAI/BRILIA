@@ -73,7 +73,7 @@ DelLoc      = Map.hDel;
 
 %Place DB data into separate variables due to parfor broadcast issues.
 M = getMapHeaderVar(DB.MapHeader);
-AnchorLoc = M.AnchorLoc;
+AnchorLoc = M.Anchor;
 Vmap = DB.Vmap;
 Dmap = DB.Dmap;
 Jmap = DB.Jmap;

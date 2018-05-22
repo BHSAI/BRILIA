@@ -1,21 +1,31 @@
-AA_Name,AA_Code,VDWV(A3),HPI,PropertyCode,Description,MW,PkA
-Alanine,A,67,1.8,H,Hydrophobic,71.09,
+AA_Name,AA_Code,VDWV(A3),HPI,PropertyCode,Description,MW (w/o H2O),pKa (EMBOSS)
+Alanine,A,67,1.8,H,Hydrophobic,71.04,
 Arginine,R,148,-4.5,B,Basic,156.19,12.48
-Asparagine,N,96,-3.5,N,Amide,114.11,
+Asparagine,N,96,-3.5,N,Amide,114.1,
 Aspartic acid,D,91,-3.5,A,Acidic,115.09,3.9
-Cysteine,C,86,2.5,S,Sulfur,103.15,8.35
-Glutamic acid,E,109,-3.5,A,Acidic,129.12,4.07
-Glutamine,Q,114,-3.5,N,Amide,128.14,
+Cysteine,C,86,2.5,S,Sulfur,103.14,8.5
+Glutamine,Q,114,-3.5,N,Amide,128.13,
+Glutamic acid,E,109,-3.5,A,Acidic,129.12,4.1
 Glycine,G,48,-0.4,G,Unique: G,57.05,
-Histidine,H,118,-3.2,B,Basic,137.14,6.04
+Histidine,H,118,-3.2,B,Basic,137.14,6.5
 Isoleucine,I,124,4.5,H,Hydrophobic,113.16,
 Leucine,L,124,3.8,H,Hydrophobic,113.16,
-Lysine,K,135,-3.9,B,Basic,128.17,10.79
-Methionine,M,124,1.9,S,Sulfur,131.19,
+Lysine,K,135,-3.9,B,Basic,128.17,10.8
+Methionine,M,124,1.9,S,Sulfur,131.2,
 Phenylalanine,F,135,2.8,F,Unique: F,147.18,
 Proline,P,90,-1.6,P,Unique: P,97.12,
-Serine,S,73,-0.8,O,OH-hydroxyl,87.08,16
-Threonine,T,93,-0.7,O,OH-hydroxyl,101.11,16
+Serine,S,73,-0.8,O,OH-hydroxyl,87.08,
+Threonine,T,93,-0.7,O,OH-hydroxyl,101.11,
 Tryptophan,W,163,-0.9,W,Unique: W,186.21,
-Tyrosine,Y,141,-1.3,Y,Unique: Y,163.18,
-Valine,V,105,4.2,H,Hydrophobic,99.14,
+Tyrosine,Y,141,-1.3,Y,Unique: Y,163.18,10.1
+Valine,V,105,4.2,H,Hydrophobic,99.13,
+Cterm,Cterm,,,,,,8.6
+Nterm,Nterm,,,,,,3.6
+,,,,,,,
+,,,,,,,
+,,,,,,,
+REFERENCES,,,,,,,
+VDWV: http://www.proteinsandproteomics.org/content/free/tables_1/table08.pdf,,,,,,,
+"MW: Cantor, Charles R., and Paul R. Schimmel. Biophysical chemistry: Part III: the behavior of biological macromolecules. Macmillan, 1980.",,,,,,,
+"HPI: Kyte, Jack, and Russell F. Doolittle. ""A simple method for displaying the hydropathic character of a protein."" Journal of molecular biology 157.1 (1982): 105-132.",,,,,,,
+"pKa: Rice, Peter, Ian Longden, and Alan Bleasby. ""EMBOSS: the European molecular biology open software suite."" (2000): 276-277.",,,,,,,

@@ -12,8 +12,8 @@ if ReturnThis
    varargout = {Ps, Pu, ExpPs, ExpPu};
    return;
 end
-Chain = P.Results.Chain;
-MutType = P.Results.MutType;
+Chain = Ps.Chain;
+MutType = Ps.MutType;
 
 %Create the motif list, given as NNN#
 CodonList = loadCodonList;
@@ -61,12 +61,12 @@ for j = 1:size(VDJdata,1)
         Seq = VDJdata{j, SeqLoc(b)};
         CDR3s = VDJdata{j, CDR3sLoc(b)};
         Frame = mod(CDR3s-1, 3) + 1;
-        MutInfo = cat(2, MutInfo, getMutInfo(RefSeq, Seq, 'Frame', Frame)); %No frame needed?
+        MutInfo = cat(2, MutInfo, getMutInfo(RefSeq, Seq, Frame)); %No frame needed?
     end
     if strcmpi(MutType, 'all')
         for r = 1:length(MutInfo)
             MutMotif = MutInfo(r).Motif;
-            IntAfter = nt2int(MutInfo(r).After);
+            IntAfter = nt2int(MutInfo(r).NT(end));
             for k = 1:3
                 try
                     CodonLoc = codonMap(MutMotif(5-k-1:5-k+1));

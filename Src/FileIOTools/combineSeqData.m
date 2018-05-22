@@ -17,7 +17,7 @@
 function combineSeqData(FileList, OutputFile, varargin)
 %Detemine if there are multiple files to combine
 if ischar(FileList) 
-    if ~contains(FileList, '\*')
+    if contains(FileList, '*')
         FileList = dir(FileList);
     else
         warning('%s: No action taken.', mfilename);

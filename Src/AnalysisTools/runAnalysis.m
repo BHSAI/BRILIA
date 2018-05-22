@@ -68,14 +68,14 @@ catch
     warning('%s: Could not run plotHotMotifBarGraph.', mfilename);
 end
 
-try
-    SearchTable{j, 3} = plotGeneUsage(GeneUsage, 'SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', 'GeneUsage.png', 'Visible', 'off');
-    SearchTable{j, 2} = 'VDJ gene usage frequency chart per clonotype.';
-    SearchTable{j, 1} = 'VDJ Gene Usage Plots';
-    j = j+1;
-catch
-    warning('%s: Could not run plotGeneUsage.', mfilename);
-end
+% try
+%     SearchTable{j, 3} = plotGeneUsage(GeneUsage, 'SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', 'GeneUsage.png', 'Visible', 'off');
+%     SearchTable{j, 2} = 'VDJ gene usage frequency chart per clonotype.';
+%     SearchTable{j, 1} = 'VDJ Gene Usage Plots';
+%     j = j+1;
+% catch
+%     warning('%s: Could not run plotGeneUsage.', mfilename);
+% end
 
 % try
 %     SearchTable{j, 3} = plotHotMotifDendrogram(HotMotifData, 'SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', 'HotMotifBarDendrogram.png', 'Visible', 'off');

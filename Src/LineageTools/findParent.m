@@ -4,7 +4,7 @@
 %
 %  INPUT
 %    AncMap: ancestry map
-%    ChildNum: absolute child number for which the parent number is sought
+%    ChildNum: child number for which the parent number is sought
 %
 %  OUTPUT
 %    ParentNum: the parent number(s) of the child

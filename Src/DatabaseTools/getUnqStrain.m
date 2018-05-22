@@ -59,7 +59,7 @@ for j = 1:length(Fields)
     end
     StrPat = repmat('%s;', 1, size(Xmap, 1));
     StrPat(end) = [];
-    StrainName = sprintf(StrPat, Xmap{:, M.StrainLoc});   
+    StrainName = sprintf(StrPat, Xmap{:, M.Strain});   
     StrainCell = unique(regexp(StrainName, ';', 'split'));
     AllStrainCell = [AllStrainCell(:); StrainCell(:)];
 end

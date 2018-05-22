@@ -36,11 +36,11 @@ end
 %Remove all sequences without conserved residue or empty sequences
 DelThese = zeros(size(Xmap,1),1,'logical');
 for j = 1:size(Xmap,1)
-    if Xmap{j,M.AnchorLoc} < 3
+    if Xmap{j,M.Anchor} < 3
         DelThese(j) = 1;
-    elseif isempty(Xmap{j,M.SeqLoc})
+    elseif isempty(Xmap{j, M.Seq})
         DelThese(j) = 1;
-    elseif ~strcmpi(Xmap{j,M.FunctLoc},'F')
+    elseif ~strcmpi(Xmap{j, M.Funct},'F')
         DelThese(j) = 1;
     end   
 end
@@ -55,7 +55,7 @@ end
 %Determine if this is a V or J
 X = '';
 for j = 1:size(Xmap,1)
-    GeneName = Xmap{j,M.GeneLoc};
+    GeneName = Xmap{j,M.Gene};
     StrPat = 'IG[HKL][VDJ]';
     Xidx = regexpi(GeneName,StrPat,'end');
     if ~isempty(Xidx)
@@ -79,11 +79,11 @@ end
 SeedSeq = cell(size(Xmap,1),1);
 if strcmpi(X,'V')
     for j = 1:size(Xmap,1)
-        SeedSeq{j,1} = padtrimSeq(Xmap{j,M.SeqLoc}, length(Xmap{j,M.SeqLoc})-Xmap{j,M.AnchorLoc}+1, Nleft, Nright);
+        SeedSeq{j,1} = padtrimSeq(Xmap{j,M.Seq}, length(Xmap{j,M.Seq})-Xmap{j,M.Anchor}+1, Nleft, Nright);
     end
 elseif strcmpi(X,'J')
     for j = 1:size(Xmap,1)
-        SeedSeq{j,1} = padtrimSeq(Xmap{j,M.SeqLoc}, Xmap{j,M.AnchorLoc}, Nleft, Nright);
+        SeedSeq{j,1} = padtrimSeq(Xmap{j,M.Seq}, Xmap{j,M.Anchor}, Nleft, Nright);
     end
 end
 

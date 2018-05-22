@@ -1,4 +1,29 @@
-function ClustMap = findTreeClust(AncMap, Option)
+%findTreeClust will return the location of clusters that belong to the same
+%group. Groups are defined as those that are related by ancestry.
+%
+%  INPUT
+%    AncMap: ancestral map matrix (calcAncMap.m or calcRootedAncMap.m)
+%
+%  OUTPUT
+%    ClustMap: Mx2 matrix where 
+%      col1 = # on AncMap
+%      col2 = group number
+%
+%  EXAMPLE
+%    AncMap = [
+%          1     0     1;
+%          2     1     2;
+%          3     0     1;
+%          4     3     1];
+%
+%    ClustMap = findTreeClust(AncMap)
+%    ClustMap =
+%          1     1
+%          2     1
+%          3     2
+%          4     2
+%
+function ClustMap = findTreeClust(AncMap)
 %Build the starting cluster
 ClustNum = 1;
 ClustMap = [[1:size(AncMap, 1)]' zeros(size(AncMap, 1), 2)]; %[SeqNumber ClusterNum CurrentNodeAssessed]

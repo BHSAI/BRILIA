@@ -28,11 +28,10 @@ function AncMap = calcRootedAncMap(PairDist)
 %Ensure PairDist is a square matrix
 [M, N] = size(PairDist);
 if M ~= N %Check for linear form
-    M = ceil(sqrt(2*N));
-    if M*(M-1)/2 == N
+    try
         PairDist = squareform(PairDist);
-    else
-        error('%s: Input not a square distance matrix.', mfilename);
+    catch
+        error('%s: Input is not a square distance matrix.', mfilename);
     end
 end
 PairDist(eye(size(PairDist))>0) = Inf; %Set diagonal to max to prevent self matching

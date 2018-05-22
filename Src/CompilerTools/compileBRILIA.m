@@ -12,7 +12,7 @@ TargetDir = fullfile(RootDir, 'Bin', OS);
 [Success, Msg] = mkdir(TargetDir);
 assert(Success > 0, '%s: Could not create directory "%s".\n  %s', mfilename, TargetDir, Msg)
 
-compileMEX;
+compileMex;
 
 fprintf('%s: %s\n', mfilename, 'Compiling help texts.');
 compileHelpText('Dir', RootDir, 'CheckSub', 'y', 'SaveTo', fullfile(RootDir, 'HelpText'), 'Overwrite', 'y');

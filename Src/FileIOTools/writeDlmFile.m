@@ -16,6 +16,10 @@
 %  See also readDlmFile
 
 function writeDlmFile(CellData, OutputFile, varargin)
+if ismatrix(CellData) && ~iscell(CellData)
+    CellData = num2cell(CellData);
+end
+
 %See if 'append' and Delimiter was specified
 WriteType = 'w';
 Delimiter = ',';
@@ -23,7 +27,7 @@ for j = 1:length(varargin)
     if ischar(varargin{j})
         if ~isempty(regexpi(varargin{j}, 'append', 'once'))
             WriteType = 'a';
-        elseif ismember(varargin{j}, {',' ';' '\t'});
+        elseif ismember(varargin{j}, {',' ';' '\t'})
             Delimiter = varargin{j};
         else
             error('%s: Unrecognized input [ %s ].', mfilename, varargin{j});
