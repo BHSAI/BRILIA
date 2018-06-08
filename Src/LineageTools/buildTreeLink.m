@@ -13,10 +13,6 @@
 %
 %  [AncMapCell, Tdata] = buildTreeLink(Tdata, Map, DevPerc)
 %
-%  [AncMapCell, Tdata] = buildTreeLink(Tdata, Map, DevPerc, S)  (faster)
-%
-%  S = buildTreeLink('getheadervar', Map)
-%
 %
 %  INPUT
 %    Tdata: main BRILIA data cell, but selecting for only sequences that
@@ -25,21 +21,6 @@
 %    Map: map of the BRILIA header cell (getVDJmapper.m)
 %    DevPerc: Ranges 0 to 100, indicating % of sequence length to use as
 %      the cutoff SHM distance. 
-%    S: special header structure containing locations of important data
-%      columns. This is used to speed up the repetitive header search. Can
-%      get this using S = buildTreeLink('getHeaderVar', VDJheader);
-%         S.Chain
-%         S.Template
-%         S.ChildCount
-%         S.GrpNum
-%         S.hCDR3
-%         S.lCDR3
-%         S.hSeq
-%         S.lSeq
-%         S.hRefSeq
-%         S.lRefSeq
-%         S.hLength
-%         S.lLength
 %
 %  OUTPUT
 %    AncMapCell: a Mx1 cell, where each cell contain an ancestry map matrix
@@ -48,59 +29,18 @@
 %    Tdata: rearranged Tdata such that the clusters are grouped together, 
 %      with the 1st sequence of each cluster being closest to the germline
 %      seq.
-%    S: see definition above in INPUT. Feeding S as an input speeds up
-%      repetitive summons of buildTreeLink.
 
-function varargout = buildTreeLink(varargin)
-%See if user wants to parse the header (special function)
-JustGettingS = 0;
-S = [];
-if nargin >= 2 && ischar(varargin{1}) && strcmpi(varargin{1}, 'getheadervar')
-    Map = varargin{2};
-    JustGettingS = 1;
-elseif nargin >= 3
-    Tdata = varargin{1};
-    Map = varargin{2};
-    DevPerc = varargin{3};
-    if nargin >= 4 && isstruct(varargin{4})
-        S = varargin{4};
-    end
-else
-    error('%s: Wrong number of inputs.', mfilename);    
-end
-
-%Extract the minimally needed header information due to high repetetition
-if isempty(S)
-    S.Chain = Map.Chain;
-    S.Template = Map.Template;
-    S.ChildCount = Map.ChildCount;
-    S.GrpNum = Map.GrpNum;
-    S.hCDR3 = Map.hCDR3;
-    S.lCDR3 = Map.lCDR3;
-    S.hSeq = Map.hSeq;
-    S.lSeq = Map.lSeq;
-    S.hRefSeq = Map.hRefSeq;
-    S.lRefSeq = Map.lRefSeq;
-    S.hLength = Map.hLength;
-    S.lLength = Map.lLength;
-end
-
-%Return S if specified
-if JustGettingS
-    varargout{1} = S;
-    return
-end
-
-Chain = lower(S.Chain);
+function varargout = buildTreeLink(Tdata, Map, DevPerc)
+Chain = lower(Map.Chain);
 MaxSeqLen = 0;
 for c = 1:length(Chain)
-    MaxSeqLen = MaxSeqLen + length(Tdata{1, S.([Chain(c) 'Seq'])});
+    MaxSeqLen = MaxSeqLen + length(Tdata{1, Map.([Chain(c) 'Seq'])});
 end
 
 %Determine the distances between sequences, adding H and L together
 PairDist = zeros(size(Tdata, 1));
 for c = 1:length(Chain)
-    [~, ShmPairDist] = calcPairDistMEX(Tdata(:, S.([Chain(c) 'Seq'])));
+    [~, ShmPairDist] = calcPairDistMEX(Tdata(:, Map.([Chain(c) 'Seq'])));
     PairDist = PairDist + ShmPairDist;
 end
 CutoffDist = ceil(MaxSeqLen*DevPerc/100);
@@ -110,8 +50,8 @@ CutoffDist = ceil(MaxSeqLen*DevPerc/100);
 % Tdata = trimSeq(Tdata, VDJheader);
 
 %Determine initial parent-child pairing
-if S.Template > 0
-    TempCt = cell2mat(Tdata(:, S.Template));
+if Map.Template > 0
+    TempCt = cell2mat(Tdata(:, Map.Template));
 else
     TempCt = ones(size(Tdata, 1), 1);    
 end
@@ -150,9 +90,9 @@ while any(AncCycle)
                     VDJscore = zeros(length(RootLoc), 5);
                     for g = 1:length(RootLoc)
                         %Extract data needed to calculate scores
-                        VMDNJ = cell2mat(Tdata(RootLoc(g), S.hLength));
-                        CurSeq = Tdata{RootLoc(g), S.hSeq};
-                        RefSeq = Tdata{RootLoc(g), S.hRefSeq};
+                        VMDNJ = cell2mat(Tdata(RootLoc(g), Map.hLength));
+                        CurSeq = Tdata{RootLoc(g), Map.hSeq};
+                        RefSeq = Tdata{RootLoc(g), Map.hRefSeq};
                         
                         %Make sure all info is there
                         if isempty(VMDNJ); continue; end
@@ -176,9 +116,9 @@ while any(AncCycle)
                     VJscore = zeros(length(RootLoc), 4);
                     for g = 1:length(RootLoc)
                         %Extract data needed to calculate scores
-                        VNJ = cell2mat(Tdata(RootLoc(g), S.lLength));
-                        CurSeq = Tdata{RootLoc(g), S.lSeq};
-                        RefSeq = Tdata{RootLoc(g), S.lRefSeq};
+                        VNJ = cell2mat(Tdata(RootLoc(g), Map.lLength));
+                        CurSeq = Tdata{RootLoc(g), Map.lSeq};
+                        RefSeq = Tdata{RootLoc(g), Map.lRefSeq};
 
                         %Make sure all info is there
                         if isempty(VNJ); continue; end
@@ -277,10 +217,10 @@ for j= 1:size(AncMapCell, 1)
     AncMapT(:, 3) = AncMapT(:, 3)/2; %Remember, SHMHAM was doubled for algorithm purposes, so need to divide back by 2;
     AncMapCell{j, 1} = AncMapT;
     if contains(Chain, 'H')
-        AncMapCell{j, 2} = Tdata(AncMapT(:, 1), S.hCDR3(1)); %Save the CDR3 info
+        AncMapCell{j, 2} = Tdata(AncMapT(:, 1), Map.hCDR3(1)); %Save the CDR3 info
     end
     if contains(Chain, 'L')
-        AncMapCell{j, 3} = Tdata(AncMapT(:, 1), S.lCDR3(1)); %Save the CDR3 info
+        AncMapCell{j, 3} = Tdata(AncMapT(:, 1), Map.lCDR3(1)); %Save the CDR3 info
     end
 end
 
@@ -308,9 +248,9 @@ if nargout >= 1
             AncMapCell{k} = AncMapT;
 
             %If there is the TreeCountLoc, fill in the data here
-            if S.ChildCount > 0
+            if Map.ChildCount > 0
                 for w = 1:size(TdataT, 1)
-                    TdataT{w, S.ChildCount} = length(findChild(AncMapT, AncMapT(w, 1)));
+                    TdataT{w, Map.ChildCount} = length(findChild(AncMapT, AncMapT(w, 1)));
                 end
             end
 
@@ -320,7 +260,7 @@ if nargout >= 1
                 if CurLoc > 0
                     for c = 1:length(Chain)
                         ParLoc = AncMapT(:, 1) == CurLoc;
-                        TdataT(h, S.([Chain(c) 'RefSeq'])) = TdataT(ParLoc, S.([Chain(c) 'Seq']));
+                        TdataT(h, Map.([Chain(c) 'RefSeq'])) = TdataT(ParLoc, Map.([Chain(c) 'Seq']));
                     end
                 end
             end
@@ -328,7 +268,7 @@ if nargout >= 1
             %Add the TdataNew entries, and update S1 and GrpNum counters
             S2 = S1 + size(AncMapCell{k, 1}, 1)-1; %Final index of TdataNew
             TdataNew(S1:S2, 1:size(TdataT, 2)) = TdataT;
-            TdataNew(S1:S2, S.GrpNum) = repmat({GrpNum}, S2-S1+1, 1);
+            TdataNew(S1:S2, Map.GrpNum) = repmat({GrpNum}, S2-S1+1, 1);
             S1 = S2 + 1;
             GrpNum = GrpNum + 1;
         end

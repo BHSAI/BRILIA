@@ -1,7 +1,7 @@
-%cleanCommandLineInput will remove the '-' in in a cell array of string inputs
-%such as varargin, and convert numerical strings to numbers. This is used
-%mainly for command line usage of a function where a '-' is used in front
-%of the parameter name.
+%cleanCommandLineInput will remove the '-' in in a cell array of string
+%inputs such as varargin, and convert numerical strings to numbers. This is
+%used mainly for command line usage of a function where a '-' is used in
+%front of the parameter name.
 %
 %  INPUT
 %    CellStr: a cell array of param/value pairs like from varargin
@@ -38,7 +38,7 @@ for k = 1:length(CharLoc)
             NumVal = convStr2Num(InputStr);
             if ~isempty(NumVal)
                 CellStr{CharLoc(k)} = NumVal;
-                continue;
+                continue
             end
         catch
         end

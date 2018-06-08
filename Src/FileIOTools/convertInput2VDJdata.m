@@ -62,10 +62,6 @@ if strcmpi(P.FileType, 'fasta')
     catch
         error('%s: Could not read fasta file ''%s''.', mfilename, P.FullFileName);
     end
-    if ischar(SeqName)
-        SeqName = {SeqName};
-        SeqData = {SeqData};
-    end
     InputData = [SeqName(:) SeqData(:)];
     InSeqNameLoc = 1;
     InSeqLoc = 2;

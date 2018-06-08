@@ -1,84 +1,45 @@
 %showHelp will display a m file's help text on the command line, which
-%should be stored in a 'HelpText' folder. This is a workaround solution for
-%matlab's inability to show help text in compiled codes.
+%should be stored in at RootDir\HelpText\. This is a workaround solution
+%for matlab's inability to show help text in compiled codes.
 %
-%  showHelp('Name', Name, 'HelpTextDir', HelpTextDir)
+%  showHelp(Name)
+%
+%  showHelp(CLIvarargin)
 %
 %  INPUT
 %    Name: the name of the function or m file (without the .m)
-%    HelpDir: the directory storing all help text files created from
-%      compileHelpText
+%    CLIvarargin: variable input arguments generated from CLI, in which if
+%    user types 'help plotTree' or 'info plotTree', or '-h plotTree', then
+%    showHelp will attempt to show the help text.
 %
-%  See also compileHelpText
-
-function showHelp(Name, varargin)
-CurDir = pwd;
-
-%If HelpDir is given, see if it exists
-HelpDir = '';
-if ~isempty(varargin) && ischar(varargin{1})
-    HelpDir = varargin{1};
-    if HelpDir(end) ~= filesep
-        HelpDir = cat(2, HelpDir, filesep);
-    end
-    if ~exist(HelpDir, 'dir')
-        HelpDir = '';
-    end
-end
-
-%Determine if the file exists (without path)
-DotLoc = find(Name == '.');
-if ~isempty(DotLoc) %See if it ends in .m
-    if ismember(lower(Name(DotLoc(end):end)), {'.m', '.txt'})
-        Name = Name(1:DotLoc(end) - 1);
-    end
-end
-HelpTextName = [Name '.txt'];
-
-if ~exist([HelpDir HelpTextName], 'file') %Need to search for a valid HelpDir
-    %Look for the HelpDir
-    SubDir = genpath(CurDir);
-    SubDir = regexp(SubDir, ';', 'split')';
-    if isempty(SubDir{end})
-        SubDir(end) = [];
-    end
-    
-    HelpDirLoc = zeros(length(SubDir), 1);
-    for j = 1:length(SubDir)
-        FolderParse = regexp(SubDir{j}, '\\|\/', 'split');
-        for k = length(FolderParse):-1:1
-            if ~isempty(regexpi(FolderParse{k}, 'HelpText', 'once'))
-                HelpDirLoc(j, 1) = k;
-                break;
-            end
-        end
-    end
-    
-    PotentialLoc = find(HelpDirLoc > 1);
-    if isempty(PotentialLoc)
-        return;
-    end
-    
-    SelectLoc = PotentialLoc(HelpDirLoc(PotentialLoc) == min(HelpDirLoc(PotentialLoc)));
-    SelectLoc = SelectLoc(1);
-    HelpDir = SubDir{SelectLoc};
-    if HelpDir(end) ~= filesep
-        HelpDir = cat(2, HelpDir, filesep);
-    end
-end
-
-if ~exist([HelpDir HelpTextName], 'file')
-    warning('%s: Could not find help file [ %s ]', mfilename, [HelpDir HelpTextName]);
-    return;
-end
-FID1 = fopen([HelpDir HelpTextName], 'r');
-if FID1 <= 0
-    warning('%s: Could not read [ %s ]', mfilename, [HelpDir HelpTextName]);
+function showHelp(varargin)
+if isempty(varargin)
     return
 end
-TextLine = fgetl(FID1);
-while ischar(TextLine)
-    fprintf('%s\n', TextLine);
-    TextLine = fgetl(FID1);
+
+if isdeployed
+    varargin = cleanCommandLineInput(varargin{:});
+    ValidCall = {'h', 'i', 'info', 'help', 'showhelp', 'showinfo'};
+    if any(strcmpi(ValidCall, varargin{1}))
+        varargin = varargin(2:end);
+    end
 end
-fclose(FID1);
+
+for j = 1:length(varargin)
+    displayHelpText(varargin{j});
+end
+
+function displayHelpText(FuncName)
+HelpDir = fullfile(findRoot, 'HelpText');
+HelpFile = fullfile(HelpDir, [FuncName '.txt']);
+if ~exist(HelpFile, 'file')
+    warning('%s: Could not find the help text for "%s" at "%s".', mfilename, FuncName, HelpFile);
+    return
+end
+
+FID = fopen(HelpFile, 'r');
+TXT = textscan(FID, '%s', 'delimiter', '\n');
+fclose(FID);
+fprintf('\n');
+fprintf('%s\n', TXT{1}{:});
+fprintf('\n');

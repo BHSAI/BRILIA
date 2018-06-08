@@ -53,7 +53,7 @@ end
 VDJinfo = readDlmFile(fullfile(findRoot, 'Tables', 'DataHeaderInfo.csv'));
 [~, Idx1, Idx2] = intersect(VDJheader, VDJinfo(:, 1), 'stable');
 
-if length(Idx1) == length(VDJheader) %You have all the info!
+if 0 %length(Idx1) == length(VDJheader) %You have all the info!
     IntLoc = find(startsWith(VDJinfo(Idx2, 2), 'int', 'ignorecase', true));
     StrPat = repmat('%s', 1, length(VDJheader));
     StrPat(IntLoc*2) = 'f';

@@ -59,7 +59,7 @@ InvalidInput = 0;
 if length(varargin) == 4 %Single input
     [SeqA, AnchorA, LeftOpt, RightOpt] = deal(varargin{:});   
     InputCount = 1;
-    if isempty(SeqA);
+    if isempty(SeqA)
         InvalidInput = 1;
     end
 else %Two seuqence input
