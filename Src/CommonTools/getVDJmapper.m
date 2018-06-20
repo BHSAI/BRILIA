@@ -23,3 +23,5 @@ Lname = cellfun(@(x) ['l' strrep(x, 'Loc', '')], fieldnames(L), 'uniformoutput',
 
 Bdata = [{'Chain'} Chain; Cname CommonLocs; Hname struct2cell(H); Lname struct2cell(L)]';
 Map = struct(Bdata{:});
+
+Map.ParNum = find(strcmpi(VDJheader, 'ParNum'));

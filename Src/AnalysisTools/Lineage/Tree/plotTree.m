@@ -184,9 +184,7 @@ for y = 1:length(UnqGrpNum)
     end
 
     if ~ShowOnly 
-        if y == 1
-            [Gx, Ax] = makeDefaultFigure(Visible, FigWidth, FigMaxHeight, DistanceUnit, ExpPu);
-        end
+        [Gx, Ax] = makeDefaultFigure(Visible, FigWidth, FigMaxHeight, DistanceUnit, ExpPu);
         if mod(y, 5) == 0
             showStatus(sprintf('Drawing Tree %d / %d', y, length(UnqGrpNum)), StatusHandle);
         end

@@ -1,117 +1,120 @@
-%clusterGene will perform the lineage-based clustering scheme used by
-%BRILIA. A crude cluster is first assembled based on save V and J "family
-%gene numbers", and afterwards, will determine which cluster belongs
-%together based on the SHM distance calculations. The cutoff distance has
-%been specfied as a % of the sequence length (DevPerc), though SHM distance
-%can return scores larger/smaller that DevPerc length of Seq depending on
-%if the SHM patterns match with expected patterns.
+%clusterGene will do the full clustering of sequences based on lineage
+%viability, distances, germline sequence annotation, etc.
 %
-%  VDJdata = clusterGene(VDJdata, VDJheader, DevPerc)
+%PROCEDURE
+%1) Group crude clonotypes by unique CDR3Length, Vfamily, and Jfamily
+%   For both H and L chains.
+%2) Compute SHM pairwise sequence distances and then use the Motif and Mut
+%   scores to "block" certain lineage linkings. Essentially, having more
+%   coldspot than hotspot mutations raises a red flag for linking.
+%3) Link by nearest distance first to get the fine clusters.
+%4) Within each cluster, look for the closest SHM distance to the germline.
+%     Closest Distance >> 
+%     Higher Template Count >> 
+%     Smaller Distance to others members >>
+%5) Determine if clusters can be linked to the same germline 
+%
+%
+%  VDJdata = clusterGene(VDJdata, Map)
 %
 %  INPUT
 %    VDJdata: main BRILIA data cell
-%    VDJheader: main BRILIA header cell
-%    DevPerc: Ranges 0 to 100, indicating % of sequence length to use as
-%      the cutoff SHM distance.
+%    Map: header map of BRILIA data cells
 %
 %  OUTPUT
 %    VDJdata: modified VDJdata where sequences are clustered based on
-%      lineage relationships and maximum SHM distance, computed as:
-%      CutoffDist = DevPerc x SeqLength
-%
-%  See also buildTreeLink
+%      lineage relationships.
 
-function [VDJdata, BadVDJdata] = clusterGene(VDJdata, Map, DevPerc)
-%Determine chain and extract key locations
+function [VDJdata, BadVDJdata] = clusterGene(VDJdata, Map)
+%Determine chain and extract key locations, sorting in order
 switch Map.Chain
     case 'HL'
-        FunctIdx = [Map.hFunct Map.lFunct];
-        ExtractIdx = [Map.hCDR3(2) Map.hGeneName(1) Map.hGeneName(end) Map.lCDR3(2) Map.lGeneName(1) Map.lGeneName(end)];
-        SortOrder = [1 3 4 2 5 6];
+        FunctIdx = [Map.hFunct; Map.lFunct];
+        CDR3LIdx = [Map.hCDR3(2); Map.lCDR3(2)];
+        GeneNIdx = [Map.hGeneName([1 end]); Map.lGeneName([1 end])];
     case 'H'
         FunctIdx = Map.hFunct;
-        ExtractIdx = [Map.hCDR3(2) Map.hGeneName(1) Map.hGeneName(end)];
-        SortOrder = [1 2 3];
+        CDR3LIdx = Map.hCDR3(2);
+        GeneNIdx = Map.hGeneName([1 end]);
     case 'L'
         FunctIdx = Map.lFunct;
-        ExtractIdx = [Map.lCDR3(2) Map.lGeneName(1) Map.lGeneName(end)];
-        SortOrder = [1 2 3];
+        CDR3LIdx = Map.lCDR3(2);
+        GeneNIdx = Map.lGeneName([1 end]);
 end
 
 %Delete non-functional genes and keep functional ones
-BadLoc = any(~strcmpi(VDJdata(:, FunctIdx), 'Y'), 2);
+BadLoc = any(~strcmpi(VDJdata(:, FunctIdx), 'Y'), 2) | any(cellfun(@isempty, VDJdata(:, CDR3LIdx)), 2);
 BadVDJdata = VDJdata(BadLoc, :);
 VDJdata(BadLoc, :) = [];
 
 %Get the cluster cell, which is used to define unique clusters
-ClustCell = VDJdata(:, ExtractIdx);
-[ClustCell, SortIdx] = sortrows(ClustCell, SortOrder);
+ClustCell = VDJdata(:, [CDR3LIdx; GeneNIdx]);
+[ClustCell, SortIdx] = sortrows(ClustCell);
 VDJdata = VDJdata(SortIdx, :); %Sort by CDR3Lengths mainly
-VDJdata(:, Map.GrpNum) = num2cell(zeros(size(VDJdata, 1), 1)); %Reset Groups to 0
+VDJdata(:, Map.GrpNum) = {0};
+VDJdata(:, Map.ChildCount) = {0};
 
-%Reduce gene name to family # only
-for c = 2:3:size(ClustCell, 2)
-    ClustCell(:, c)   = parseGeneName(ClustCell(:, c));   %IGxV#
-    ClustCell(:, c+1) = parseGeneName(ClustCell(:, c+1)); %IGxJ#
+%Reduce gene name to family # only, and get unique clusters
+UnqStrPat = repelem({'%03d-'}, 1, size(ClustCell, 2));
+for c = 1:size(ClustCell, 2)
+    if ~isnumeric(ClustCell{1, c})
+        ClustCell(:, c) = parseGeneName(ClustCell(:, c));
+        UnqStrPat{c} = '%s-';
+    end
 end
-
-%Convert CDR3 length to string to find unique clusters (matlab workaround)
-ClustStr = cell(size(ClustCell, 1), 1); 
-for j = 1:size(ClustStr, 1)
-    ClustStr{j} = sprintf('%03d-%s-%s-', ClustCell{j, :});
+UnqStrPat = [UnqStrPat{:}];
+CrudeClustStr = cell(size(ClustCell, 1), 1); %matlab workaround for unique rows of cells
+for j = 1:size(CrudeClustStr, 1)
+    CrudeClustStr{j} = sprintf(UnqStrPat, ClustCell{j, :});
 end
-[~, ~, CrudeClustIdx] = unique(ClustStr, 'stable');
+[~, ~, CrudeClustIdx] = unique(CrudeClustStr, 'stable');
 
-%Calculate code progress %
-CalcPerClust = zeros(1, max(CrudeClustIdx));
+%Calculate code progress % increments
+Progress = zeros(1, max(CrudeClustIdx));
 for j = 1:max(CrudeClustIdx)
-    CalcPerClust(j) = sum(CrudeClustIdx == j)^2; %Scales roughly with N^2
+    Progress(j) = sum(CrudeClustIdx == j)^2; %Scales roughly with N^2
 end
-CalcPerClust = cumsum(CalcPerClust / sum(CalcPerClust)) * 100;
+Progress = cumsum(Progress) / sum(Progress) * 100;
 
 %Perform finer clustering per unique crude cluster
-GrpNumCt = 0; %buildTreeLink will provide a group number clust from 1 to N
+GrpNumStart = 1; %buildTreeLink will provide a group number clust from 1 to N
 DelLoc = zeros(size(VDJdata, 1), 1, 'logical'); %Delete sequence with unreasonable CDR3s (this should be pushed elsewhere...)
 for j = 1:max(CrudeClustIdx)
     if ~mod(j, 20)
-        showStatus(sprintf('  Clustering %d / %d (%0.1f%%)', j, max(CrudeClustIdx), CalcPerClust(j)));
+        showStatus(sprintf('  Clustering %d / %d (%0.1f %%)', j, max(CrudeClustIdx), Progress(j)));
     end
-    ClustLoc = CrudeClustIdx == j;
-    Tdata = VDJdata(ClustLoc, :);
     
     %If only 1-member, skip everything and update group number only
-    if size(Tdata, 1) == 1
-        VDJdata{ClustLoc, Map.ChildCount} = 0;
-        VDJdata{ClustLoc, Map.GrpNum} = GrpNumCt + 1;
-        GrpNumCt = GrpNumCt + 1;
+    ClustLoc = CrudeClustIdx == j;
+    if sum(ClustLoc) == 1
+        VDJdata{ClustLoc, Map.GrpNum} = GrpNumStart;
+        GrpNumStart = GrpNumStart + 1;
         continue
     end
     
     %Pad sequences CDR3 length also have same Seq Length (required for cluster)
+    Tdata = VDJdata(ClustLoc, :);
     [Tdata, BadVDJdataT] = padtrimSeqGroup(Tdata, Map, 'cdr3length', 'max', 'Seq');
     if ~isempty(BadVDJdataT)
         BadVDJdata = cat(1, BadVDJdata, BadVDJdataT);
     end
-    if isempty(Tdata) %No valid CDR3, so just mark for deletion and skip
+    if isempty(Tdata) %No valid CDR3. Mark for deletion and skip.
         DelLoc(ClustLoc) = 1;
         continue
     end
     
-    %Remove duplicate sequences that can cause issues in clustering
-%     Tdata = removeDupSeq(Tdata, VDJheader);
     if size(Tdata, 1) ~= sum(ClustLoc)
         ClustNumIdx = find(ClustLoc);
-        DelNumIdx = ClustNumIdx(1:sum(ClustLoc) - size(Tdata, 1)); %Pick how many to delete
-        DelLoc(DelNumIdx) = 1;   %mark in VDJdata what to delete
-        ClustLoc(DelNumIdx) = 0; %mark in ClustLoc those to keep
+        DelCount = sum(ClustLoc) - size(Tdata, 1);
+        DelLoc(ClustNumIdx(1:DelCount)) = 1;   %mark in VDJdata what to delete
+        ClustLoc(ClustNumIdx(1:DelCount)) = 0; %adjust the "save to" locations
     end
 
-    %Find clusters and adjust the group numbers
-    [~, Tdata] = buildTreeLink(Tdata, Map, DevPerc);  %This will have group numbers 1 to N
-    GrpNum2 = cell2mat(Tdata(:, Map.GrpNum)) + GrpNumCt; %This will shift group numbers to unique N+x to N+y
-    GrpNumCt = max(GrpNum2);                  %Keep track of highest group num
-    Tdata(:, Map.GrpNum) = num2cell(GrpNum2); %Fix the group number
-    VDJdata(ClustLoc, :) = Tdata;
+    [VDJdata(ClustLoc, :), GrpNumStart] = buildTreeLink(Tdata, Map, GrpNumStart);
 end
 
 VDJdata(DelLoc, :) = []; %Delete those that has been reduced from duplicate seq
+
+%Sort by group number and parent number
+[~, SortIdx] = sortrows(cell2mat(VDJdata(:, [Map.GrpNum Map.ParNum])));
+VDJdata = VDJdata(SortIdx, :);

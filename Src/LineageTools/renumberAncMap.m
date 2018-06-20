@@ -34,13 +34,13 @@
 %          4     2     5
 %
 function AncMap = renumberAncMap(AncMap)
-%Make sure that AncMap is numbered 1 to N on first column.
+%Adjust parent column (#2) first before child column (#1)
 for j = 1:size(AncMap, 1)
-    ParRelLoc = find(AncMap(j, 2) == AncMap(:, 1), 1); %this parent is the nth entry in AncMap.
-    if ~isempty(ParRelLoc)
-        AncMap(j, 2) = ParRelLoc; %Renumber this parent based on relative location in AncMap.
+    ParIdx = find(AncMap(j, 2) == AncMap(:, 1), 1);
+    if ~isempty(ParIdx)
+        AncMap(j, 2) = ParIdx;
     else
         AncMap(j, 2) = 0;
     end
 end
-AncMap(:, 1) = 1:size(AncMap, 1); %Renumber childrens sequentially.
+AncMap(:, 1) = 1:size(AncMap, 1); 

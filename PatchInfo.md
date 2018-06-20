@@ -1,3 +1,17 @@
+## Patch notice for version 3.2.0
+ MAJOR CHANGES
+ - Reworked the algorithm for lineage assembly 
+    - 
+ - File formats are now
+ - Reworked
+ - Added repertoire comparison tools
+    -
+ 
+ 
+ PERFORMANCE CHANGES
+ - Moved more function to C++ for speed enhancement
+ - 
+
 --------------------------------------------------------------------------
 ## Patch notice for version 3.1.4
  - Enabled inputs of file path or name with a space if encapsulated in quotes. EX: "C:\Temp Dir\"

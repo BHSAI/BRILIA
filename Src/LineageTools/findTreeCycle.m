@@ -26,22 +26,20 @@
 function CycleLoc = findTreeCycle(AncMap)
 %To find a cycle, remove leaves until no more is left.
 CycleLoc = ones(size(AncMap, 1), 1, 'logical');
-SumLeaf = length(CycleLoc);
-while 1
+CurSumLeaf = length(CycleLoc);
+SumLeaf = 0;
+while SumLeaf ~= CurSumLeaf
     %Remove those that are leaves
     for j = 1:size(AncMap, 1)
         if CycleLoc(j)
             ChildLoc = AncMap(:, 2) == AncMap(j, 1);
-            if max(ChildLoc) == 0
+            if ~any(ChildLoc)
                 AncMap(j, 2) = -AncMap(j, 2); %Set negative to prevent redoing search here
                 CycleLoc(j) = 0;
             end
         end
     end
     
-    %Keep track of current and previous leaf count to determine loop break
-    if sum(CycleLoc) == SumLeaf
-        break
-    end
-    SumLeaf = sum(CycleLoc);
+    SumLeaf = CurSumLeaf;
+    CurSumLeaf = sum(CycleLoc);
 end

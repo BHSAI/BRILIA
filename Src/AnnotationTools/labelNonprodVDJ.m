@@ -16,6 +16,9 @@
 %    VDJdata: modified VDJdata with the "Function" column filled in.
 
 function VDJdata = labelNonprodVDJ(VDJdata,Map,DB)
+
+error('%s is obsolete. Use labelSeqQuality instead', mfilename);
+
 %Determine chain
 M = getMapHeaderVar(DB.MapHeader);
 %For each chain label N, Y, M for functionality

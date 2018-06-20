@@ -29,12 +29,8 @@ to SeqB, and vice versa.
           4.5000
     C2P =
           5
- *
- *  [Ham, P2C, C2P] = calcPairDistMEX('AACG', 'AATG')
  
     SeqList = {'ACGGAGATGAACAGT', 'ATGGAGACGAGTAGT', 'ATGGATGCGAGTGGA'}
- 
-    SeqList = {'AAC' 'AAT'}
     [HamDist, ShmDist] = calcPairDistMEX(SeqList);
     HamDist =
              0      4      8
@@ -51,18 +47,7 @@ to SeqB, and vice versa.
 #include "mex.h"
 #include <string>
 
-//row is NACGT initial letter
-//col is NACGT final letter   
-double pShmTendency[5][5] = {
-    { 0,  0,  0,  0,  0}, //N -> - A C G T
-    { 0,  0,  0,  1,  1}, //A -> N - C G T
-    { 0, -1,  0, -1,  1}, //C -> N A - G T 
-    { 0,  1, -1,  0, -1}, //G -> N A C - T
-    { 0, -1,  0, -1,  0}  //T -> N A C G -
-}; 
-
-//WARNING: we don't do lower case, ever.
-double nt2int(mxChar charA) {
+int nt2int(mxChar charA) {
     switch (charA) {
         case 'N': return 0;
         case 'X': return 0;
@@ -71,100 +56,11 @@ double nt2int(mxChar charA) {
         case 'G': return 3;
         case 'T': return 4;
         case 'U': return 4;
-        default: mexErrMsgIdAndTxt("calcPairDistMEX:input", "Unknown character detected. Only NXACGTU are allowed. No lower case.");
+        default:  return 5;
     }
 }
 
-bool isWRC(mxChar *pSeq, mwSize Len, mwSize Pos) {
-    if (pSeq[Pos] == 'C') {
-        if (Pos >= 1 && !(pSeq[Pos-1] == 'A' || pSeq[Pos-1] == 'G'))                       { return false; } //check 1st left pos
-        if (Pos >= 2 && !(pSeq[Pos-2] == 'A' || pSeq[Pos-2] == 'T' || pSeq[Pos-2] == 'U')) { return false; } //check 2nd left pos
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool isGYW(mxChar *pSeq, mwSize Len, mwSize Pos) {
-    if (pSeq[Pos] == 'G') {
-        if (Pos < Len-1 && !(pSeq[Pos+1] == 'C' || pSeq[Pos+1] == 'T' || pSeq[Pos+1] == 'U')) { return false; } //check 1st right pos
-        if (Pos < Len-2 && !(pSeq[Pos+2] == 'A' || pSeq[Pos+2] == 'T' || pSeq[Pos+2] == 'U')) { return false; } //check 2nd right pos
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool isWA(mxChar *pSeq, mwSize Len, mwSize Pos) {
-    if (pSeq[Pos] == 'A') {
-        if (Pos >= 1 && !(pSeq[Pos-1] == 'A' || pSeq[Pos-1] == 'T' || pSeq[Pos-1] == 'U')) { return false; } //check 1nd left pos
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool isTW(mxChar *pSeq, mwSize Len, mwSize Pos) {
-    if (pSeq[Pos] == 'T') {
-        if (Pos < Len-1 && !(pSeq[Pos+1] == 'A' || pSeq[Pos+1] == 'T' || pSeq[Pos+1] == 'U')) { return false; } //check 2nd right pos
-        return true;
-    } else {
-        return false;
-    }
-}
-
-double getHotspotScore(mxChar *pSeq, mwSize Len, mwSize Pos) {
-    switch (pSeq[Pos]) {
-        case 'C': 
-            return isWRC(pSeq, Len, Pos) ? 1 : -1;
-        case 'G':
-            return isGYW(pSeq, Len, Pos) ? 1 : -1;
-        case 'T':
-            return isTW(pSeq, Len, Pos)  ? 1 : -1;
-        case 'A': 
-            return isWA(pSeq, Len, Pos)  ? 1 : -1;
-    }
-}
-
-// MutType will only determine if if the mutation agrees/disagrees with SHM
-//   1 for known hotspot, -1 for unknown hotspot
-//   1 for known pairwise mutations, 0 for neutral, and -1 for unfavorable mutations
-// Thus, the total sum of scores can be computed as:
-//    2 = both hotspot motif AND pairwise mutation are correct
-//    1 = correct hotspot BUT neutral pairwise mutation
-//    0 = correct hotspot AND incorrect mutation (vice versa), OR cannot determine
-//   -1 = incorrect hotspot BUT neutral pairwise mutation
-//   -2 = incorrect hotspot AND incorrect mutations
-void getMutType(mxChar *pSeqA, mxChar *pSeqB, mwSize Len, mwSize Pos, double *pAtoB, double *pBtoA) {
-    int numA = nt2int(pSeqA[Pos]);
-    int numB = nt2int(pSeqB[Pos]);
-    *pAtoB = pShmTendency[numA][numB] + getHotspotScore(pSeqA, Len, Pos);
-    *pBtoA = pShmTendency[numB][numA] + getHotspotScore(pSeqB, Len, Pos);
-}
-
-double calcShmHamDist(mxChar *pSeqA, mxChar *pSeqB, mwSize Len, double *pHamDist, double *pShmDistAtoB, double *pShmDistBtoA) {
-    double Value = 0;
-    double AtoB = 0;
-    double BtoA = 0;
-    double Penalty = 0;
-    for (mwSize j = 0; j < Len; j++) {
-        if (pSeqA[j] != pSeqB[j]) {
-            getMutType(pSeqA, pSeqB, Len, j, &AtoB, &BtoA);
-            *pHamDist += 1;
-            *pShmDistAtoB -= AtoB + Penalty;
-            *pShmDistBtoA -= BtoA + Penalty;
-            Penalty += 4; // increment 4 since you'll divide by 4 later. Consec mismatches add a lot of penalty.
-        } else {
-            Penalty = 0;
-        }
-    }
-    
-    //Final calculation is HAM + 0.25*XtoYdist
-    *pShmDistAtoB = *pHamDist + 0.25* *pShmDistAtoB; 
-    *pShmDistBtoA = *pHamDist + 0.25* *pShmDistBtoA;
-}
-/*   
-void calcShmHamDistMEX(mxChar *pSeqA, mxChar *pSeqB, mwSize MinLen, int nlhs, double *pHamDist, double *pShmDistAtoB, double *pShmDistBtoA) {
+void calcShmHamDistMEX(mxChar *pSeqA, mxChar *pSeqB, mwSize MinLen, int pShmTendency[5][5], int nlhs, double *pHamDist, double *pShmDistAtoB, double *pShmDistBtoA) {
     double Penalty = 0;
     double Misses  = 0;
     double AtoBTendency = 0;
@@ -201,7 +97,7 @@ void calcShmHamDistMEX(mxChar *pSeqA, mxChar *pSeqB, mwSize MinLen, int nlhs, do
         }
     }
 }
-*/
+
 void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
     
@@ -230,7 +126,17 @@ void mexFunction(int nlhs,        mxArray *plhs[],
 
     mwSize const *pDim = mxGetDimensions(prhs[0]);
     mwSize NumSeq = pDim[0]*pDim[1];
-   
+                
+    //row is NACGT initial letter
+    //col is NACGT final letter
+    int ShmTendency[5][5] = {
+        { 0,  0,  0,  0,  0},
+        { 0,  0,  0,  1,  1},
+        { 0, -1,  0, -1,  1},
+        { 0,  1, -1,  0, -1},
+        { 0, -1,  0, -1,  0}
+    }; 
+    
     if (IsCell) {
         double *pHamDist, *pShmDist;
         if (nlhs >= 1) { //Hamming Distance matrix
@@ -258,18 +164,18 @@ void mexFunction(int nlhs,        mxArray *plhs[],
                 mwSize MinLen = LenA < LenB ? LenA : LenB;
                 int Idx1 = j + k*NumSeq;
                 int Idx2 = k + j*NumSeq;
-                calcShmHamDist(pSeqA, pSeqB, MinLen, &pHamDist[Idx1], &pShmDist[Idx1], &pShmDist[Idx2]);
+                calcShmHamDistMEX(pSeqA, pSeqB, MinLen, ShmTendency, nlhs, &pHamDist[Idx1], &pShmDist[Idx1], &pShmDist[Idx2]);
                 pHamDist[Idx2] = pHamDist[Idx1];
             }
         }
     } else {
         double HamDist = 0, AtoBDist = 0, BtoADist = 0;        
         mxChar *pSeqA = mxGetChars(prhs[0]);
-        mxChar *pSeqB = mxGetChars(prhs[1]);
         mwSize LenA = mxGetN(prhs[0]);
+        mxChar *pSeqB = mxGetChars(prhs[1]);
         mwSize LenB = mxGetN(prhs[1]);
         mwSize MinLen = LenA < LenB ? LenA : LenB;
-        calcShmHamDist(pSeqA, pSeqB, MinLen, &HamDist, &AtoBDist, &BtoADist);
+        calcShmHamDistMEX(pSeqA, pSeqB, MinLen, ShmTendency, nlhs, &HamDist, &AtoBDist, &BtoADist);
 
         if (nlhs >= 1)  //Hamming Distance
             plhs[0] = mxCreateDoubleScalar(HamDist);

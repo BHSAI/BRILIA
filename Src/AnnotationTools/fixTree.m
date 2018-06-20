@@ -14,6 +14,10 @@
 %      relinked via phylogeny lineage.
 
 function VDJdata = fixTree(VDJdata, Map)
+
+warning('%s: This is obsolete.', mfilename);
+return
+
 %Determine chain and needed locations
 if strcmpi(Map.Chain, 'HL')
     SHMLoc = [Map.hVmut Map.hMmut Map.hDmut Map.hNmut Map.hJmut Map.lVmut Map.lNmut Map.lJmut];

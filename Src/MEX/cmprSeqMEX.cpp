@@ -8,7 +8,7 @@ cmprSeqMEX will compare two sequences and return a logical array where
     SeqA: 1st sequence (CASE SENSITIVE!)
     SeqB: 2nd sequence (CASE SENSITIVE!)
     Alphabet ['n', 'a', 'r']: nucleotide, amino acid, or random sequenc
-      'n': X and N are wildcard for DNA/RNA(default)
+      'n': X and N are wildcard for DNA/RNA (default)
       'a': X is wildcard for AA
       'r': no wildcards for character
     
@@ -84,8 +84,9 @@ void mexFunction(int nlhs,        mxArray *plhs[],
 
     mwSize NA = mxGetN(prhs[0]);
     mwSize NB = mxGetN(prhs[1]);
-    if (NA != NB)
+    if (NA != NB) {
         mexErrMsgIdAndTxt("cmprSeq:prhs", "SeqA and SeqB must be same size.");
+    }
     
     char Alphabet = 'n';
     if (nrhs >= 3) {
@@ -100,6 +101,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
     switch (Alphabet) {
         case 'n': cmprSeqNT(CharA, CharB, NA, Match); break;
         case 'a': cmprSeqAA(CharA, CharB, NA, Match); break;
-        default : cmprSeq(CharA, CharB, NA, Match);   break;
+        case 'r': cmprSeq(CharA, CharB, NA, Match);   break;
+        default : mexErrMsgIdAndTxt("cmprSeq:prhs", "Unrecognized 2nd input. Must be 'n', 'a', or 'r'.");
     }                
 }

@@ -17,7 +17,11 @@
 %      for sequences in which the 
 %    DelThis: logical index indicating where the changes have been made
 
-function [VDJdata, DelThis] = labelNonVDJ(VDJdata, Map, ThreshHold)
+function [VDJdata, DelLoc] = labelNonVDJ(VDJdata, Map, ThreshHold)
+
+error('%s is obsolete. Use labelSeqQuality instead', mfilename);
+
+
 if nargin < 3
     ThreshHold = 0.4;
 end
@@ -28,7 +32,7 @@ elseif ~isstruct(Map)
     error('%s: The 2nd input, Map, should be a struct or cell storing header info.', mfilename);
 end
 
-DelThis = zeros(size(VDJdata, 1), 1, 'logical');
+DelLoc = zeros(size(VDJdata, 1), 1, 'logical');
 for c = 1:length(Map.Chain)
     Chain = lower(Map.Chain(c));
     SegLen = VDJdata(:, Map.([Chain 'Length']));
@@ -36,7 +40,7 @@ for c = 1:length(Map.Chain)
     RefSeq = VDJdata(:, Map.([Chain 'RefSeq']));
     
     for j = 1:length(Seq)
-        if DelThis(j); continue; end
+        if DelLoc(j); continue; end
         if isempty(SegLen{1}) || isempty(SegLen{end}); continue; end
         if isempty(Seq{j}) || isempty(RefSeq{j}); continue; end
         CmprLoc = zeros(1, length(Seq{j}), 'logical');
@@ -44,13 +48,13 @@ for c = 1:length(Map.Chain)
         CmprLoc(end-SegLen{j, end}+1:end) = 1;
         Score = alignSeqMEX(Seq{j}(CmprLoc), RefSeq{j}(CmprLoc), 0, 'n', 'y', 'n', 'n', 'n');
         if Score(1)/length(RefSeq{j}) < (1 - ThreshHold)
-            DelThis(j) = 1;
+            DelLoc(j) = 1;
             continue
         end
     end
 end
 
-VDJdata(DelThis, Map.([Chain 'Funct'])) = {'I'}; %Invalid
-if any(DelThis)
-    fprintf('  %s: %d invalid sequence(s) marked.\n', mfilename, sum(DelThis));
+VDJdata(DelLoc, Map.([Chain 'Funct'])) = {'I'}; %Invalid
+if any(DelLoc)
+    fprintf('  %s: %d invalid sequence(s) marked.\n', mfilename, sum(DelLoc));
 end

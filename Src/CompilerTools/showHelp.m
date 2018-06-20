@@ -13,18 +13,6 @@
 %    showHelp will attempt to show the help text.
 %
 function showHelp(varargin)
-if isempty(varargin)
-    return
-end
-
-if isdeployed
-    varargin = cleanCommandLineInput(varargin{:});
-    ValidCall = {'h', 'i', 'info', 'help', 'showhelp', 'showinfo'};
-    if any(strcmpi(ValidCall, varargin{1}))
-        varargin = varargin(2:end);
-    end
-end
-
 for j = 1:length(varargin)
     displayHelpText(varargin{j});
 end

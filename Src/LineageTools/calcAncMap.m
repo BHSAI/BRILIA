@@ -7,9 +7,8 @@
 %
 %  INPUT
 %    PairDist: a MxM dissimilarity matrix, or matrix storing a distance
-%      value from paired objects. Diagonal values will not be used for
-%      linking. 
-%    TriangleSide ['botleft' 'topright' 'both']: Specify which side of
+%      value from paired objects. 
+%    TriangleSide ['lower' 'upper' 'both']: Specify which side of
 %      PairDist symmetric matrix to use for finding parent-distance pairs.
 %      Defaults to 'both' in case there is an assymmetric distance matrix.
 %
@@ -18,9 +17,8 @@
 %      parent object and the distance from parent to child object.
 %
 %  NOTE
-%    Each column is the child, and the row is the parent. So PairDist(1,2)
-%    = 0.2 would mean Distance from Object 1 parent to Object 2 child is
-%    0.2
+%    In PairDist, each column is the child, and the row is the parent. So
+%    PairDist(1,2) = 0.2 would mean Distance from Seq 1 to Seq 2 is 0.2
 %
 %    Unlike calcRootedAncMap, calcAncMap can generate cyclic dependencies
 %    if given an asymmetric PairDist matrix with TriangleSide = 'both'.
@@ -43,49 +41,36 @@
 %         5.0000    1.0000    5.5000
 %         6.0000    5.0000    5.0000
 %
-function AncMap = calcAncMap(PairDist, varargin)
-%Ensure PairDist is a square matrix
+function AncMap = calcAncMap(PairDist, TriangleSide)
 [M, N] = size(PairDist);
 if M ~= N
-    try
-        PairDist = squareform(PairDist);
-    catch
-        error('%s : Input is not a square distance matrix', mfilename);
-    end
+    PairDist = squareform(PairDist, 'tomatrix');
 end
-PairDist(eye(size(PairDist))>0) = Inf; %Set diagonal Inf to prevent self matching
+PairDist(1:size(PairDist, 1)+1:end) = Inf; %Prevent linking to self
 
 %Determine which triangle side to use
-TriangleSide = 'both';
-if ~isempty(varargin)
-    TriangleSide = lower(varargin{1});
+if nargin == 2
+    if any(startsWith({'lower', 'botleft'}, TriangleSide, 'ignorecase', true))
+        PairDist(triu(ones(size(PairDist), 'logical'),  1)) = Inf;
+    elseif any(startsWith({'upper', 'topright'}, TriangleSide, 'ignorecase', true))
+        PairDist(tril(ones(size(PairDist), 'logical'), -1)) = Inf;
+    end
 end
 
-%Create linkup using shortest distance, with priority on short seq
-UnqDist = unique(PairDist(:)); %Unique and sorted PairDist values
+%Nearest neighbor linking, starting with shortest distance first
+UnqDist = unique(PairDist(:));
 AncMap = [[1:size(PairDist, 1)]' zeros(size(PairDist, 1), 2)]; %#ok<NBRAK> %[SeqNum AncNum Distance]
 Active = ones(size(PairDist, 1), 1, 'logical');                %Keeps track of active col/row
+ActiveNum = size(PairDist, 1);                                 %Keeps track of how many active col/row there are
 k = 1;
-while any(Active) && k < length(UnqDist)  %it's k < length(UnqDist), and not "<=" to stop BEFORE linking Inf distances
-    %Remove certain (R == C) pairs to prevent cyclic dep.
-    [R, C] = find(PairDist == UnqDist(k));
-    switch TriangleSide
-        case 'botleft'
-            KeepLoc = C < R;
-            R = R(KeepLoc);
-            C = C(KeepLoc);
-        case 'topright'
-            KeepLoc = R < C;
-            R = R(KeepLoc);
-            C = C(KeepLoc);
-    end
-        
-    %Nearest neighbor linking, starting with shortest distance first
-    for q = 1:length(R)
-        if Active(C(q)) %Still missing parent
-            AncMap(C(q), 2) = R(q);
-            AncMap(C(q), 3) = PairDist(R(q), C(q));
-            Active(C(q)) = 0;
+while ActiveNum > 0 && k < length(UnqDist)  %it's k < length(UnqDist), and not "<=", to stop BEFORE linking Inf distances
+    [RIdx, CIdx] = find(PairDist == UnqDist(k));
+    for q = 1:length(CIdx)
+        if Active(CIdx(q)) %Still missing parent
+            AncMap(CIdx(q), 2) = RIdx(q);
+            AncMap(CIdx(q), 3) = PairDist(RIdx(q), CIdx(q));
+            Active(CIdx(q)) = 0;
+            ActiveNum = ActiveNum - 1;
         end
     end
     k = k+1;

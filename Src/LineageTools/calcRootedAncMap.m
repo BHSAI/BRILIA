@@ -1,18 +1,15 @@
 %calcRootedAncMap perform the tree linking given a defined cluster, where
-%the first seq is the most ancestral seq.
-%  
-%The way it works is this: 
-%1) First seq "was" set as ancestor before puting the input in.
-%2) Find the "next" seq with lowest score, and link it to root.
-%3) Find the "next" seq with lowest score, and link it to root or other seq.
-%4) repeat 3 until no more linking is left.
+%the first seq is the most ancestral seq. The steps are as folllows:
+%1) The PairDist matrix already has the 1st row & col as the "ancestor"
+%2) Find the next seq with lowest score, and link it to root
+%3) Repeat linking until all sequence is linked
 %
 %  AncMap = calcRootedAncMap(PairDist)
 %
 %  INPUT
 %    PairDist: a MxM matrix of distances between sequences, where the row
-%      is the parent and col is the child sequences. 1st Row and Col is for
-%      the root sequence.
+%      is the parent and col is the child sequences. The First Row and Col
+%      MUST be the root sequence.
 %
 %  OUTPUT
 %    AncMap: a Mx3 matrix storing information about each child object's
@@ -23,44 +20,36 @@
 %    ancestral sequence.
 %    
 %    Unlike calcAncMap, calcRootedAncMap does not generate cyclic
-%    dependencies since the root is defined and this prevents the issue.
+%    dependencies since the root is defined, which prevents the issue.
+%
 function AncMap = calcRootedAncMap(PairDist)
-%Ensure PairDist is a square matrix
 [M, N] = size(PairDist);
-if M ~= N %Check for linear form
-    try
-        PairDist = squareform(PairDist);
-    catch
-        error('%s: Input is not a square distance matrix.', mfilename);
-    end
+if M ~= N
+    PairDist = squareform(PairDist, 'tomatrix');
 end
-PairDist(eye(size(PairDist))>0) = Inf; %Set diagonal to max to prevent self matching
+PairDist(1:size(PairDist, 1)+1:end) = Inf; %Prevent linking to self
 
-%Now link, starting from root and working down.
-AncMap = [[1:size(PairDist, 1)]' zeros(size(PairDist, 1), 2)]; %[ChildNum ParNum SHMHAMdist]
-Active = ones(1, size(PairDist, 2), 'logical');
+%Now link starting from root and working down
+AncMap = [[1:size(PairDist, 1)]' zeros(size(PairDist, 1), 2)]; %#ok<NBRAK> %[Child Par Dist]
+Active = ones(1, size(PairDist, 1), 'logical');
 Active(1) = 0;
-while max(Active) == 1
-    %Figure out active/inactive
-    ActLoc = find(Active);
-    InactLoc = find(~Active);
-    
-    %Extract just the distance for active child, inactive parent
-    PairDistT = PairDist(InactLoc, :);
-    PairDistT = PairDistT(:, ActLoc);
-    
+ActiveNum = sum(Active);
+while ActiveNum > 0
     %Identify the next immediate child for each parent
-    [ParentIdx, ChildIdx] = find(PairDistT == min(PairDistT(:)));
-    ParentLoc = InactLoc(ParentIdx);
-    ChildLoc = ActLoc(ChildIdx);
+    InactiveIdx = find(~Active);
+    ActiveIdx   = find( Active);
+    PairDistT = PairDist(InactiveIdx, ActiveIdx);
+    [R, C] = find(PairDistT == min(PairDistT(:)));
+    RIdx = InactiveIdx(R);
+    CIdx =   ActiveIdx(C);
     
-    %Ties are automatically broken. Ex: if 1 child belongs to 2 parents, 
-    %based on the for loop below, the last parent wins.
-    
-    %For each child, fill in the parent
-    for c = 1:length(ChildLoc)
-        AncMap(ChildLoc(c), 2) = ParentLoc(c);
-        AncMap(ChildLoc(c), 3) = double(PairDist(ParentLoc(c), ChildLoc(c)));
-        Active(ChildLoc(c)) = 0;
+   %Assign a parent to each child. If 1 child has > 1 parent, 1st parent wins.
+    for q = 1:length(CIdx)
+        if Active(CIdx(q)) %Still missing parent
+            AncMap(CIdx(q), 2) = RIdx(q);
+            AncMap(CIdx(q), 3) = PairDist(RIdx(q), CIdx(q));
+            Active(CIdx(q)) = 0;
+            ActiveNum = ActiveNum - 1;
+        end
     end
 end

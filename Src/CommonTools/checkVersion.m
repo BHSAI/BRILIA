@@ -1,7 +1,12 @@
 function IsSame = checkVersion
 IsSame = false;
 Url = 'https://github.com/BHSAI/BRILIA/blob/master/README.md';
-UrlTxt =  urlread(Url);
+try
+    UrlTxt =  webread(Url);
+catch ErrMsg
+    disp(ErrMsg);
+    return
+end
 VerLoc = regexpi(UrlTxt, 'BRILIA\s*v(?<Version>\d\.\d\.\d)', 'tokens');
 if ~isempty(VerLoc)
     Version = VerLoc{1}{1};

@@ -85,7 +85,6 @@ addParameter(P, 'InputFile',     '',      @(x) ischar(x) || iscell(x) || isempty
 addParameter(P, 'Chain',         'H',     @(x) ismember({upper(x)}, {'H', 'L', 'HL'}));
 addParameter(P, 'CheckSeqDir',   'y',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
 addParameter(P, 'Ddirection',    'all',   @(x) ischar(x) && ismember(lower(x), {'all', 'fwd', 'rev', ''}));
-addParameter(P, 'DevPerc',       5,       @(x) isnumeric(x) && (x>=0) && (x<=100));
 addParameter(P, 'Delimiter',     '',      @(x) ischar(x) && ismember(x, {';', ',', '\t', ''}));
 addParameter(P, 'FileType',      '',      @ischar); %Will make input reader determine file type
 addParameter(P, 'NumProc',       'max',   @(x) ischar(x) || isnumeric(x));
@@ -173,8 +172,12 @@ while true
         end
         
         %Getting help for this
-        if ismember(lower(varargin{1}), {'help'})
-            showHelp('BRILIA');
+        if ismember(lower(varargin{1}), {'h', 'i', 'info', 'help', 'showhelp', 'showinfo'})
+            if length(varargin) == 1
+                showHelp('BRILIA');
+            else
+                showHelp(varargin{2:end});
+            end
             if RunMode == 3
                 continue
             else
@@ -230,7 +233,6 @@ while true
     CheckSeqDir = Ps.CheckSeqDir;
     Ddirection = Ps.Ddirection;
     Delimiter = Ps.Delimiter;
-    DevPerc = Ps.DevPerc;
     FileType = Ps.FileType;
     InputFile = Ps.InputFile;
     NumProc = Ps.NumProc;
@@ -499,24 +501,29 @@ while true
                     VDJdata(BadIdx, :) = [];
                 end
 
-                showStatus('Moving Nonprod/Invalid/Incomplete Seq to Err file ...', StatusHandle)
-                VDJdata = labelNonVDJ(VDJdata, Map, 0.4); 
+                %Fix insertion/deletion in V framework
+                showStatus('Fixing indels in V genes ...', StatusHandle);
+                VDJdata = fixGeneIndel(VDJdata, Map, DB);
+
+                %Remove pseudogenes from degenerate annotations containing functional ones.
+                showStatus('Accepting F genes over ORF/P ...', StatusHandle);
+                VDJdata = fixDegenVDJ(VDJdata, Map, DB);
+
+                %Insure that V and J segments cover the CDR3 region.
+                showStatus('Anchoring 104C and 118W/F ...', StatusHandle);
+                VDJdata = constrainGeneVJ(VDJdata, Map, DB);
                 
-                %Send all Non-functional to error
+                %Send all Non-functional or incomplete annotation to Err
+                showStatus('Moving Nonprod/Invalid/Incomplete Seq to Err file ...', StatusHandle)
+                VDJdata = labelSeqQuality(VDJdata, Map, 0.4);
                 FunctLoc = [Map.hFunct Map.lFunct];
                 FunctLoc(FunctLoc == 0) = [];
-                BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
-                for k = 1:length(FunctLoc)
-                    BadIdx = BadIdx | cellfun(@(x) ismember(upper(x), {'N', 'I'}), VDJdata(:, FunctLoc(k)));
-                end
-                if any(BadIdx)
-                    saveSeqData(ErrFileName, VDJdata(BadIdx, :), VDJheader, 'append');
-                    VDJdata(BadIdx, :) = [];
+                BadLoc = any(cellfun(@(x) contains(x, {'N', 'I', 'M'}), VDJdata(:, FunctLoc)), 2);
+                if any(BadLoc)
+                    saveSeqData(ErrFileName, VDJdata(BadLoc, :), VDJheader, 'append');
+                    VDJdata(BadLoc, :) = [];
                 end
                 
-                %Send all non-VDJ to error too
-                
-
                 %Finish scheme if annotonly
                 if strcmpi(AnnotOnly, 'y')
                     VDJdata = findCDR1(VDJdata, Map, DB);
@@ -562,11 +569,10 @@ while true
                     saveSeqData(SaveName, VDJdata, VDJheader, 'append');
                 end
             end
-            clear VDJdata;
         end
 
         %Part 2 does everything AFTER intial annotations
-        GrpNumStart = 0 ;
+        GrpNumStart = 1 ;
         FileList = dir([TempDir '*Raw.csv']);
 
         if strcmpi(AnnotOnly, 'n')
@@ -580,43 +586,16 @@ while true
                 showStatus(sprintf('Processing %s ...', TempRawFileName), StatusHandle);
                 [VDJdata, VDJheader] = openSeqData(fullfile(TempDir, TempRawFileName));
                 Map = getVDJmapper(VDJheader);
-
-                %Remove the incompletes from clustering
-                IncompleteLoc = zeros(size(VDJdata, 1), 1, 'logical');
-                for c = 1:length(Map.Chain)
-                    IncompleteLoc = IncompleteLoc | ismember(VDJdata(:, Map.([lower(Map.Chain(c)) 'Funct'])), 'I');
-                end
-                if size(VDJdata, 1) ~= 0
-                    saveSeqData(ErrFileName, VDJdata(IncompleteLoc, :), VDJheader, 'append');
-                    VDJdata(IncompleteLoc, :) = [];
-                end
                 if size(VDJdata, 1) < 1; continue; end
-
-                %Fix insertion/deletion in V framework
-                showStatus('Fixing indels in V genes ...', StatusHandle)
-                VDJdata = fixGeneIndel(VDJdata, Map, DB);
-
-                %Remove pseudogenes from degenerate annotations containing functional ones.
-                showStatus('Accepting F genes over ORF/P ...', StatusHandle)
-                VDJdata = fixDegenVDJ(VDJdata, Map, DB);
-
-                %Insure that V and J segments cover the CDR3 region.
-                showStatus('Anchoring 104C and 118W/F ...', StatusHandle)
-                VDJdata = constrainGeneVJ(VDJdata, Map, DB);
-
+                
                 %Cluster the data based variable region and hamming dist of DevPerc%.
                 showStatus('Clustering by lineage ...', StatusHandle)
-                [VDJdata, BadVDJdataT] = clusterGene(VDJdata, Map, DevPerc);
-                if size(BadVDJdataT, 1) ~= 0
-                    saveSeqData(ErrFileName, BadVDJdataT, VDJheader, 'append');
-                    clear BadVDJdataT;
-                end
-                if size(VDJdata, 1) == 0; continue; end
+                VDJdata = clusterGene(VDJdata, Map);
 
-                %Renumbering groups
-                GrpNums = cell2mat(VDJdata(:, Map.GrpNum)) + GrpNumStart;
+                %Renumbering groups since they're done in batches
+                GrpNums = cell2mat(VDJdata(:, Map.GrpNum)) + GrpNumStart - 1;
                 VDJdata(:, Map.GrpNum) = num2cell(GrpNums);
-                GrpNumStart = max(GrpNums); 
+                GrpNumStart = max(GrpNums) + 1; 
 
                 %Set all groups to have same annotation and VMDNJ lengths.
                 showStatus('Correcting annotations by lineage ...', StatusHandle)
@@ -630,38 +609,14 @@ while true
                 showStatus('Trimming N regions ...', StatusHandle)
                 VDJdata = trimGeneEdge(VDJdata, Map, DB);
 
-                %Fix obviously incorrect trees.
-                showStatus('Rerooting lineage trees ...', StatusHandle)
-                VDJdata = removeDupSeq(VDJdata, Map);
-                VDJdata = fixTree(VDJdata, Map);
-
                 %Finalize VDJdata details and CDR 1, 2, 3 info
                 VDJdata = padtrimSeqGroup(VDJdata, Map, 'grpnum', 'trim', 'Seq'); %will only remove "x" before and after Seq if they all have it. 
                 VDJdata = findCDR1(VDJdata, Map, DB);
                 VDJdata = findCDR2(VDJdata, Map, DB);
                 VDJdata = findCDR3(VDJdata, Map, DB, 'IMGT'); %removes the 104C and 118W from CDR3, and adjusts the CDR3 length to true IMGT length
-
-                %Move non-function sequences to Err file too
-                FunctLoc = [Map.hFunct; Map.lFunct];
-                FunctLoc(FunctLoc == 0) = [];
-                BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
-                for w = 1:size(VDJdata, 1)
-                    for q = 1:length(FunctLoc)
-                        if isempty(VDJdata{w, FunctLoc(q)}) || VDJdata{w, FunctLoc(q)} == 'N'
-                            BadIdx(w) = 1;
-                            break
-                        end
-                    end
-                end
-                if max(BadIdx) ~= 0
-                    saveSeqData(ErrFileName, VDJdata(BadIdx, :), VDJheader, 'append');
-                end
-                VDJdata(BadIdx, :) = [];
-
-                %Save the functional annotations
-                VDJdata = buildVDJalignment(VDJdata, Map, DB); %Adds the alignment information
+                VDJdata = buildVDJalignment(VDJdata, Map, DB);
+                
                 saveSeqData([TempDir TempOutFileName], VDJdata, VDJheader, 'append');
-                clear VDJdata BadVDJdata
             end
             %======================================================================
             %Move folder to the correct destination folder
