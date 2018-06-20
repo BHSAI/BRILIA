@@ -25,26 +25,21 @@ end
 %Deletes empty Temp dir
 if ~isempty(varargin) && ischar(varargin{1}) && strcmpi(varargin{1}, 'delete')
     if ~exist(TempDir, 'dir')
-        return; 
+        return
     end
     FileContents = dir([TempDir '*.*']);
     if length(FileContents) <= 2
-        try
-            rmdir(TempDir)
-        catch
-        end
+        [Success, Msg] = rmdir(TempDir);
+        assert(Success == 1, '%s: Error removing temp dir "%s".\n  %s\n', mfilename, TempDir, Msg);
     end
-    return;
+    return
 end
 
 %Make a new Temp dir
 if ~exist(TempDir, 'dir')
-    try
-        mkdir(TempDir);
-    catch
-        error('%s: Could not make temp dir %s . Check permission.\n', mfilename, TempDir);
-    end
-    return;
+    [Success, Msg] = mkdir(TempDir);
+    assert(Success == 1, '%s: Error making temp dir "%s".\n  %s\n', mfilename, TempDir, Msg);
+    return
 end
 
 %Remove Raw.csv files

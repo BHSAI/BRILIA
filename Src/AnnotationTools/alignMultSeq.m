@@ -16,7 +16,7 @@
 
 function varargout = alignMultSeq(SeqSet)
 %If SeqSet is a single sequence, then just return itself
-if size(SeqSet,1) == 1;
+if size(SeqSet,1) == 1
     varargout{1} = SeqSet;
     if nargout >= 2
         varargout{2} = SeqSet{1};
