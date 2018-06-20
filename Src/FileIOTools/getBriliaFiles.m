@@ -29,7 +29,7 @@ for f = 1:length(FileNames)
         EndName = ['*BRILIAv' Ver(1) '.csv'];
         DirList = dir(fullfile(FileNames{f}, EndName));
         if isempty(DirList)
-            error('%s: Coult not find the file ending with "%s" in dir "%s".', mfilename, EndName, FileNames{f});
+            error('%s: Could not find the file ending with "%s" in dir "%s".', mfilename, EndName, FileNames{f});
         end
         FileNames{f} = fullfile(FileNames{f}, DirList(1).name);
     end

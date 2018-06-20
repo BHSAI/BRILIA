@@ -326,7 +326,7 @@ while true
     %See if the user specified everything when using RunMode = 3
     if RunMode == 3 
         %Selecting the H or L chain
-        if ~any(cellfun(@(x) strcmpi(x, 'chain'), varargin)) 
+        if ~strcmpi('Chain', varargin) 
             fprintf('What IG chain is it?\n');
             ChainList = {'H', 'L', 'HL'};
             dispList(ChainList);
@@ -350,21 +350,21 @@ while true
                 end
             end
             if Attempt >= 5
-                continue %return to beginning of input
+                continue %return to beginning of input because of failure
             end
             MainChain = ChainList{Selection};
         end
         
-        if ~any(cellfun(@(x) strcmpi(x, 'Species'), varargin)) 
+        if ~strcmpi('Species', varargin) 
             Species = '';
         end
-        if ~any(cellfun(@(x) strcmpi(x, 'Strain'), varargin))
+        if ~strcmpi('Strain', varargin)
             Strain = '';
         end
-        if ~any(cellfun(@(x) strcmpi(x, 'Ddirection'), varargin)) 
+        if ~strcmpi('Ddirection', varargin) 
             Ddirection = '';
         end
-        if ~any(cellfun(@(x) strcmpi(x, 'Vfunction'), varargin)) 
+        if ~strcmpi('Vfunction', varargin) 
             Vfunction = '';
         end
     end

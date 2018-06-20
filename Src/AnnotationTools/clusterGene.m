@@ -53,6 +53,7 @@ ClustCell = VDJdata(:, [CDR3LIdx; GeneNIdx]);
 VDJdata = VDJdata(SortIdx, :); %Sort by CDR3Lengths mainly
 VDJdata(:, Map.GrpNum) = {0};
 VDJdata(:, Map.ChildCount) = {0};
+VDJdata(:, Map.ParNum) = {0};
 
 %Reduce gene name to family # only, and get unique clusters
 UnqStrPat = repelem({'%03d-'}, 1, size(ClustCell, 2));
