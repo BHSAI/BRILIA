@@ -87,7 +87,7 @@ for f = 1:4
     end
     MotifLabel = MotifList(LeafOrder);
     for j = 1:length(MotifLabel)
-        MutLoc = eval(MotifLabel{j}(4));
+        MutLoc = convStr2NumMEX(MotifLabel{j}(4));
         MotifRange = MutLoc + HotIdxAdj(f, :);
         TriNuc = lower(MotifLabel{j}(1:3));
         TriNuc(MotifRange(1):MotifRange(end)) = upper(TriNuc(MotifRange(1):MotifRange(end)));

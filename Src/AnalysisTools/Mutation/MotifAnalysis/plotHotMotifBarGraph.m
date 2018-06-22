@@ -64,7 +64,7 @@ for f = 1:4
     MutLoc = zeros(size(TriNuc));
     MotifNuc = cell(size(TriNuc));
     for j = 1:length(MutLoc)
-        MutLoc = eval(TriNuc{j}(4));
+        MutLoc = convStr2NumMEX(TriNuc{j}(4)); 
         MotifRange = MutLoc + HotIdxAdj(f, :);
         MotifNuc{j} = TriNuc{j}(MotifRange(1):MotifRange(end));
     end
