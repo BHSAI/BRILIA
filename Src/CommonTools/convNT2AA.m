@@ -4,6 +4,6 @@
 %an error, but not convNT2AA('gax', 'acgtonly', false).
 
 function AA = convNT2AA(NT, varargin)
-AmbigLoc = regexpi(NT, '[^ACGTU]');
-NT(AmbigLoc) = 'N';
+AmbigIdx = regexpi(NT, '[^ACGTU]');
+NT(AmbigIdx) = 'N';
 AA = nt2aa(NT, varargin{:});

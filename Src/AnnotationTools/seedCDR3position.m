@@ -29,39 +29,13 @@
 %
 %    Cannot seed a heavy and light chain V or J together. Ex, X = 'V, Vk'
 %    will not work.
-%
-%  See also findVDJmatch, findVJmatch, findGeneMatch
 
 function VDJdata = seedCDR3position(VDJdata, Map, DB, X, Nleft, Nright, CheckSeqDir)
+Xseed = getGeneSeed(DB, X, Nleft, Nright, 'nt');
+
 CheckSeqDir = upper(CheckSeqDir(1)); %Ensure proper format
-
-if contains(Map.Chain, 'H', 'IgnoreCase', true) && any(contains(X, {'k', 'l'}, 'IgnoreCase', true))
-    return;
-elseif contains(Map.Chain, 'L', 'IgnoreCase', true) && ~any(contains(X, {'k', 'l'}, 'IgnoreCase', true))
-    return;
-end
-
-%Determine the chain and segment
-Xparse = regexpi(X, ',\s*|;', 'split');
-if ( strcmpi(Xparse{1}, 'V') || strcmpi(Xparse{1}, 'J') ) && length(Xparse) > 1
-    error('%s: Cannot have multiple heavy chains. Check X variable.', mfilename);
-end
-Segment = upper(X(1));
-
-%Extract the seed sequences
-Xseed = {''};
-for j = 1:length(Xparse)
-    Xseed = cat(1, Xseed, getGeneSeed(DB, Xparse{j}, Nleft, Nright, 'nt'));
-end
-Xseed = unique(Xseed);
-if isempty(Xseed{1})
-    Xseed(1) = [];
-end
-if isempty(Xseed) %missing all database files or valid seed sequences
-    return;
-end
-
 %Get header locations since parfor can't handle broadcast variables
+Segment = X(1);
 if strcmpi(Map.Chain, 'H') %Heavy chain
     SeqLoc = Map.hSeq;
     if SeqLoc == 0; return; end %Invalid 
@@ -111,7 +85,7 @@ else
 end
 
 %Find the CDR3start or CDR3end locations. Flip seq too if needed.
-parfor j = 1:size(VDJdata, 1)
+for j = 1:size(VDJdata, 1)
     Tdata = VDJdata(j, :);  
     Seq = Tdata{SeqLoc};
     if length(Seq) < (Nleft + Nright + 1); continue; end %Skip short seqs

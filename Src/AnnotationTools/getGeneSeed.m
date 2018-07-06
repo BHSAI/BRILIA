@@ -1,8 +1,8 @@
 %getGeneSeed will look through the database V or J genes, and extract N
-%number of nts of the framework regions, including the conserved C and W
-%codon set. 
+%number of nts to the left or right of the C or W codon set, including the
+%104C and 118W codon set.
 %
-%  SeedSeq = getGeneSeed(DB,X,Nleft,Nright,Alphabet)
+%  SeedSeq = getGeneSeed(DB, X, Nleft, Nright, Alphabet)
 %
 %  INPUT
 %    DB: gene database structure(getCurrentDatabase.m)
@@ -20,77 +20,76 @@
 %    output! This is to prevent confusion pinpointing where the seed
 %    sequence marks the position of the C or W.
 
-function SeedSeq = getGeneSeed(DB,X,Nleft,Nright,Alphabet)
-%Determine which database to use
-M = getMapHeaderVar(DB.MapHeader);
-Fields = fieldnames(DB);
-DBidx = findCell(Fields,[X 'map']);
-Xmap = DB.(Fields{DBidx});
-
-%Make sure the map isn't empty
-if isempty(Xmap)
-    SeedSeq = {''};
-    return;
+function SeedSeq = getGeneSeed(DB, X, Nleft, Nright, Alphabet)
+SeedSeq = {''};
+if nargout < 5
+    Alphabet = 'nt';
 end
+
+X = strsplit(strrep(X, ' ', ''), ',');
+if any(startsWith(X, 'V')) > 1 && any(startsWith(X, 'J')) %Can't have both J and V
+    error('%s: X input cannot have both V and J genes.', mfilename);
+end
+
+Fields = fieldnames(DB);
+Fields(~endsWith(Fields, 'map')) = [];
+ValidX = strrep(Fields, 'map', '');
+GetIdx = find(endsWith(ValidX, X, 'ignorecase', true));
+if isempty(GetIdx)
+    error('%s: 2nd input X must be a comma-sperated list string containing [%s].', mfilename, makeStrPattern(strrep(Fields, 'map', ''), ','))
+end
+
+if length(GetIdx) > 1
+    Xmap = cell(1, length(GetIdx));
+    for j = 1:length(GetIdx)
+        Xmap{j} = DB.(Fields{GetIdx(j)});
+    end
+    Xmap = vertcat(Xmap{:});
+else
+    Xmap = DB.(Fields{GetIdx});
+end
+if isempty(Xmap); return; end
 
 %Remove all sequences without conserved residue or empty sequences
-DelThese = zeros(size(Xmap,1),1,'logical');
-for j = 1:size(Xmap,1)
-    if Xmap{j,M.Anchor} < 3
-        DelThese(j) = 1;
-    elseif isempty(Xmap{j, M.Seq})
-        DelThese(j) = 1;
-    elseif ~strcmpi(Xmap{j, M.Funct},'F')
-        DelThese(j) = 1;
-    end   
-end
-Xmap(DelThese,:) = [];
-
-%Make sure the map isn't empty
-if isempty(Xmap)
-    SeedSeq = {''};
-    return;
-end
-
-%Determine if this is a V or J
-X = '';
-for j = 1:size(Xmap,1)
-    GeneName = Xmap{j,M.Gene};
-    StrPat = 'IG[HKL][VDJ]';
-    Xidx = regexpi(GeneName,StrPat,'end');
-    if ~isempty(Xidx)
-        X = GeneName(Xidx);
-        break
-    end
-end
-if isempty(X)
-    SeedSeq = {''};
-    error('getGeneSeed: Unable to determine gene V or J');
-    return;
-end
+M = getMapHeaderVar(DB.MapHeader);
+DelLoc = cellfun(@(x) x < 3, Xmap(:, M.Anchor)) | ...
+         cellfun(@isempty, Xmap(:, M.Seq)) | ...
+         ~strcmpi(Xmap(:, M.Funct), 'F');
+Xmap(DelLoc,:) = [];
+if isempty(Xmap); return; end
 
 %Determine how many N number of nts to keep
-if strcmpi(Alphabet,'aa')
-    Nleft = Nleft*3;
-    Nright = Nright*3+2; % The 2 comes from the anchor codon 2nd-3rd nt.
+if strcmpi(Alphabet, 'aa')
+    Nleft = 3*Nleft;
+    Nright = 3*Nright + 2; % The 2 comes from the anchor codon 2nd-3rd nt.
 end
 
-%Trim all sequence to contain the conserved residue
-SeedSeq = cell(size(Xmap,1),1);
-if strcmpi(X,'V')
-    for j = 1:size(Xmap,1)
-        SeedSeq{j,1} = padtrimSeq(Xmap{j,M.Seq}, length(Xmap{j,M.Seq})-Xmap{j,M.Anchor}+1, Nleft, Nright);
-    end
-elseif strcmpi(X,'J')
-    for j = 1:size(Xmap,1)
-        SeedSeq{j,1} = padtrimSeq(Xmap{j,M.Seq}, Xmap{j,M.Anchor}, Nleft, Nright);
-    end
+%Trim all sequence around the anchor point
+TempSeedSeq = cell(size(Xmap, 1), 1);
+if startsWith(X, 'V')
+    TempSeedSeq = cellfun(@(x, y) padtrimSeq(x, length(x) - y + 1, Nleft, Nright), Xmap(:, M.Seq), Xmap(:, M.Anchor), 'un', false);
+elseif startsWith(X, 'J')
+    TempSeedSeq = cellfun(@(x, y) padtrimSeq(x, y, Nleft, Nright), Xmap(:, M.Seq), Xmap(:, M.Anchor), 'un', false);
 end
 
-%Translate set to AA if needed
-if strcmpi(Alphabet,'aa')
-    SeedSeq = convNT2AA(SeedSeq,'ACGTOnly','false');
+if strcmpi(Alphabet, 'aa')
+    TempSeedSeq = convNT2AA(TempSeedSeq, 'ACGTOnly', false);
 end
 
-%Get only unique seeds
-SeedSeq = unique(SeedSeq);
+TempSeedSeq = unique(TempSeedSeq);
+
+%Determine similar by 1 sequences
+[Ham, ~, ~, Penalty] = calcPairDistMEX(TempSeedSeq);
+Ham(Penalty > 0) = Inf;
+AncMap = calcAncMap(Ham);
+ClustNum = findTreeClust(AncMap);
+
+SeedSeq =  cell(max(ClustNum), 1);
+for k = 1:max(ClustNum)
+    ClustIdx = find(ClustNum == k);
+    NTcount = countNT(TempSeedSeq(ClustIdx));
+    MaxLoc = max(NTcount(1:4, :)) == length(ClustIdx);
+    Seq = TempSeedSeq{ClustIdx(1)};
+    Seq(~MaxLoc) = 'N';
+    SeedSeq{k} = Seq;
+end

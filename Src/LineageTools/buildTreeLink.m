@@ -30,57 +30,68 @@ if nargin < 3
 end
 Tdata(:, Map.ParNum) = {0};
 
+RefSeqIdx = [Map.hRefSeq Map.lRefSeq];
+RefSeqIdx(RefSeqIdx == 0) = [];
+SeqIdx = [Map.hRefSeq Map.lRefSeq];
+SeqIdx(SeqIdx == 0) = [];
+
 %Determine the distances between sequences, adding H and L together
 Chain = lower(Map.Chain);
 PairDist = zeros(size(Tdata, 1));
 for c = 1:length(Chain)
-    Seq = Tdata(:, Map.([Chain(c) 'Seq']));
-    [Ham, Motif, Mut, Penalty] = calcSeqShmMEX(Seq);
-    InvalidLoc = (Motif < 0 & Mut < 0) | Penalty./Ham > 0.5;
-    PairDist = PairDist + (Ham -(Motif + Mut - Penalty)/4);
+    Seq = Tdata(:, SeqIdx(c));
+    [~, Motif, Mut, Penalty, ShmDist] = calcPairDistMEX(Seq);
+    PairDist = PairDist + ShmDist;
+    InvalidLoc = (Motif < 0 & Mut < 0) | Penalty >= 8; %Penalty of 8 means there's a double 2-consec miss. Penalty 9 means there's a triplet mismatch. Both are rare and should be discarded.
     PairDist(InvalidLoc) = Inf; %Prevents linking these
 end
-
 AncMap = calcAncMap(PairDist);
-AncMap = [AncMap findTreeClust(AncMap)];
 
-for j = 1:max(AncMap(:, end))
-    ClustLoc = AncMap(:, end) == j;
-    if sum(ClustLoc) <= 1
-        continue
-    end
-    
-    %Determine which one is the parent
-    RootSeqNum = AncMap(ClustLoc, 1);
-    Germ2SeqDist = zeros(length(RootSeqNum), 1);
-    for k = 1:length(RootSeqNum)
-        for c = 1:length(Chain)
-            [Ham, Motif, Mut, Penalty] = calcSeqShmMEX(Tdata(RootSeqNum(k), [Map.([Chain(c) 'Seq']) Map.([Chain(c) 'RefSeq'])]));
-            Germ2SeqDist(k) = Germ2SeqDist(k) + Ham(1, 2) - (Motif(1, 2) + Mut(1, 2) - Penalty(1, 2))/4;
+%Determine if you should break this up by G2C < P2C distance
+Germ2SeqDist = zeros(size(AncMap, 1), 1);
+for j = 1:size(AncMap, 1)
+    for c = 1:length(Chain)
+        [Ham, Motif, Mut, Penalty, ShmDist] = calcPairDistMEX(Tdata(AncMap(j, 1), [RefSeqIdx(c) SeqIdx(c)]));
+        if (Motif(1, 2) < 0 && Mut(1, 2) < 0) || Penalty(1, 2) >= Ham(1, 2)
+            Germ2SeqDist(j) = Inf;
+        else
+            Germ2SeqDist(j) = Germ2SeqDist(j) + ShmDist(1, 2);
         end
     end
-    RootSeqNum = RootSeqNum(Germ2SeqDist == min(Germ2SeqDist));
-        
-    %Break tie by higher template counts
-    if length(RootSeqNum) > 1
-        TC = cell2mat(Tdata(RootSeqNum, Map.Template));
-        RootSeqNum = RootSeqNum(TC == max(TC));
-    end
-
-    %Break tie by one that's closest to all others
-    if length(RootSeqNum) > 1
-        PD = PairDist(RootSeqNum, :);
-        PD(isinf(PD)) = 0;
-        SumPD = sum(PD, 2);
-        RootSeqNum = RootSeqNum(SumPD == min(SumPD));
-    end
-
-    AncMap(AncMap(:, 1) == RootSeqNum(1), 2) = 0; %If still tied, just get the first one
 end
 
-AncMap = sortrows(AncMap, [4 2]);
+%CDR3 PAIR DIST
+
+%INVALID_ Penalty > Ham of CDR3s only. THis will prevent bad linking!
+
+
+AncMap = [AncMap findTreeClust(AncMap)];
+for j = 1:max(AncMap(:, end))
+    ClustLoc = AncMap(:, end) == j;
+    if sum(ClustLoc) > 1
+        RootSeqNum = AncMap(ClustLoc & Germ2SeqDist == min(Germ2SeqDist(ClustLoc)), 1); %Determine which one is the parent
+        if length(RootSeqNum) > 1 %Break tie by higher template counts.
+            TC = cell2mat(Tdata(RootSeqNum, Map.Template));
+            RootSeqNum = RootSeqNum(TC == max(TC));
+        end
+        if length(RootSeqNum) > 1 %Break tie by one that's closest to all others
+            PD = PairDist(RootSeqNum, :);
+            PD(isinf(PD)) = 0;
+            SumPD = sum(PD, 2);
+            RootSeqNum = RootSeqNum(SumPD == min(SumPD));
+        end
+        AncMap(AncMap(:, 1) == RootSeqNum(1), 2) = 0; %If still tied, just get the first one
+    end
+end
+
+%Now, make sure to break those that are closer to germline than neighbor
+GermWinLoc = Germ2SeqDist < AncMap(:, 3);
+AncMap(GermWinLoc, 2) = 0;
+AncMap(GermWinLoc, 3) = Germ2SeqDist(GermWinLoc);
+AncMap(:, 4) = findTreeClust(AncMap);
 
 %Reroot each cluster according to the root
+AncMap = sortrows(AncMap, [4 2 3 1]);
 for j = 1:max(AncMap(:, end))
     ClustLoc = AncMap(:, end) == j;
     NumIdx = AncMap(ClustLoc, 1);
@@ -91,17 +102,37 @@ for j = 1:max(AncMap(:, end))
     AncMap(ClustLoc, 1:3) = RootedAncMap(:, 1:3);
 end
 
-%For each root, see if it is closer to its germline or another cluster
-%member.
-
-
+% %The final step requires clustering germlines
+% RootIdx = AncMap(AncMap(:, 2) == 0, 1);
+% if numel(RefSeqIdx) == 1
+%     RefSeq = Tdata(RootIdx, RefSeqIdx);
+% else
+%     RefSeq = cellfun(@(x, y) [x y], Tdata(RootIdx, RefSeqIdx(1)), Tdata(RootIdx, RefSeqIdx(2)));
+% end
+% 
+% [RHam, RMotif, RMut, RPenalty, RShmDist] = calcPairDistMEX(RefSeq);
+% RInvalidLoc = RMotif < 0 | RMut < 0 | RPenalty >= RHam; %This is stricter since you're clustering germlines!
+% RShmDist(RInvalidLoc) = Inf;
+% RAncMap = calcAncMap(RShmDist);
+% RClustMap = findTreeClust(RAncMap);
+% 
+% %Renumber AncMap cluster number to be the same. Can have multiples 0's now
+% GNum = 1;
+% for k = 1:max(RClustMap)
+%     LinkSeqNum = RootIdx(RClustMap == k);
+%     [~, LinkSeqNumIdx] = intersect(AncMap(:, 1), LinkSeqNum, 'stable');
+%     LinkGrpNumLoc = ismember(AncMap(:, 4), AncMap(LinkSeqNumIdx, 4));
+%     AncMap(LinkGrpNumLoc, 4) = -GNum;
+%     GNum = GNum + 1;
+% end
+% AncMap(:, 4) = abs(AncMap(:, 4));
 
 %Rearrange TData, replacing RefSeq with Seq of parent, and giving it parent
-%numbers. NOTE: in future releases, RefSeq will NOT be switched off. 
+%numbers. NOTE: in future releases, RefSeq will NOT be altered. 
 Tdata = Tdata(AncMap(:, 1), :);
 AncMap = renumberAncMap(AncMap);
 for c = 1:length(Chain)
-    Tdata(AncMap(:, 2) ~= 0, Map.([Chain(c) 'RefSeq'])) = Tdata(AncMap(AncMap(:, 2) ~= 0, 2), Map.([Chain(c) 'Seq']));
+    Tdata(AncMap(:, 2) ~= 0, RefSeqIdx(c)) = Tdata(AncMap(AncMap(:, 2) ~= 0, 2), SeqIdx(c));
     Tdata(AncMap(:, 2) ~= 0, Map.ParNum) = Tdata(AncMap(AncMap(:, 2) ~= 0, 2), Map.SeqNum);
 end
 Tdata(:, Map.GrpNum) = num2cell(GrpNumStart - 1 + AncMap(:, end));

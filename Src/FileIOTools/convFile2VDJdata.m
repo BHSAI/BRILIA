@@ -123,7 +123,7 @@ if InTemplateLoc > 0 %Update template loc if possible.
             VDJdata(j, H.TemplateLoc) = InputData(j, InTemplateLoc);
         elseif ischar(InputData{j, InTemplateLoc}) %Check if it is a number
             if min(isstrprop(InputData{j, InTemplateLoc}, 'digit')) == 1
-                VDJdata{j, H.TemplateLoc} = eval(InputData{j, InTemplateLoc});
+                VDJdata{j, H.TemplateLoc} = convStr2NumMEX(InputData{j, InTemplateLoc});
             end
         end
     end

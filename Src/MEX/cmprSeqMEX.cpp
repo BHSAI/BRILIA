@@ -67,25 +67,25 @@ void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
 
     if (nrhs < 2) {
-        mexErrMsgIdAndTxt("cmprSeq:nrhs", "Need >= 2 inputs.");
+        mexErrMsgIdAndTxt("cmprSeqMEX:nrhs", "Need >= 2 inputs.");
     }
     
     if (!mxIsChar(prhs[0])) { 
-        mexErrMsgIdAndTxt("cmprSeq:prhs", "Must be a char array.");
+        mexErrMsgIdAndTxt("cmprSeqMEX:prhs", "Must be a char array.");
     }
     
     if (mxGetM(prhs[0]) > 1) {
-        mexErrMsgIdAndTxt("cmprSeq:prhs", "Must be a 1xN vector.");
+        mexErrMsgIdAndTxt("cmprSeqMEX:prhs", "Must be a 1xN vector.");
     }
     
     if (nlhs != 1) {
-        mexErrMsgIdAndTxt("cmprSeq:nlhs", "Need 1 output.");
+        mexErrMsgIdAndTxt("cmprSeqMEX:nlhs", "Need 1 output.");
     }
 
     mwSize NA = mxGetN(prhs[0]);
     mwSize NB = mxGetN(prhs[1]);
     if (NA != NB) {
-        mexErrMsgIdAndTxt("cmprSeq:prhs", "SeqA and SeqB must be same size.");
+        mexErrMsgIdAndTxt("cmprSeqMEX:prhs", "SeqA and SeqB must be same size.");
     }
     
     char Alphabet = 'n';
@@ -102,6 +102,6 @@ void mexFunction(int nlhs,        mxArray *plhs[],
         case 'n': cmprSeqNT(CharA, CharB, NA, Match); break;
         case 'a': cmprSeqAA(CharA, CharB, NA, Match); break;
         case 'r': cmprSeq(CharA, CharB, NA, Match);   break;
-        default : mexErrMsgIdAndTxt("cmprSeq:prhs", "Unrecognized 2nd input. Must be 'n', 'a', or 'r'.");
+        default : mexErrMsgIdAndTxt("cmprSeqMEX:prhs", "Unrecognized 2nd input. Must be 'n', 'a', or 'r'.");
     }                
 }

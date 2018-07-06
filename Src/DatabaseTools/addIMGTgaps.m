@@ -48,11 +48,8 @@ end
 GapInfo = strrep(GapInfo, ' ', '');
 GapMat = regexp(GapInfo, '[^\d^\-]', 'split');
 for j = 1:length(GapMat)
-    try
-        GapMat{j} = eval(GapMat{j});
-    catch
-        error('%s: GapInfo contains an invalid character: %s.', mfilename, GapMat{j})
-    end
+    GapMat{j} = convStr2NumMEX(GapMat{j});
+    assert(~isempty(GapMat{j}), '%s: GapInfo contains an invalid character: %s.', mfilename, GapMat{j})
 end
 GapMat = cell2mat(GapMat);
 

@@ -92,7 +92,7 @@ RefSeqLocs(RefSeqLocs == 0) = [];
 %--------------------------------------------------------------------------
 %Getting AncMapS
 
-AncMapAll = zeros(size(Tdata, 1), 7); %[Child Par HAMdist SHMdist HAMperc SHMperc TemplateCount];
+AncMapAll = zeros(size(Tdata, 1), 5); %[Child Par HAMdist HAMperc TemplateCount];
 for j = 1:size(Tdata, 1)
     %Determine this child seq's absolute parent seq number
     ChildSeqNum = Tdata{j, SeqNumLoc};
@@ -113,18 +113,15 @@ for j = 1:size(Tdata, 1)
     end
 
     %Determine the SHMdist and HAMdist and template count
-    SHMdist = 0; %Parent to child SHM distance
-    HAMdist = 0; %Parent to child HAM distance
+    HAMdist = 0;
     SeqLen = 0;
     for k = 1:length(SeqLocs)
         ChildSeq = Tdata{j, SeqLocs(k)};
         ParentSeq = Tdata{j, RefSeqLocs(k)};
-        [HAMdistT, SHMdistT] = calcPairDistMEX(ParentSeq, ChildSeq);
-        SHMdist = SHMdist + SHMdistT;
-        HAMdist = HAMdist + HAMdistT;
+        HAMdistT = calcPairDistMEX({ParentSeq, ChildSeq});
+        HAMdist = HAMdist + HAMdistT(1, 2);
         SeqLen = SeqLen + length(ParentSeq);
     end
-    SHMperc = SHMdist / SeqLen * 100; 
     HAMperc = HAMdist / SeqLen * 100;
 
     %Determine Template Count
@@ -133,7 +130,7 @@ for j = 1:size(Tdata, 1)
         TemplateCount = 1;
     end
     
-    AncMapAll(j, :) = [ChildSeqNum ParentSeqNum HAMdist SHMdist HAMperc SHMperc TemplateCount];
+    AncMapAll(j, :) = [ChildSeqNum ParentSeqNum HAMdist HAMperc TemplateCount];
 end
 
 %Determine if you need to add the germline with template count 0
@@ -148,7 +145,7 @@ end
 AncMapAll = renumberAncMap(AncMapAll);
 
 %Create the structured version of AncMap
-DistOrder = {'HAM', 'SHM', 'HAMPERC', 'SHMPERC'};
+DistOrder = {'HAM', 'HAMPERC'};
 for k = 1:length(DistOrder)
     AncMapS.(DistOrder{k}) = AncMapAll(:, [1:2 k+2 size(AncMapAll, 2)]);
 end
@@ -160,9 +157,8 @@ if nargout >= 2
     for j = 1:length(GeneNameLocs)
         GeneNames = Tdata(1, GeneNameLocs{j});
         for w = 1:length(GeneNames)
-            TempNames = regexpi(GeneNames{w},'\|','Split'); %Get the first recommended name
-            TempName = strrep(TempNames{1}, 'IGH', ''); %Remove IGH for heavy chain
-            GeneNames{w} = strrep(TempName, 'IG', ''); %Remove IG for light chain. Save.
+            TempNames = strsplit(GeneNames{w}, '|');  %Get the first recommended name
+            GeneNames{w} = strrep(TempNames{1}, 'IG', ''); 
         end
         RepPat = repmat(' %s |',1,length(GeneNames));
         RepPat([1 end]) = [];

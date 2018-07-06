@@ -16,9 +16,9 @@ function mutMap = loadMutabilityMap(Chain)
 MutData = readDlmFile('MutabilityIndex_Mouse_Shapiro2002.csv', 'Delimiter', ',');
 MutData(1, :) = [];
 for c = 2:size(MutData, 2)
-    for r = 1:size(MutData, 1);
+    for r = 1:size(MutData, 1)
         try
-            MutData{r, c} = eval(MutData{r, c});
+            MutData{r, c} = convStr2NumMEX(MutData{r, c});
         catch
         end
     end

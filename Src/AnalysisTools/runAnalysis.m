@@ -31,8 +31,6 @@ if isempty(SaveDir) && ~isempty(FilePath)
     SaveDir = FilePath;
 end
 
-plotTree(VDJdata, VDJheader, 'SaveDir', SaveDir, 'SaveSubDir', 'Tree', 'SaveAs', 'Tree.png');
-
 GeneUsage = getGeneUsage(InputFile, 'all');
 MotifData = collectMotifData(VDJdata, VDJheader);
 HotMotifData = getHotMotifData(MotifData);
@@ -85,6 +83,10 @@ end
 % catch
 %     warning('%s: Could not run plotHotMotifDendrogram.', mfilename);
 % end
+
+
+
+plotTree(VDJdata, VDJheader, 'SaveDir', SaveDir, 'SaveSubDir', 'Tree', 'SaveAs', 'Tree.png');
 
 %--------------------------------------------------------------------------
 %Preparing search table for saving

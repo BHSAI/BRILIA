@@ -102,7 +102,7 @@ if isempty(varargin) || isempty(varargin{1})
     while 1
         Selection = input('Select option: ', 's');
         try 
-            Selection = round(eval(Selection));
+            Selection = round(convStr2NumMEX(Selection));
             if Selection > 0 && Selection <= length(SpeciesList)
                 Species = SpeciesList{Selection};
                 break;

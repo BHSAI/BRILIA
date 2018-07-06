@@ -61,109 +61,98 @@ addParameter(P, 'Vfunction', '', @(x) ischar(x) && min(ismember(regexpi(lower(x)
 addParameter(P, 'TDTon', '', @(x) ischar(x) && ismember(lower(x), {'y', 'n', ''}));
 addParameter(P, 'Chain', '', @(x) ischar(x) && ismember(lower(x), {'h', 'l', 'hl'}));
 
-[Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
+[P, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
 if ReturnThis
-   varargout = {Ps, Pu, ExpPs, ExpPu};
-   return;
+   varargout = {P, Pu, ExpPs, ExpPu};
+   return
 end
-SaveAs = Ps.SaveAs;
-CloneCount = Ps.CloneCount;
-BranchLength = Ps.BranchLength;
-BranchWidth = Ps.BranchWidth;
-SHMperc = Ps.SHMperc;
-Species = Ps.Species;
-Strain = Ps.Strain;
-Ddirection = Ps.Ddirection;
-Vfunction = Ps.Vfunction;
-TDTon = Ps.TDTon;
-Chain = Ps.Chain;
 
 %Fill in the missing info by asking the user. Round values if needed.
 
 %Set up the species at least.
-Species = lower(Species);
+P.Species = lower(P.Species);
 SpeciesList = getGeneDatabase('getlist');
-while isempty(Species) || ~ismember(Species, SpeciesList);
+while isempty(P.Species) || ~ismember(P.Species, SpeciesList)
     dispList(SpeciesList);
     Selection = round(input('Choose the species.  '));
     if ~isempty(Selection) && Selection > 0 && Selection <= length(SpeciesList)
-        Species = SpeciesList{Selection};
+        P.Species = SpeciesList{Selection};
     end        
 end
 
 %Set how many unique VDJ germline seq to make
-CloneCount = round(CloneCount);
-while isempty(CloneCount) || (CloneCount <= 0) %Must check isempty first before checking odd value of CloneCount.
-    CloneCount = round(input('How many productive VDJ seq, or B cell clone, do  you want? Default 10.  '));
-    if isempty(CloneCount)
-        CloneCount = 10;
+P.CloneCount = round(P.CloneCount);
+while isempty(P.CloneCount) || (P.CloneCount <= 0) %Must check isempty first before checking odd value of P.CloneCount.
+    P.CloneCount = round(input('How many productive VDJ seq, or B cell clone, do  you want? Default 10.  '));
+    if isempty(P.CloneCount)
+        P.CloneCount = 10;
     end
 end
 
 %Set up the clonally-related sequences per group, including germline VDJ
-BranchLength = round(BranchLength);
-while isempty(BranchLength) || (BranchLength < 0) %Must check isempty first before checking odd value of CloneCount.
-    BranchLength = round(input('How many linear descendant per lineage branch? Default 5.  '));
-    if isempty(BranchLength)
-        BranchLength = 5;
+P.BranchLength = round(P.BranchLength);
+while isempty(P.BranchLength) || (P.BranchLength < 0) %Must check isempty first before checking odd value of P.CloneCount.
+    P.BranchLength = round(input('How many linear descendant per lineage branch? Default 5.  '));
+    if isempty(P.BranchLength)
+        P.BranchLength = 5;
     end
 end
 
 %Set up how many branches per group to make
-BranchWidth = round(BranchWidth);
-while isempty(BranchWidth) || (BranchWidth < 0) %Must check isempty first before checking odd value of CloneCount.
-    BranchWidth = round(input('How many lineage branch to per clonal gorup? Default 2.  '));
-    if isempty(BranchWidth)
-        BranchWidth = 2;
+P.BranchWidth = round(P.BranchWidth);
+while isempty(P.BranchWidth) || (P.BranchWidth < 0) %Must check isempty first before checking odd value of P.CloneCount.
+    P.BranchWidth = round(input('How many lineage branch to per clonal gorup? Default 2.  '));
+    if isempty(P.BranchWidth)
+        P.BranchWidth = 2;
     end
 end
 
-SeqCount = (BranchWidth * BranchLength + 1) * CloneCount; %Total number of sequences to generate
+SeqCount = (P.BranchWidth * P.BranchLength + 1) * P.CloneCount; %Total number of sequences to generate
 
 %Setup SHM rate
-while isempty(SHMperc) || (SHMperc < 0 || SHMperc > 100)
-    SHMperc = lower(input('What SHM mutation % to simulate? Default 2   '));
-    if isempty(SHMperc)
-        SHMperc = 2;
+while isempty(P.SHMperc) || (P.SHMperc < 0 || P.SHMperc > 100)
+    P.SHMperc = lower(input('What SHM mutation % to simulate? Default 2   '));
+    if isempty(P.SHMperc)
+        P.SHMperc = 2;
     end
 end
-if SHMperc > 20
-    fprintf('Warning: SHMperc is set too high. This mean %0.1f%% of sequence mutates per descendant. \n', SHMperc);
+if P.SHMperc > 20
+    fprintf('Warning: P.SHMperc is set too high. This mean %0.1f%% of sequence mutates per descendant. \n', P.SHMperc);
 end
 
 %Setup TDT activity and N region max size
-TDTon = lower(TDTon);
-while isempty(TDTon) || (TDTon ~= 'n' && TDTon ~= 'y')
-    TDTon = lower(input('Do you want TDT to be added? y or n. Default y   ', 's'));
-    if isempty(TDTon)
-        TDTon = 'y';
+P.TDTon = lower(P.TDTon);
+while isempty(P.TDTon) || (P.TDTon ~= 'n' && P.TDTon ~= 'y')
+    P.TDTon = lower(input('Do you want TDT to be added? y or n. Default y   ', 's'));
+    if isempty(P.TDTon)
+        P.TDTon = 'y';
     end
 end
 
-%Setup the Chain (Might as well use both now)
-Chain = lower(Chain);
-while isempty(Chain) || ~ismember(Chain, {'h', 'l', 'hl'})
-    Chain = lower(input('What IG chain do you want? H (default), L, HL', 's'));
-    if isempty(Chain)
-        Chain = 'h';
+%Setup the P.Chain (Might as well use both now)
+P.Chain = lower(P.Chain);
+while isempty(P.Chain) || ~ismember(P.Chain, {'h', 'l', 'hl'})
+    P.Chain = lower(input('What IG chain do you want? H (default), L, HL', 's'));
+    if isempty(P.Chain)
+        P.Chain = 'h';
     end
 end
 
-%Setup the Vfunction
-Vfunction = lower(Vfunction);
-while isempty(Vfunction) || ~ismember(lower(Vfunction), {'all', 'f', 'p', 'orf'})
-    Vfunction = lower(input('What V function? F (default), P, ORF, All ', 's'));
-    if isempty(Vfunction)
-        Vfunction = 'F';
+%Setup the P.Vfunction
+P.Vfunction = lower(P.Vfunction);
+while isempty(P.Vfunction) || ~ismember(lower(P.Vfunction), {'all', 'f', 'p', 'orf'})
+    P.Vfunction = lower(input('What V function? F (default), P, ORF, All ', 's'));
+    if isempty(P.Vfunction)
+        P.Vfunction = 'F';
     end
 end
 
-%Setup the Ddirection
-Ddirection = lower(Ddirection);
-while isempty(Ddirection) || ~ismember(lower(Ddirection), {'all', 'dfwd', 'drev'})
-    Ddirection = lower(input('What D direction? All (default), Dfwd, Drev ', 's'));
-    if isempty(Ddirection)
-        Ddirection = 'all';
+%Setup the P.Ddirection
+P.Ddirection = lower(P.Ddirection);
+while isempty(P.Ddirection) || ~ismember(lower(P.Ddirection), {'all', 'dfwd', 'drev'})
+    P.Ddirection = lower(input('What D direction? All (default), Dfwd, Drev ', 's'));
+    if isempty(P.Ddirection)
+        P.Ddirection = 'all';
     end
 end
 
@@ -171,13 +160,13 @@ end
 %Prepare the database for generating germline sequences
 
 %Load databases and filter reference genese according to specifications
-DB = getGeneDatabase(Species);
-[DB, Pfilt] = filterGeneDatabase(DB, 'Strain', Strain, 'Ddirection', Ddirection, 'Vfunction', Vfunction);
+DB = getGeneDatabase(P.Species);
+[DB, Pfilt] = filterGeneDatabase(DB, 'P.Strain', P.Strain, 'P.Ddirection', P.Ddirection, 'P.Vfunction', P.Vfunction);
 
 %Update P based on Pfilt
 PfiltFields = fieldnames(Pfilt);
 for q = 1:length(PfiltFields)
-    Ps.(PfiltFields{q}) = Pfilt.(PfiltFields{q});
+    P.(PfiltFields{q}) = Pfilt.(PfiltFields{q});
 end
 
 %Delete invalid map entries\
@@ -197,8 +186,8 @@ end
 %--------------------------------------------------------------------------
 %Prepared all the parameters for simulations based on inputs
 
-%Species-specfic deletion and N region lengths.
-if strcmpi(Species, 'mouse')
+%P.Species-specfic deletion and N region lengths.
+if strcmpi(P.Species, 'mouse')
     %These were collected from the C57BL6 mice data set from A Collins, 
     %2015, processed with old version of BRILIA, v1.9.0.
     MeanV3del = 1;
@@ -207,9 +196,9 @@ if strcmpi(Species, 'mouse')
     MeanJ5del = 3.9;
     MeanMlen = 3.8;
     MeanNlen = 2.9;
-else%if strcmpi(Species, 'human')
+else%if strcmpi(P.Species, 'human')
     %Souto-Carneiro, M.M., et al., Characterization of the Human Ig Heavy
-    %Chain Antigen Binding Complementarity Determining Region 3 Using a
+    %P.Chain Antigen Binding Complementarity Determining Region 3 Using a
     %Newly Developed Software Algorithm, JOINSOLVER. The Journal of
     %Immunology, 2004. 172(11): p. 6790-6802.
     MeanV3del = 2.1;
@@ -225,7 +214,7 @@ DelCap = 13; %Maximum deletion set for all species, for now.
 ACGTprob = [0.25 0.08 0.60 0.07]; %Prob of A, C, G, T, respectively.
 FLIPprobVD = 0.25; %Probability of flipping Nvd side.
 FLIPprobDJ = 0.45; %Probability of flipping Ndj side.
-if TDTon == 'n'
+if P.TDTon == 'n'
     InsCap = 0;  %No tdt
 else
     InsCap = 13; %Maximum N length
@@ -235,7 +224,7 @@ end
 %Begin creating and filling in simulated VDJdata entries
 
 %Create the VDJdata default matrix
-[VDJdata, VDJheader] = getBlankDataTable(SeqCount, Chain);
+[VDJdata, VDJheader] = getBlankDataTable(SeqCount, P.Chain);
 H = getHeavyHeaderVar(VDJheader);
 L = getLightHeaderVar(VDJheader);
 VDJdata(:, H.TemplateLoc) = num2cell(ones(SeqCount, 1)); %Always initialize TempCt column with 1.
@@ -247,7 +236,7 @@ GrpNum = 1;
 while SeqNum <= SeqCount
     Tdata = VDJdata(SeqNum, :); %For temporary single entries;
     
-    if ~isempty(strfind(Chain, 'h'))
+    if ~isempty(strfind(P.Chain, 'h'))
         ValidH = 0;
         while ValidH == 0
 
@@ -312,7 +301,7 @@ while SeqNum <= SeqCount
         Tdata(H.FunctLoc) = {'Y'};
     end
         
-    if ~isempty(strfind(Chain, 'l'))
+    if ~isempty(strfind(P.Chain, 'l'))
         ValidL = 0;
         while ValidL == 0
 
@@ -377,9 +366,9 @@ while SeqNum <= SeqCount
     end
     
     %Perform SHM here.
-    if BranchLength > 0 && BranchWidth > 0
+    if P.BranchLength > 0 && P.BranchWidth > 0
         AllowRepeatMut = 'y'; %Allow SHM in same position as prior SHM?
-        Tdata = generateSHMseq(Tdata, VDJheader, SHMperc, BranchLength, BranchWidth, AllowRepeatMut);
+        Tdata = generateSHMseq(Tdata, VDJheader, P.SHMperc, P.BranchLength, P.BranchWidth, AllowRepeatMut);
     end
     
     %Update to VDJdata
@@ -399,14 +388,14 @@ GrpNum = cell2mat(VDJdata(:, H.SeqNumLoc));
 MaxSeqDigit = floor(log10(max(SeqNum)))+1;
 MaxGrpDigit = floor(log10(max(GrpNum)))+1;
 
-if strcmpi(Chain, 'H')
+if strcmpi(P.Chain, 'H')
     StrPat = ['Seq%0' num2str(MaxSeqDigit) 'd_Grp%0' num2str(MaxGrpDigit) 'd_%s_%s_%s_Len(%d|%d|%d|%d|%d)_Del(%d|%d|%d|%d)'];
     SeqNames = cell(size(SeqNum));
     for s = 1:length(SeqNames)
         SeqNames{s} = sprintf(StrPat, SeqNum(s), GrpNum(s), VDJdata{s, H.GeneNameLoc}, VDJdata{s, H.LengthLoc}, VDJdata{s, H.DelLoc});
     end
     VDJdata(:, H.SeqNameLoc) = SeqNames;
-elseif strcmpi(Chain, 'L')
+elseif strcmpi(P.Chain, 'L')
     StrPat = ['Seq%0' num2str(MaxSeqDigit) 'd_Grp%0' num2str(MaxGrpDigit) 'd_%s_%s_Len(%d|%d|%d)_Del(%d|%d)'];
     SeqNames = cell(size(SeqNum));
     for s = 1:length(SeqNames)
@@ -424,12 +413,12 @@ end
 
 %--------------------------------------------------------------------------
 %Setup the save file name
-if isempty(SaveAs)
-    SaveName = sprintf('SIM_%s_%s_%s_SHM%0.0f.csv', Species, Ps.Strain, Chain, SHMperc);
+if isempty(P.SaveAs)
+    SaveName = sprintf('SIM_%s_%s_%s_SHM%0.0f.csv', P.Species, P.P.Strain, P.Chain, P.SHMperc);
     [SaveName, SavePath] = uiputfile(SaveName, 'Save simulated sequences as');
-    SaveAs = [SavePath SaveName];
+    P.SaveAs = [SavePath SaveName];
 end
-[SavePath, SaveName, ~] = parseFileName(SaveAs);
+[SavePath, SaveName, ~] = parseFileName(P.SaveAs);
 DotLoc = find(SaveName == '.');
 SaveNamePre = SaveName(1:DotLoc(end)-1);%Get the prefix
 
@@ -437,12 +426,12 @@ SaveNamePre = SaveName(1:DotLoc(end)-1);%Get the prefix
 VDJdata = findCDR1(VDJdata, Map, DB);
 VDJdata = findCDR2(VDJdata, Map, DB);
 VDJdata = findCDR3(VDJdata, Map, DB, 'imgt');
-saveSeqData(SaveAs, VDJdata, VDJheader); 
+saveSeqData(P.SaveAs, VDJdata, VDJheader); 
 
 %Save just the input file format only
-if strcmpi(Chain, 'HL')
+if strcmpi(P.Chain, 'HL')
     SaveLoc = [H.SeqNameLoc H.SeqLoc L.SeqLoc H.TemplateLoc];
-elseif strcmpi(Chain, 'H')
+elseif strcmpi(P.Chain, 'H')
     SaveLoc = [H.SeqNameLoc H.SeqLoc H.TemplateLoc];
 else
     SaveLoc = [L.SeqNameLoc L.SeqLoc L.TemplateLoc];
@@ -461,19 +450,19 @@ saveSeqData(SaveName_CSV, VDJdata(:, SaveLoc), VDJheader(SaveLoc)); %BRILIA anno
 % end
 
 %Save the setting file, include more P parameters
-Ps.MeanV3del = MeanV3del;
-Ps.MeanD5del = MeanD5del;
-Ps.MeanD3del = MeanD3del;
-Ps.MeanJ5del = MeanJ5del;
-Ps.MeanMlen = MeanMlen;
-Ps.MeanNlen = MeanNlen;
-Ps.InsCap = InsCap;
-Ps.DelCap = DelCap;
-Ps.TDT_ACGTprob = ACGTprob;
-Ps.TDT_FLIPprobVD = FLIPprobVD;
-Ps.TDT_FLIPprobDJ = FLIPprobDJ;
+P.MeanV3del = MeanV3del;
+P.MeanD5del = MeanD5del;
+P.MeanD3del = MeanD3del;
+P.MeanJ5del = MeanJ5del;
+P.MeanMlen = MeanMlen;
+P.MeanNlen = MeanNlen;
+P.InsCap = InsCap;
+P.DelCap = DelCap;
+P.TDT_ACGTprob = ACGTprob;
+P.TDT_FLIPprobVD = FLIPprobVD;
+P.TDT_FLIPprobDJ = FLIPprobDJ;
 SaveName_Setting = [SavePath SaveNamePre '.txt'];
-makeSettingFile(SaveName_Setting, Ps);
+makeSettingFile(SaveName_Setting, P);
 
 if nargout >= 1
     varargout{1} = VDJdata;

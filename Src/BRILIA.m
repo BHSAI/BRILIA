@@ -481,10 +481,10 @@ while true
                 %alignment. Do this here, and not when doing VDJ alignment, because users
                 %might have complement sequences which must be flipped.
                 showStatus('Determining sequence direction and CDR3 areas ...', StatusHandle)
-                VDJdata = seedCDR3position(VDJdata, Map, DB, 'V', 80, 2, CheckSeqDir);
-                VDJdata = seedCDR3position(VDJdata, Map, DB, 'J', 3, 14, 'n');
-                VDJdata = seedCDR3position(VDJdata, Map, DB, 'Vk, Vl', 80, 2, CheckSeqDir);
-                VDJdata = seedCDR3position(VDJdata, Map, DB, 'Jk, Jl', 3, 14, 'n');
+                VDJdata = seedCDR3position(VDJdata, Map, DB, 'V', 80,  2, CheckSeqDir);
+                VDJdata = seedCDR3position(VDJdata, Map, DB, 'J',  3, 14, 'n');
+                VDJdata = seedCDR3position(VDJdata, Map, DB, 'Vk,Vl', 80,  2, CheckSeqDir);
+                VDJdata = seedCDR3position(VDJdata, Map, DB, 'Jk,Jl',  3, 14, 'n');
 
                 %Search for initial VDJ alignment matches
                 showStatus('Finding initial-guess V(D)J annotations ...', StatusHandle)

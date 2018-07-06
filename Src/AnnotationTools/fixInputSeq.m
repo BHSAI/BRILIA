@@ -3,50 +3,45 @@
 %array called BadIdx that can be used to delete the bad sequences, which
 %are those with > 10% of sequence with non-nucleotide letters.
 %
-%  VDJdata = fixInputSeq(VDJdata, VDJheader)
+%  VDJdata = fixInputSeq(VDJdata, Map)
 %
-%  [VDJdata, BadIdx] = fixInputSeq(VDJdata, VDJheader)
-%
-%  [VDJdata, BadIdx] = fixInputSeq(VDJdata, VDJheader, MaxErrPerc)
+%  [VDJdata, BadIdx] = fixInputSeq(VDJdata, Map, MaxErrPerc)
 %
 %  INPUT
 %    VDJdata: main BRILIA data cell
-%    VDJheader: main BRILIA header cell
+%    Map: structure of BRILIA data header index
 %    MaxErrRate: max fraction of nts in seq that is tolerable (0.1 default)
 %
 %  OUTPUT
 %    VDJdata: modified VDJdata with corrected sequences
-%    BadIdx: Nx1 logical array of entries have > 10% non-nt letters
+%    BadLoc: Nx1 logical array of entries have > 10% non-nt letters
 
 function [VDJdata, varargout] = fixInputSeq(VDJdata, Map, varargin)
-%Extract all sequence locations
-SeqLoc = [Map.hSeq; Map.lSeq];
-SeqLoc(SeqLoc == 0) = [];
+SeqIdx = [Map.hSeq; Map.lSeq];
+SeqIdx(SeqIdx == 0) = [];
 
-%Determine max error %
+%Set the seq error %, which is the # of non-nt letters / length of seq
 MaxErrRate = 0.1;
 if ~isempty(varargin) && isnumeric(varargin)
-    MaxErrRate = varargin{1}(1);
+    MaxErrRate = varargin{1};
 end
 
 %Replace ambig seq nts with X, and mark those with > MaxErrPerc in BadIdx
-BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
+BadLoc = zeros(size(VDJdata, 1), 1, 'logical');
 for j = 1:size(VDJdata, 1)
-    for k = 1:length(SeqLoc)
+    for k = 1:length(SeqIdx)
         %Make uppercase, and replace absurd characters with X.
-        Seq = upper(VDJdata{j, SeqLoc(k)});
-        NonNucIdx = regexp(Seq, '[^ACGTU]');
-        Seq(NonNucIdx) = 'X';
+        VDJdata{j, SeqIdx(k)} = upper(VDJdata{j, SeqIdx(k)});
+        NonNucIdx = regexp(VDJdata{j, SeqIdx(k)}, '[^ACGTU]');
+        VDJdata{j, SeqIdx(k)}(NonNucIdx) = 'X';
 
         %Make sure NonNucIdx count is not too large, otherwise abandon Seq.
-        if length(NonNucIdx)/length(Seq) > MaxErrRate
-            BadIdx(j) = 1;
-        else
-            VDJdata{j, SeqLoc(k)} = Seq;
+        if length(NonNucIdx)/length(VDJdata{j, SeqIdx(k)}) > MaxErrRate
+            BadLoc(j) = 1;
         end
     end
 end
 
 if nargout == 2
-    varargout{1} = BadIdx;
+    varargout{1} = BadLoc;
 end

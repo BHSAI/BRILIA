@@ -114,7 +114,11 @@ for j = 1:length(SrcFiles)
         Src = dir(fullfile(SrcPath{k}, SrcFiles{j}));
         if ~isempty(Src); break; end
     end
-    assert(~isempty(Src), '%s: Could not find the file "%s".', mfilename, fullfile(SrcFiles{j}));
-    SrcFiles{j} = fullfile(Src.folder, Src.name);
+    if isempty(Src)
+        warning('%s: Could not find the file "%s".', fullfile(SrcFiles{j}));
+        SrcFiles{j} = [];
+    else
+        SrcFiles{j} = fullfile(Src.folder, Src.name);
+    end
 end
-SrcFiles = unique(SrcFiles);
+SrcFiles = unique(SrcFiles(~cellfun(@isempty, SrcFiles)));
