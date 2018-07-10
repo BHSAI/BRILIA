@@ -64,7 +64,15 @@ end
 if Xdecimal >= 0
     for j = 1:length(Axs)
         %Decide if you want to use XTick value or XTickLabel value
-        Xval = cellfun(@convStr2Num, get(Axs(j), 'XTickLabel'), 'unif', false);
+        XTickLabel = get(Axs(j), 'XTickLabel');
+        if ~iscell(XTickLabel)
+            XTickLabelT = XTickLabel;
+            XTickLabel = cell(size(XTickLabelT, 1), 1);
+            for k = 1:size(XTickLabel, 1)
+                XTickLabel{k} = XTickLabelT(k, :);
+            end
+        end
+        Xval = cellfun(@convStr2Num, XTickLabel, 'unif', false);
         if any(cellfun(@(x) isempty(x) || isnan(x) || isinf(x), Xval))
             Xval = get(Axs(j), 'XTick');
         else
@@ -84,6 +92,14 @@ end
 if Ydecimal >= 0
     for j = 1:length(Axs)
         %Decide if you want to use YTick value or YTickLabel value
+        YTickLabel = get(Axs(j), 'YTickLabel');
+        if ~iscell(YTickLabel)
+            YTickLabelT = YTickLabel;
+            YTickLabel = cell(size(XTickLabelT, 1), 1);
+            for k = 1:size(YTickLabel, 1)
+                YTickLabel{k} = YTickLabelT(k, :);
+            end
+        end
         Yval = cellfun(@convStr2Num, get(Axs(j), 'YTickLabel'), 'unif', false);
         if any(cellfun(@(x) isempty(x) || isnan(x) || isinf(x), Yval))
             Yval = get(Axs(j), 'YTick');

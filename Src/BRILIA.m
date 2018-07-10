@@ -590,7 +590,12 @@ while true
                 
                 %Cluster the data based variable region and hamming dist of DevPerc%.
                 showStatus('Clustering by lineage ...', StatusHandle)
-                VDJdata = clusterGene(VDJdata, Map);
+                
+                VDJdata = clusterByJunction(VDJdata, Map);
+                VDJdata = clusterByLineage(VDJdata, Map);
+%                 error('%s: Reworking BRILIA procedure.', mfilename);
+% %                 
+% %                 VDJdata = clusterGene(VDJdata, Map);
 
                 %Renumbering groups since they're done in batches
                 GrpNums = cell2mat(VDJdata(:, Map.GrpNum)) + GrpNumStart - 1;

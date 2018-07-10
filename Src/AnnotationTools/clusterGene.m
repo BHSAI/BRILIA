@@ -45,7 +45,7 @@ end
 %Delete non-functional genes and keep functional ones
 BadLoc = any(~strcmpi(VDJdata(:, FunctIdx), 'Y'), 2) | any(cellfun(@isempty, VDJdata(:, CDR3LIdx)), 2);
 BadVDJdata = VDJdata(BadLoc, :);
-VDJdata(BadLoc, :) = [];
+VDJdata = VDJdata(~BadLoc, :);
 
 %Get the cluster cell, which is used to define unique clusters
 ClustCell = VDJdata(:, [CDR3LIdx; GeneNIdx]);

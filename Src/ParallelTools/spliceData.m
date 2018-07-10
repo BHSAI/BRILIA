@@ -1,10 +1,28 @@
 %spliceData will split VDJdata into smaller cells of VDJdata to enable
 %parallel processing of groups.
-function ParVDJdata = spliceData(VDJdata, VDJheader)
-H = getAllHeaderVar(VDJheader);
-GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
+%
+%  VDJdataS = spliceData(VDJdata, Map)
+%
+%  INPUT
+%    VDJdata: BRILIA data cell
+%    Map: BRILIA header cell or structure map of header locations
+%
+%  OUTPUT
+%    VDJdataS: Mx1 cell of VDJdata(GrpIdx, :) cell arrays, used to put each
+%      group in its own cell for parallel processing.
+%
+%  EXAMPLE
+%    [VDJdata, VDJheader] = openSeqData(); %Choose a BRILIA output file
+%    VDJdata = spliceData(VDJdata, Map)
+%    parfor j = 1:length(VDJdata)
+%       %DO SOMETHING BY GROUP
+%    end
+%    VDJdata = joinData(VDJdata); 
+%    
+function VDJdataS = spliceData(VDJdata, Map)
+GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
-ParVDJdata = cell(1, length(UnqGrpNum));
+VDJdataS = cell(length(UnqGrpNum), 1);
 for k = 1:length(UnqGrpNum)
-    ParVDJdata{k} = VDJdata(UnqGrpNum(k) == GrpNum, :);
+    VDJdataS{k} = VDJdata(UnqGrpNum(k) == GrpNum, :);
 end
