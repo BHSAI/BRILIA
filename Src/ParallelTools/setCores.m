@@ -15,8 +15,8 @@
 %    ActiveCores: Number of cores currently running
 
 function [Success, ActiveCores] = setCores(NumCores)
-MaxCores = feature('numCores');
-ActiveCores = getActiveCores;
+MaxCores = getCores('max');
+ActiveCores = getCores;
 Success = 1;
 
 if isempty(NumCores)
@@ -50,9 +50,9 @@ if ActiveCores ~= NumCores
     if NumCores > 1
         try 
             parpool(NumCores);
+            ActiveCores = NumCores;
         catch
             Success = 0;
         end
     end
-    ActiveCores = getActiveCores;
 end

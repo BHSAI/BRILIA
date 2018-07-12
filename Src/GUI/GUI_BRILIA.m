@@ -348,7 +348,7 @@ catch
     P.NumProc = 1;
 end
 setCores(P.NumProc);
-Msg = sprintf('Using %d Processors', getActiveCores);
+Msg = sprintf('Using %d Processors', getCores);
 set(handles.text_ParallelProc, 'String', Msg);
 drawnow; %Ensure text updates
 
