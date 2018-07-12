@@ -47,7 +47,7 @@ addParameter(P, 'HorzSpacer', 0, @(x) isnumeric(x));
 addParameter(P, 'VertSpacer', 0, @(x) isnumeric(x));
 addParameter(P, 'FigSpacer', 0, @(x) isnumeric(x));
 
-[Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInputT(P, varargin{:});
+[Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
 if ReturnThis
    varargout = {Ps, Pu, ExpPs, ExpPu};
    return;

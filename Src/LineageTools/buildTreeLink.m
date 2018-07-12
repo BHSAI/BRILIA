@@ -42,7 +42,7 @@ for c = 1:length(Chain)
     Seq = Tdata(:, SeqIdx(c));
     [~, Motif, Mut, Penalty, ShmDist] = calcPairDistMEX(Seq);
     PairDist = PairDist + ShmDist;
-    InvalidLoc = (Motif < 0 & Mut < 0) | Penalty >= 8; %Penalty of 8 means there's a double 2-consec miss. Penalty 9 means there's a triplet mismatch. Both are rare and should be discarded.
+    InvalidLoc = (Motif < 0 & Mut < 0) | Penalty >= 6; %Penalty of 6 means there's a double 2-consec miss. Penalty 9 means there's a triplet mismatch. Both are rare and should be discarded.
     PairDist(InvalidLoc) = Inf; %Prevents linking these
 end
 AncMap = calcAncMap(PairDist);

@@ -1,12 +1,12 @@
 %DUPLICATE of findCell to remove dependency.
 %
-%findCellT will look in ListA for any match ListB, returning the index
+%findCell will look in ListA for any match ListB, returning the index
 %of any matches in ListA. ListA should be the main cell matrix your are
 %looking for the index value.
 %
-%  Aidx = findCellT(SearchList,QueryListB)
+%  Aidx = findCell(SearchList,QueryListB)
 %
-%  Aidx = findCellT(SearchQueryList, QueryListB, Param, Value, ...) will allow certain
+%  Aidx = findCell(SearchQueryList, QueryListB, Param, Value, ...) will allow certain
 %
 %  INPUT
 %    SearchQueryList: 1xN or Nx1 QueryList of string or nubmers
@@ -26,41 +26,41 @@
 %
 %    Case1) For string searches
 %      QueryListB = {'c' 'd'}
-%      Aidx = findCellT(SearchQueryList, QueryListB)
+%      Aidx = findCell(SearchQueryList, QueryListB)
 %          Aidx = 4
 %
 %    Case2) For string any case searches
 %      QueryListB = {'c' 'd'}
-%      Aidx = findCellT(SearchQueryList, QueryListB, 'MatchCase', 'any', 'MatchWord', 'all')
+%      Aidx = findCell(SearchQueryList, QueryListB, 'MatchCase', 'any', 'MatchWord', 'all')
 %          Aidx = 3
 %                 4
 %                 5
 %
 %    Case3) For string partial match searches
 %      QueryListB = {'c' 'd'}
-%      Aidx = findCellT(SearchQueryList, QueryListB, 'MatchCase', 'exact', 'MatchWord', 'partial')
+%      Aidx = findCell(SearchQueryList, QueryListB, 'MatchCase', 'exact', 'MatchWord', 'partial')
 %          Aidx = 4
 %                 10
 %                 11
 %
 %    Case4) For number searches, and QueryListB order is different than SearchQueryList
 %    QueryListB = {4 3}
-%    Aidx = findCellT(SearchQueryList, QueryListB)
+%    Aidx = findCell(SearchQueryList, QueryListB)
 %          Aidx = 8
 %                 7
 %
 %    Case5) For NaN cell search: 
 %      QueryListB = NaN
-%      Aidx = findCellT(SearchQueryList, QueryListB)
+%      Aidx = findCell(SearchQueryList, QueryListB)
 %          Aidx = 7
 %
 %    Case6) For empty cell search: 
 %      QueryListB = [] 
-%      Aidx = findCellT(SearchQueryList, QueryListB)
+%      Aidx = findCell(SearchQueryList, QueryListB)
 %          Aidx = 2
 %                 6
 
-function Aidx = findCellT(SearchQueryList, QueryListB, varargin)
+function Aidx = findCell(SearchQueryList, QueryListB, varargin)
 %Parse parameter inputs
 P = inputParser;
 addParameter(P, 'MatchCase', 'exact', @ischar);
@@ -107,7 +107,7 @@ elseif isnumeric(QueryListB{1});
         ClassType = 'empty';
     end
 else
-    disp('findCellT error: unknown class type of SearchQueryList. Defaulting to char class')
+    disp('findCell error: unknown class type of SearchQueryList. Defaulting to char class')
     ClassType = 'char';
 end
 

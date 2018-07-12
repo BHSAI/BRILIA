@@ -32,8 +32,8 @@ set(gcf, 'InvertHardCopy', 'off');
 function setRecursiveColor(Ax)
 for j = 1:length(Ax)
     Fields = fieldnames(Ax(j));
-    ColorLoc = findCellT(Fields, {'Color', 'XColor', 'Ycolor', 'EdgeColor', 'FaceColor', 'CData'}, 'MatchCase', 'any');
-    ModeLoc = findCellT(Fields, 'Mode', 'MatchCase', 'any', 'MatchWord', 'partial');
+    ColorLoc = findCell(Fields, {'Color', 'XColor', 'Ycolor', 'EdgeColor', 'FaceColor', 'CData'}, 'MatchCase', 'any');
+    ModeLoc = findCell(Fields, 'Mode', 'MatchCase', 'any', 'MatchWord', 'partial');
     ColorLoc = setdiff(ColorLoc, ModeLoc);
     ColorLoc(ColorLoc == 0) = [];
     if ~isempty(ColorLoc) && ColorLoc(end) > 0 
@@ -50,7 +50,7 @@ for j = 1:length(Ax)
         setRecursiveColor(Cx)
     end
 
-    TitleLoc = findCellT(Fields, {'Title'});
+    TitleLoc = findCell(Fields, {'Title'});
     if TitleLoc(end) > 0
         Tx = get(Ax(j), 'Title');
         if ~isempty(Tx)

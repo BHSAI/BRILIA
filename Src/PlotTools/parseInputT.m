@@ -8,9 +8,9 @@
 %  2) lower/upper case mismatches [EX: 'SaveAS' => 'SaveAs']
 %  3) evaluating numeric strings [EX: '1,2' => [1 2], '[1:3]' => [1 2 3].
 %
-%  [Ps, Pu, ReturnThis] = parseInputT(P, Varargin{:})
+%  [Ps, Pu, ReturnThis] = parseInput(P, Varargin{:})
 %
-%  [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInputT(P, Varargin{:})
+%  [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, Varargin{:})
 %
 %  INPUT
 %    P: inputParser object
@@ -29,7 +29,7 @@
 %    function out = func(vararin);
 %    P = inputParser
 %    P = addParameter(P, 'Var', 1, @isnumeric);
-%    [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInputT(P, varargin{:})
+%    [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:})
 %    if ReturnThis
 %        varargout = {Ps, Pu, ExpPs, ExpPu};
 %        return;
@@ -38,13 +38,13 @@
 %    Out2 = funct2(ExpPu{:}); %Subfunctions might use the other inputs.
 %    Out3 = funct3(Pu); %Subfunctions could use Pu directly
 
-function [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInputT(P, varargin)
+function [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin)
 P.CaseSensitive = 0;
 P.KeepUnmatched = 1;
 P.PartialMatching = 0;
 P.StructExpand = 1;
 
-varargin = cleanCommandLineInputT(varargin{:});
+varargin = cleanCommandLineInput(varargin{:});
 
 Pu = [];
 ExpPs = [];

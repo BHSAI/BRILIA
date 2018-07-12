@@ -25,7 +25,7 @@
 %    Num =
 %        -3   1   2   3   4   5
 
-function Num = convStr2NumT(Str, Option)
+function Num = convStr2Num(Str, Option)
 GetUnq = false;
 if nargin == 2 && strcmpi(Option, 'unique')
     GetUnq = true;

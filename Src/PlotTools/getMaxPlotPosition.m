@@ -34,7 +34,7 @@ addParameter(P, 'RightPad', 0, @(x) isnumeric(x));
 addParameter(P, 'TopPad', 0, @(x) isnumeric(x));
 addParameter(P, 'BottomPad', 0, @(x) isnumeric(x));
 
-[Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInputT(P, varargin{:});
+[Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
 if ReturnThis
    varargout = {Ps, Pu, ExpPs, ExpPu};
    return;

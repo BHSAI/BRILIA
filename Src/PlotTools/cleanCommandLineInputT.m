@@ -1,6 +1,4 @@
-%DUPLICATE of cleanCommandLineInput to remove dependencies.
-%
-%cleanCommandLineInputT will remove the '-' in in a cell array of string inputs
+%cleanCommandLineInput will remove the '-' in in a cell array of string inputs
 %such as varargin, and convert numerical strings to numbers. This is used
 %mainly for command line usage of a function where a '-' is used in front
 %of the parameter name.
@@ -17,7 +15,7 @@
 %    varargin = cleanCommandLineInput(varargin{:})
 %    varargin = 
 %       'in'    'in.txt'    'out'    'out.txt'    'count'    [-1]
-function CellStr = cleanCommandLineInputT(varargin)
+function CellStr = cleanCommandLineInput(varargin)
 if length(varargin) == 1 && iscell(varargin{1})
     CellStr = varargin{1};
 else
@@ -37,7 +35,7 @@ for k = 1:length(CharLoc)
     %Check if this a string that can be a number
     if isempty(regexpi(InputStr, '[^0-9\-\.\:\,]'))
         try
-            NumVal = convStr2NumT(InputStr);
+            NumVal = convStr2Num(InputStr);
             if ~isempty(NumVal)
                 CellStr{CharLoc(k)} = NumVal;
                 continue;

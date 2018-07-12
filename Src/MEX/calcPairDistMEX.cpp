@@ -59,8 +59,8 @@ T | 0 -1  0 -1  0   T -> N A C G -
          0     4
          4     0
     ShmDist =
-             0    4.0000
-        4.7500         0
+         0     6.00
+      6.75     0.00
  */
 
 #include "mex.h"
@@ -135,8 +135,8 @@ void mexFunction(int nlhs,        mxArray *plhs[],
                         pPenalty[Idx2] = pScore[5];
                         
                         if (nlhs >= 5) {
-                            pShmDist[Idx1] = pScore[0] - (pScore[1] + pScore[3] - pScore[5])/4;
-                            pShmDist[Idx2] = pScore[0] - (pScore[2] + pScore[4] - pScore[5])/4;
+                            pShmDist[Idx1] = pScore[0] - (pScore[1] + pScore[3])/4 + pScore[5];
+                            pShmDist[Idx2] = pScore[0] - (pScore[2] + pScore[4])/4 + pScore[5];
                         }
                     }
                 }

@@ -1,17 +1,17 @@
 %DUPLICATE of parseFileName to remove dependency.
 %
-%parseFileNameT will take a filename string and parse it into Path, Name,
+%parseFileName will take a filename string and parse it into Path, Name,
 %and FileExt. This is better than MATLAB's fileparts, which yields
 %filepaths that lack the ending slash, or yields filenames without the
 %extensions.
 %
-%  [FilePath, FileName, FileExt] = parseFileNameT(FullName)
+%  [FilePath, FileName, FileExt] = parseFileName(FullName)
 %
-%  [FilePath, FileName, FileExt] = parseFileNameT(FullName, 'ignorefilecheck')
+%  [FilePath, FileName, FileExt] = parseFileName(FullName, 'ignorefilecheck')
 %
 %  INPUT
 %    FullName: file path and name to be parsed
-%    'ignorefilecheck': use this to prevent parseFileNameT from checking if
+%    'ignorefilecheck': use this to prevent parseFileName from checking if
 %      file exists, especially when file path is not provided in the
 %      FullName. This is used mainly for parsing a save file name. Note
 %      that without this option, FilePath will return [] if file does not
@@ -26,11 +26,11 @@
 %
 %  EX: 
 %    F = 'C:\Users\Desktop\testing.xlsx';
-%    [FilePath, FileName, FileExt] = parseFileNameT(F, 'ignorefilecheck')
+%    [FilePath, FileName, FileExt] = parseFileName(F, 'ignorefilecheck')
 %      FilePath =  C:\Users\Desktop\
 %      FileName =  testing.xlsx
 %      FileExt =  .xlsx
-function [FilePath, FileName, FileExt] = parseFileNameT(FullName, varargin)
+function [FilePath, FileName, FileExt] = parseFileName(FullName, varargin)
 %See if you want to check for file existence
 CheckFileExists = 'y';
 if ~isempty(varargin)

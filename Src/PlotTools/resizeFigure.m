@@ -52,7 +52,7 @@ if ~(~isempty(varargin) && ischar(varargin{1}) && ismember(lower(varargin{1}), {
     end
 end
 
-[Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInputT(P, varargin{:});
+[Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
 if ReturnThis
    varargout = {Ps, Pu, ExpPs, ExpPu};
    return;
