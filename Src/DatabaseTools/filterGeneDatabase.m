@@ -1,190 +1,110 @@
 %filterRefGene will process the database DB to retain only those of
 %interest, as defined by the filter criteria.
 %
-%  DB = filterRefGene(DB,Param,Value)
+%  DB = filterRefGene(DB, Param, Value)
 %  
 %  INPUT
 %    DB: database structure from getCurrentDatabase.m
-%    Param-Value paris are as follows
-%      Parameter     Value
-%      ------------  ------------------------
-%      Strain        'All' 'C57BL' 'BALB', ...
-%      Ddirection    'All' 'fwd' 'rev' (or 'inv')
-%      Vfunction     'All' 'F' 'P' 'ORF' 
+%
+%     Param       Value (defaults = *)     Details
+%     ----------- ------------------------ --------------------------------
+%     Strain      * all                    For mouse only. Use all strains. 
+%                   c57bl                  C57BL strains, include C57BL6, C57BL/J
+%                   balb                   BALB strains, such as BALB/C
+%                   ExactName              NOTE: Some databases are incomplete for certain strains
+%     Dgene       * all                    Foward and inverse are okay
+%                   fwd                    Foward only
+%                   inv                    Inverse only
+%                   rev                    Inverse only (same as 'inv'. Will be phased out)
+%     Vgene       * f                      Functional only
+%                   p                      Psueudo genes only
+%                   orf                    Open reading frame only
+%                   all                    All of the above
 %
 %  OUTPUT
 %    DB: the filtered version of the input DB, where unused gene sequences
 %      are set to empty ''. This prevents the shifting of Map numbering
 %      schemes required by the software to perform.
  
-function [DB, varargout] = filterGeneDatabase(DB, varargin)
+function [DB, FiltOption] = filterGeneDatabase(DB, varargin)
 P = inputParser;
-addParameter(P, 'Strain', '', @ischar); %For mouse, select strain(s)
-addParameter(P, 'Ddirection', '', @ischar); %Inv, fwd, or all direction
-addParameter(P, 'Vfunction', '', @ischar); %F for functional, P for pseudo, ORF for ORF (EX: ORF, P, F)
+addParameter(P, 'Strain', 'all', @ischar);
+addParameter(P, 'Dgene',  'all', @(x) ischar(x) && ismember(lower(x), {'all', 'fwd', 'inv'}));
+addParameter(P, 'Vgene',  'f',   @(x) ischar(x) && all(ismember(strsplit(lower(x), ','), {'all', 'f', 'p', 'orf'})));
 parse(P, varargin{:});
 P = P.Results;
 
-%Determine map fields only
 Fields = fieldnames(DB);
-MapLoc = findCell(Fields, 'map', 'MatchWord', 'partial');
-Fields = Fields(MapLoc);
+Fields = Fields(endsWith(Fields, 'map'));
 M = getMapHeaderVar(DB.MapHeader);
 
-%==========================================================================
-%If dealing with mouse database, select by mouse strain.
-if ~isempty(regexpi(DB.FilePath, 'mouse'))
-    UnqStrain = [{'All'}; getUnqStrain(DB, 4)];
+FiltOption = struct('Vgene', 'f', 'Dgene', 'all', 'Strain', 'all');
 
+%If dealing with mouse database, select by mouse strain.
+if contains(DB.FilePath, fullfile('Databases', 'Mouse'), 'ignorecase', true)
+    UnqStrain = [{'all'}; getUnqStrain(DB, 4)];
     if isempty(P.Strain) %Ask users to select desired strain
-        disp('What mouse strain is it? ')
-        dispList(UnqStrain)
-        StrainNum = -1;
-        Attempt = 0;
-        while StrainNum < 1 || StrainNum > length(UnqStrain)
-            StrainNum = input('Select option: ');
-            if isempty(StrainNum)
-                StrainNum = 1;
-                break
-            end
-            Attempt = Attempt + 1;
-            if Attempt >= 5; break; end
-        end
+        StrainNum = chooseFromList(UnqStrain, 'Attempt', 5, 'Default', 1, 'Message', 'What mouse strain is it?');
     else %Determine which unq strain matches with user input
-        StrainNum = findCell(UnqStrain, P.Strain, 'MatchCase', 'Any', 'MatchWord', 'Partial');
-        if StrainNum == 0
-            disp('Could not find match. Setting to ALL strain by default');
-            StrainNum = 1;
-        end
-        if length(StrainNum) > 1 %Use must decide which one to pick
-            disp('Multiple strains possible. What mouse strain is it? ')
-            dispList(UnqStrain(StrainNum))
-            StrainNumT = -1; 
-            Attempt = 0;
-            while StrainNumT < 1 || StrainNumT > length(StrainNum)
-                StrainNumT = input('Select option: ');
-                if isempty(StrainNumT)
-                    StrainNumT = 1;
-                    break
-                end
-                Attempt = Attempt + 1;
-                if Attempt >= 5; break; end
-            end
+        StrainNum = find(contains(UnqStrain, P.Strain, 'ignorecase', true));
+        if isempty(StrainNum)
+            fprintf('Could not find a match for "%s".\n', P.Strain);
+            StrainNum = chooseFromList(UnqStrain, 'Attempt', 5, 'Default', 1, 'Message', 'What mouse strain is it?');
+        elseif length(StrainNum) > 1 %Use must decide which one to pick
+            fprintf('Found multiple matches for "%s".\n', P.Strain);
+            StrainNumT = chooseFromList(UnqStrain(StrainNum), 'Attempt', 5, 'Default', 1, 'Message', 'What mouse strain is it?');
             StrainNum = StrainNum(StrainNumT);
         end
     end
     
-    %Filter database by strain
+    %Filter database by setting the sequence to empty for non-matching strains
     if StrainNum > 1 
         SearchFor = strrep(UnqStrain{StrainNum}, ';', '|');
         for j = 1:length(Fields)
-            Xmap = DB.(Fields{j});
-            DelThis = zeros(size(Xmap, 1), 1, 'logical');
-            for k = 1:size(Xmap, 1)
-                if isempty(regexpi(Xmap{k, M.Strain}, SearchFor, 'once'))
-                    DelThis(k) = 1;
-                end
-            end
-            Xmap(DelThis, M.Seq) = {''};
-            DB.(Fields{j}) = Xmap;
+            DelLoc = cellfun(@isempty, regexpi(DB.(Fields{j})(:, M.Strain), SearchFor, 'once'));
+            DB.(Fields{j})(DelLoc, M.Seq) = {''};
         end
-        FiltOption.Strain = UnqStrain{StrainNum}; %Save the final filter value
-    else
-        FiltOption.Strain = 'All';  %Save the final filter value
     end
-else
-    FiltOption.Strain = 'All';  %Save the final filter value
+    FiltOption.Strain = UnqStrain{StrainNum};  %Save the final filter value
 end
 
 %==========================================================================
 %Determine if you want to search Dinverse too
-DsearchOptions = {'All'; 'fwd'; 'rev'};
-
-if isempty(P.Ddirection) %Ask user to determine which direction D to search
-    disp('Which D gene direction do you want?');
-    dispList(DsearchOptions);
-    SearchDopt = input('Select option: ');
-    if isempty(SearchDopt)
-        SearchDopt = 1;
-    end
-    Attempt = 0;
-    while SearchDopt < 1 || SearchDopt > 3
-        SearchDopt = input('Select option: ');
-        Attempt = Attempt + 1;
-        if Attempt >= 5; break; end
-    end
+DgeneList = {'all'; 'fwd'; 'inv'};
+if isempty(P.Dgene) %Ask user to determine which direction D to search
+    DgeneNum = chooseFromList(DgeneList, 'Attempt', 5, 'Default', 1, 'Message', 'Which D gene directions?');
 else %Search of user selection
-    SearchDopt = findCell(DsearchOptions, P.Ddirection, 'MatchCase', 'any', 'MatchWord', 'partial');
+    DgeneNum = find(ismember(DgeneList, P.Dgene));
+    if isempty(DgeneNum)
+        DgeneNum = chooseFromList(DgeneList, 'Attempt', 5, 'Default', 1, 'Message', 'Which D gene directions?');
+    end
 end
-FiltOption.Ddirection = DsearchOptions{SearchDopt}; %Save the final filter value
-
-switch SearchDopt
+switch DgeneNum
     case 2 %Keep only Dfwd by deleting inverse
-        for j = 1:size(DB.Dmap, 1)
-            if DB.Dmap{j, M.Gene}(1) == 'r'
-                DB.Dmap{j, M.Seq} = '';
-            end
-        end
+        DB.Dmap( startsWith(DB.Dmap(:, M.Gene), 'r'), M.Seq) = {''};
     case 3 %Keep only Dinv by deleting forward
-        for j = 1:size(DB.Dmap, 1)
-            if DB.Dmap{j, M.Gene}(1) ~= 'r'
-                DB.Dmap{j, M.Seq} = '';
-            end
-        end
-    otherwise %Don't do anything
+        DB.Dmap(~startsWith(DB.Dmap(:, M.Gene), 'r'), M.Seq) = {''};
 end
+FiltOption.Dgene = DgeneList{DgeneNum};
 
 %==========================================================================
 %Determine if you want to include pseudo or orf sequences
-FunctOptions = {'All'; 'F'; 'P'; 'ORF'};
-
-if isempty(P.Vfunction) %Ask user to determine which direction D to search
-    disp('Which V gene functionality do you want? Can list multiple via comma (EX: 2, 3)');
-    dispList(FunctOptions);
-    FunctOpt = -1;
-    Attempt = 0;
-    while min(FunctOpt) < 1 || max(FunctOpt) > length(FunctOptions)
-        FunctOpt = input('Select option: ', 's');
-        if isempty(FunctOpt); FunctOpt = '1'; end
-        if min(isstrprop(strrep(FunctOpt, ',', ''), 'digit')) == 1
-            FunctOpt = convStr2Num(['[' FunctOpt ']']);
-        else
-            FunctOpt = -1;
-        end
-        Attempt = Attempt + 1;
-        if Attempt >= 5; break; end
-    end
-else
-    Vfunction = regexp(P.Vfunction, ',', 'split');
-    FunctOpt = findCell(FunctOptions, Vfunction, 'MatchCase', 'any');
-    if max(FunctOpt) == 0
-        warning('Invalid P.Vfunction input. Using ''All'' option by default');
-        FunctOpt = 1;
+VgeneList = {'all'; 'f'; 'p'; 'orf'};
+if isempty(P.Vgene) %Ask user to determine which direction D to search
+    VgeneNum = chooseFromList(VgeneList, 'Attempt', 5, 'Default', 2, 'MultiSelect', 'on', 'Message', 'Which V gene functionality? Multiple allowed (ex: 2,3).');
+else %Search of user selection
+    VgeneNum = find(ismember(VgeneList, P.Vgene));
+    if isempty(VgeneNum)
+        VgeneNum = chooseFromList(VgeneList, 'Attempt', 5, 'Default', 2, 'MultiSelect', 'on', 'Message', 'Which V gene functionality? Multiple allowed (ex: 2,3).');
     end
 end
-
-if min(FunctOpt(1)) > 1 %You have to filter
-    FieldIdx = findCell(Fields, 'V', 'MatchWord', 'Partial');
-    if FieldIdx(1) == 0; FieldIdx = []; end
-    for j = 1:length(FieldIdx)
-        Xmap = DB.(Fields{FieldIdx(j)});
-        for k = 1:size(Xmap, 1)
-            CurFunct = upper(Xmap{k, M.Funct});
-            ParLoc = regexp(CurFunct, '\(|\)|\[|\]'); %Delete parenthesis and brackets
-            CurFunct(ParLoc) = [];
-            if ~ismember({CurFunct}, FunctOptions(FunctOpt))
-                Xmap{k, M.Seq} = '';
-            end
-        end
-        DB.(Fields{FieldIdx(j)}) = Xmap;
+if min(VgeneNum) > 1 %You have to filter
+    Idx = find(startsWith(Fields, 'V', 'ignorecase', true));
+    for j = 1:length(Idx)
+        Funct = regexpi(DB.(Fields{Idx(j)})(:, M.Funct), '\w+', 'match');
+        Funct = cellfun(@(x) lower(x{1}), Funct, 'un', 0);
+        DelLoc = ~ismember(Funct, VgeneList(VgeneNum));
+        DB.(Fields{Idx(j)})(DelLoc, M.Seq) = {''};
     end
 end
-
-StrPat = repmat('%s, ', 1, length(FunctOpt));
-StrPat(end) = [];
-FiltOption.Vfunction = sprintf(StrPat, FunctOptions{FunctOpt});
-
-%==========================================================================
-if nargout >= 2
-    varargout{1} = FiltOption;
-end
+FiltOption.Vgene = makeStrPattern(VgeneList(VgeneNum), ',');

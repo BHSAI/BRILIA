@@ -1,12 +1,16 @@
-## Patch notice for version 3.2.0
- MAJOR CHANGES
+## Patch notice for version 4.0.0 MAJOR CHANGES
  - Reworked the algorithm for lineage assembly 
+    - no "cutoff" required anymore
     - 
- - File formats are now
- - Reworked
+ - output file reworked to be only 1 file now. 
+    - RefSeq is now ALWAYS the inferred germline by annotaiton, WITHOUT lineage correction
+    - The parent sequence number is provided. If it's 0, that's the clonotype representative for the cluster.
+ - Reworked inputs to BRILIA
+    - No more "setting file" options 
+    - options have changed for simplicity 
+    - 
+ - Can now process multiple files via command line usage using the wildcard "*" in file names and folders
  - Added repertoire comparison tools
-    -
- 
  
  PERFORMANCE CHANGES
  - Moved more function to C++ for speed enhancement

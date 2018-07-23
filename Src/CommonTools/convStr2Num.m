@@ -22,6 +22,7 @@ if isempty(Str)
     return
 end
 
+Str = strrep(Str, ' ', '');
 if strcmp(Str(1), '[')
     s1 = 2;
 else

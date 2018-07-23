@@ -15,7 +15,6 @@
 %      in the V gene sequences to ensure all CDR and FWR regions are
 %      aligned. Use this if using IMGT's fasta files, or if users want to
 %      add sequences but with the gap information.
-%
 %    CsvFile: comma delimited file containing the IMGT genes without gap,
 %      but marking where the gaps would have been and locations of CDR and
 %      C and F/W anchor. This file is generated everytime someone runs this
@@ -33,6 +32,11 @@
 %      Jkmap        J kappa light gene DB
 %      Vlmap        V lambda light gene DB
 %      Jlmap        J lambda light gene DB
+%    FiltOpt: Structure showing what filters were used for the database
+%      Species      Species filter used
+%      Strain       Strain filter used (only for mouse)
+%      Vgene        V gene function filter used (ex: orf,f,p)
+%      Dgene        D gene direction (fwd vs inv) filter used
 %
 %  NOTE on map
 %    Each map contains the following information:
@@ -61,83 +65,46 @@
 %    This function will look in the directory ./Database_Manager/[Species]
 %    to load the sequences files stored in the csv file.
 
-function DB = getGeneDatabase(varargin)
-%Locate the database path
+function [DB, FiltOption] = getGeneDatabase(varargin)
+%Locate the databases
 RootPath = findRoot();
-DBPath = [RootPath 'Databases' filesep];
+DBPath = fullfile(RootPath, 'Databases'); [RootPath 'Databases' filesep];
 if ~exist(DBPath, 'dir')
-    error('%s: Could not locate the "Databases" folder at [ %s ]', mfilename, DBPath);
+    error('%s: Could not locate the "Databases" folder at "%s"', mfilename, DBPath);
 end
 
-%Determine the potential database folders
 DBFolders = dir(DBPath);
-DelLoc = zeros(length(DBFolders), 1, 'logical');
-for j = 1:length(DelLoc)
-    if ~DBFolders(j).isdir
-        DelLoc(j) = 1;
-    elseif strcmpi(DBFolders(j).name, '.') || strcmpi(DBFolders(j).name, '..')
-            DelLoc(j) = 1;
-    else %Check if there is a fa or csv file inside
-        FastaFiles = dir([DBPath DBFolders(j).name filesep '*.fa']);
-        CsvFiles = dir([DBPath DBFolders(j).name filesep '*.csv']);
-        if isempty(FastaFiles) && isempty(CsvFiles)
-            DelLoc(j) = 1;
-        end
-    end
-end
-DBFolders(DelLoc) = [];
-DatabaseNames = struct2cell(DBFolders);
-DatabaseNames = DatabaseNames(1, :)';
+DBFolders = DBFolders(~(ismember({DBFolders.name}, {'.', '..'}) | ~[DBFolders.isdir]));
+DBFolders = fullfile({DBFolders.folder}, {DBFolders.name});
+KeepLoc = ~cellfun(@(y) ~any(arrayfun(@(x) endsWith(x.name, {'.fa', '.csv'}, 'ignorecase', true), dir(y))), DBFolders);
+DBFolders = DBFolders(KeepLoc);
+SpeciesList = cellfun(@(x) x(find(x == filesep, 1, 'last')+1:end), DBFolders, 'un', 0);
 
-if ~isempty(varargin) && ischar(varargin{1}) && strcmpi(varargin{1}, 'getlist')
-    DB = DatabaseNames;
-    return;
+%Return for list search only
+if ~isempty(varargin) && ischar(varargin{1}) && any(strcmpi(varargin{1}, {'getlist', 'list'}))
+    DB = SpeciesList(:);
+    return
 end
 
+%Select the species
 if isempty(varargin) || isempty(varargin{1})
-    SpeciesList = getGeneDatabase('getList');
-    fprintf('What species is it?\n');
-    dispList(SpeciesList);
-    Attempt = 0;
-    while 1
-        Selection = input('Select option: ', 's');
-        try 
-            Selection = round(convStr2NumMEX(Selection));
-            if Selection > 0 && Selection <= length(SpeciesList)
-                Species = SpeciesList{Selection};
-                break;
-            end
-        catch
-        end
-        Attempt = Attempt + 1;
-        if Attempt >= 5 
-            error('%s: Did not choose correct option.', mfilename);
-        end
+    SpeciesIdx = chooseFromList(SpeciesList, 'Attempt', 5, 'Default', [], 'Message', 'What species is it?');
+else
+    SpeciesLoc = strcmpi(SpeciesList, varargin{1});
+    if ~any(SpeciesLoc) %Maybe try contains instead for nearest match
+        SpeciesLoc = contains(SpeciesList, varargin{1}, 'ignorecase', true);
     end
-elseif ~isempty(varargin)
-    Species = varargin{1};
-else    
-    error('%s: Input is incorrect.', mfilename);
+    SpeciesIdx = find(SpeciesLoc);
+end
+if isempty(SpeciesIdx)
+    error('%s: Did not choose correct Species option.', mfilename);
+elseif length(SpeciesIdx) > 1
+    error('%s: Species name is not specific enough. Multiple database possible for "%s".', mfilename, varargin{1});
 end
 
-%Determine which folder the user is specifying
-DatabaseLoc = zeros(length(DBFolders), 1, 'logical');
-for j = 1:length(DBFolders)
-    if ~isempty(regexpi(DBFolders(j).name, Species, 'once'))
-        DatabaseLoc(j) = 1;
-    end
+%Process request to get database
+DB = processIMGTfasta(DBFolders{SpeciesIdx});
+if nargin > 1
+    [DB, FiltOption] = filterGeneDatabase(DB, varargin{2:end});
 end
-DatabaseIdx = find(DatabaseLoc);
-
-%Make sure only 1 database can be selected
-if isempty(DatabaseIdx) 
-    error('%s: No database for this species found in [ %s ] .\n', mfilename, DBPath);
-elseif length(DatabaseIdx) > 1
-    dispList(DatabaseNames(DatabaseIdx));
-    error('%s: Multiple databases found for this species. Be more specific, or use exact folder name\n.', mfilename);
-end
-
-DatabaseFolder = [DBPath DatabaseNames{DatabaseIdx} filesep];
-
-%Get DB and display reference acknowledgement
-DB = processIMGTfasta(DatabaseFolder);
+FiltOption.Species = SpeciesList{SpeciesIdx};

@@ -4,7 +4,6 @@
 function getGeneTable()
 disp('Code is under construction.')
 return
-
 URL = 'http://www.imgt.org/IMGTrepertoire/index.php?section=LocusGenes&repertoire=genetable&species=Mus_musculus&group=IGHV';
 
 PageData = webread(URL);
