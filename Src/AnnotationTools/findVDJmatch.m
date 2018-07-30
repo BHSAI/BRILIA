@@ -42,7 +42,7 @@
 %
 %  See also findVJmatch
 
-function [VDJdata, varargout] = findVDJmatch(VDJdata, Map, DB, varargin)
+function [VDJdata, BadLoc] = findVDJmatch(VDJdata, Map, DB, varargin)
 P = inputParser;
 addParameter(P, 'Update', 'y', @(x) ismember(lower(x(1)), {'y', 'n'}));
 addParameter(P, 'DJreserve', 9, @isnumeric);
@@ -52,48 +52,40 @@ Update = P.Results.Update;
 DJreserve = P.Results.DJreserve; %Preserve last 9 for J.
 Dreserve = P.Results.Dreserve;   %Preserve first 3 nts after V for D.
 
-BadIdx = zeros(size(VDJdata, 1), 1, 'logical');
+BadLoc = zeros(size(VDJdata, 1), 1, 'logical');
+if ~contains(Map.Chain, 'H'); return; end
 
 %Place VDJheader into separate variables due to parfor broadcast issues
-if Map.hSeq == 0 %Make sure header exists for right chain
-    if nargout >=2
-        varargout{1} = BadIdx;
-    end
-    return
-end
-SeqLoc      = Map.hSeq;
-OverSeq5Loc = Map.hOverSeq5;
-OverSeq3Loc = Map.hOverSeq3;
-CDR3sLoc    = Map.hCDR3(3);
-CDR3eLoc    = Map.hCDR3(4);
-GeneNumLoc  = Map.hGeneNum;
-GeneNameLoc = Map.hGeneName;
-LengthLoc   = Map.hLength;
-DelLoc      = Map.hDel;
+SeqIdx      = Map.hSeq;
+OverSeq5Idx = Map.hOverSeq5;
+OverSeq3Idx = Map.hOverSeq3;
+CDR3sIdx    = Map.hCDR3(3);
+CDR3eIdx    = Map.hCDR3(4);
+GeneNumIdx  = Map.hGeneNum;
+GeneNameIdx = Map.hGeneName;
+LengthIdx   = Map.hLength;
+DelIdx      = Map.hDel;
 
 %Place DB data into separate variables due to parfor broadcast issues.
 M = getMapHeaderVar(DB.MapHeader);
-AnchorLoc = M.Anchor;
+AnchorIdx = M.Anchor;
 Vmap = DB.Vmap;
 Dmap = DB.Dmap;
 Jmap = DB.Jmap;
 
 %Begin finding the VDJ genes   
 parfor j = 1:size(VDJdata, 1)
-    %Start with 15% allowed mismatch rate. Place inside parfor to reset!
-    MissRate = 0.15; 
+    MissRate = 0.15; %Start with 15% allowed mismatch rate. Place inside parfor to reset! 
 
-    %Extract info from sliced VDJdata variable
     Tdata = VDJdata(j, :);
-    Seq = Tdata{1, SeqLoc};
-    if length(Seq) < DJreserve+1 %Sequence is too short
-        BadIdx(j) = 1;
+    Seq = Tdata{1, SeqIdx};
+    if length(Seq) <= DJreserve %Sequence is too short
+        BadLoc(j) = 1;
         continue
     end
     
-    %Extract CDR3 start and end index. Set to 0 if empty.
-    CDR3s = Tdata{1, CDR3sLoc};
-    CDR3e = Tdata{1, CDR3eLoc};
+    CDR3s = Tdata{1, CDR3sIdx};
+    CDR3e = Tdata{1, CDR3eIdx};
     if isempty(CDR3s); CDR3s = 0; end
     if isempty(CDR3e); CDR3e = 0; end
 
@@ -102,8 +94,8 @@ parfor j = 1:size(VDJdata, 1)
     CDR3s((CDR3s > length(Vnt)) | (CDR3s < 1)) = []; %Remove nonsensical locations
     Vmatch = findGeneMatch(Vnt, Vmap, 'V', MissRate, CDR3s);
     if isempty(Vmatch{1}) || max(Vmatch{1, 5}) <= 0 
-        BadIdx(j) = 1;
-        continue;
+        BadLoc(j) = 1;
+        continue
     end
     Vlen = sum(Vmatch{1, 4}(1:2)); %Length of V segment
 
@@ -114,16 +106,16 @@ parfor j = 1:size(VDJdata, 1)
     %Recalculate the CDR3s, 104C codon 1st nt
     V3del = Vmatch{3}(3); %V3' deletion
     VmapNum = Vmatch{1}(1);
-    VrefCDR3 = Vmap{VmapNum, AnchorLoc}; %Location of C from right end of V
+    VrefCDR3 = Vmap{VmapNum, AnchorIdx}; %Location of C from right end of V
     CDR3s = Vlen + V3del - VrefCDR3 + 1;
-    if CDR3s <= 0 %Have an issue
-        BadIdx(j) = 1;
-        continue;
+    if CDR3s <= 0
+        BadLoc(j) = 1;
+        continue
     end
 
     %See if there's an in-frame 118W codon seed (if yes, use 'forceanchor')
     if max(CDR3e) == 0 %Find some CDR3e options
-        CDR3e = regexp(Seq(Vlen+1:end), 'TGG', 'end') + Vlen;
+        CDR3e = strfind(Seq(Vlen+1:end), 'TGG') + 2 + Vlen; %regexp(Seq(Vlen+1:end), 'TGG', 'end') + Vlen;
         if isempty(CDR3e); CDR3e = 0; end
     end
     ForceAnchor = '';
@@ -145,8 +137,8 @@ parfor j = 1:size(VDJdata, 1)
     CDR3endTemp((CDR3endTemp < 1) | (CDR3endTemp > length(Jnt))) = []; %Remove nonsensical locations
     Jmatch = findGeneMatch(Jnt, Jmap, 'J', MissRate, CDR3endTemp, ForceAnchor);
     if isempty(Jmatch{1}) || max(Jmatch{1, 5}) <= 0
-        BadIdx(j) = 1;
-        continue;
+        BadLoc(j) = 1;
+        continue
     end
     Jlen = sum(Jmatch{4}(2:3));
 
@@ -154,8 +146,8 @@ parfor j = 1:size(VDJdata, 1)
     Dnt = Seq(Vlen+1:end-Jlen);
     Dmatch = findGeneMatch(Dnt, Dmap, 'D', MissRate);
     if isempty(Dmatch{1})
-        BadIdx(j) = 1;
-        continue;
+        BadLoc(j) = 1;
+        continue
     end
     
     %Begin trimming sequences that go beyond the V or J genes
@@ -167,7 +159,7 @@ parfor j = 1:size(VDJdata, 1)
     TrimSeq = 'n';
     if VoverLen > 0
         VsamLMR(1) = VsamLMR(1) - VoverLen;
-        Over5Seq = [Tdata{1, OverSeq5Loc} Seq(1:VoverLen)];
+        Over5Seq = [Tdata{1, OverSeq5Idx} Seq(1:VoverLen)];
         TrimSeq = 'y';
     else
         VoverLen = 0;
@@ -176,7 +168,7 @@ parfor j = 1:size(VDJdata, 1)
     JoverLen = JsamLMR(3) - JrefLMR(3);
     if JoverLen > 0
         JsamLMR(3) = JsamLMR(3) - JoverLen;
-        Over3Seq = [Seq(end-JoverLen+1:end) Tdata{1, OverSeq3Loc}];
+        Over3Seq = [Seq(end-JoverLen+1:end) Tdata{1, OverSeq3Idx}];
         TrimSeq = 'y';
     else
         JoverLen = 0;
@@ -199,28 +191,22 @@ parfor j = 1:size(VDJdata, 1)
     J5del = Jmatch{1, 3}(1);
 
     %Extract the gene family map number and family resolution
-    Tdata(1, [SeqLoc OverSeq5Loc OverSeq3Loc]) = {Seq Over5Seq Over3Seq};
-    Tdata(1, LengthLoc)   = num2cell(VMDNJ);
-    Tdata(1, DelLoc)      = num2cell([V3del D5del D3del J5del]);
-    Tdata(1, GeneNumLoc)  = [Vmatch(1, 1) Dmatch(1, 1) Jmatch(1, 1)];
-    Tdata(1, GeneNameLoc) = [Vmatch(1, 2) Dmatch(1, 2) Jmatch(1, 2)];
+    Tdata(1, [SeqIdx OverSeq5Idx OverSeq3Idx]) = {Seq Over5Seq Over3Seq};
+    Tdata(1, LengthIdx)   = num2cell(VMDNJ);
+    Tdata(1, DelIdx)      = num2cell([V3del D5del D3del J5del]);
+    Tdata(1, GeneNumIdx)  = [Vmatch(1, 1) Dmatch(1, 1) Jmatch(1, 1)];
+    Tdata(1, GeneNameIdx) = [Vmatch(1, 2) Dmatch(1, 2) Jmatch(1, 2)];
 
     VDJdata(j, :) = Tdata;
 end
 
-%If there are errors, show them now.
-BadLoc = find(BadIdx == 1);
-for b = 1:length(BadLoc)
-    fprintf('%s: Bad sequence # %d\n', mfilename, BadLoc(b));
+if any(BadLoc)
+    fprintf('%s: Bad sequences found.\n', mfilename);
+    fprintf('  Removing Seq %d\n', find(BadLoc));
 end
 
-%Update VDJdata 
-if upper(Update(1)) == 'Y'
-    UpdateIdx = ~BadIdx;
-    VDJdata(UpdateIdx, :) = buildRefSeq(VDJdata(UpdateIdx, :), Map, DB, 'H', 'germline', 'single');
-    VDJdata(UpdateIdx, :) = updateVDJdata(VDJdata(UpdateIdx, :), Map, DB);
-end
-
-if nargout >=2
-    varargout{1} = BadIdx;
+if strcmpi(Update(1), 'Y')
+    KeepLoc = ~BadLoc;
+    VDJdata(KeepLoc, :) = buildRefSeq(VDJdata(KeepLoc, :), Map, DB, 'H', 'germline', 'single');
+    VDJdata(KeepLoc, :) = updateVDJdata(VDJdata(KeepLoc, :), Map, DB);
 end

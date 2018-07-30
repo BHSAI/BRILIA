@@ -423,9 +423,7 @@ DotLoc = find(SaveName == '.');
 SaveNamePre = SaveName(1:DotLoc(end)-1);%Get the prefix
 
 %Save the BRILIA annotation
-VDJdata = findCDR1(VDJdata, Map, DB);
-VDJdata = findCDR2(VDJdata, Map, DB);
-VDJdata = findCDR3(VDJdata, Map, DB, 'imgt');
+VDJdata = findCDR(VDJdata, Map, DB, 1:3, 'imgt');
 saveSeqData(P.SaveAs, VDJdata, VDJheader); 
 
 %Save just the input file format only

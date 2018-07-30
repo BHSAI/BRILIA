@@ -49,7 +49,7 @@ for j = 1:length(MapNames)
 end
 
 %Ensure output file has a csv at the end
-[FilePath, FileName, FileExt] = parseFileName(OutputFile, 'ignorefilecheck');
+[FilePath, FileName, FileExt] = parseFileName(OutputFile);
 if ~strcmpi(FileExt, '.csv')
     FileName = [FileName '.csv'];
     FileName = strrep(FileName, '..', '.');

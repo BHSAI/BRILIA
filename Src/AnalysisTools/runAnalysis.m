@@ -92,7 +92,7 @@ plotTree(VDJdata, VDJheader, 'SaveDir', SaveDir, 'SaveSubDir', 'Tree', 'SaveAs',
 %Preparing search table for saving
 
 for k = 1:size(SearchTable, 1) 
-    [~, SearchTable{k, 3}, ~] = parseFileName(SearchTable{k, 3}, 'ignorefilecheck');
+    [~, SearchTable{k, 3}, ~] = parseFileName(SearchTable{k, 3});
 end
 
 SearchTableFileName = prepSaveTarget('SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', 'AnalysisSearchTable', 'SaveExt', '.csv');

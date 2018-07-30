@@ -68,9 +68,9 @@ if strcmpi(Save, 'y')
         if isnumeric(SaveFile)
             return;
         end
-        [SavePath, SaveFile, SaveExt] = parseFileName([SavePath SaveFile], 'ignorefilecheck');
+        [SavePath, SaveFile, SaveExt] = parseFileName(fullfile(SavePath, SaveFile));
     else
-        [SavePath, SaveFile, SaveExt] = parseFileName(SaveAs, 'ignorefilecheck');
+        [SavePath, SaveFile, SaveExt] = parseFileName(SaveAs);
         if isempty(SaveExt) || ~ismember(lower(SaveExt), {'.tif', '.png', '.jpg', '.fig'})
             SaveExt = ['.' Format]; %Use the format option specified in the input. Format cannot be empty.
             SaveFile = [SaveFile SaveExt];

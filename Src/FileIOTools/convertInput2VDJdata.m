@@ -2,45 +2,45 @@
 %then extract the relevant information required to make the VDJdata format
 %file used by BRILIA. This initializes the VDJdata cell. 
 %
-%  [VDJdata, VDJheader] = convertInput2VDJdata()
+%  [VDJdata, VDJheader, FileName, FilePath, Map] = convertInput2VDJdata()
 %
-%  [VDJdata, VDJheader] = convertInput2VDJdata(FullFileName)
+%  [VDJdata, VDJheader] = convertInput2VDJdata(FileName)
 %
-%  [VDJdata, VDJheader] = convertInput2VDJdata(FullFileName, 'FileType', FileType, 'Delimiter', Delimiter)
+%  [VDJdata, VDJheader] = convertInput2VDJdata(FileName, 'FileType', FileType, 'Delimiter', Delimiter)
 %
 %  INPUT
-%    FullFileName: Full name of input file. If empty, will ask users. 
+%    FileName: Full name of input file. If empty, will ask users. 
 %    FileType ['fasta', 'fastq', 'delimited']: Specifying
 %      FileType prevents erroneous determination of file type.
 %    Delimiter [';' ',' '\t']: Needed only for delimited file type
 %
 %  OUTPUT
 %    VDJdata: main BRILIA data cell
-%    VDJheader: main BRILIA header cell (edit at for Headers_BRILIA.csv)
+%    VDJheader: main BRILIA header cell (obtained from DataHeaderInfo.csv)
+%    FileName: file name without hte path
+%    FilePath: file path
+%    Map: structure of BRILIA data index 
 
-function [VDJdata, VDJheader, varargout] = convertInput2VDJdata(varargin)
-%Parse the inputs
+function [VDJdata, VDJheader, InFileName, InFilePath, Map] = convertInput2VDJdata(varargin)
 P = inputParser;
-addOptional(P, 'FullFileName', '', @(x) ischar(x) || isempty(x));
-addParameter(P, 'Chain', 'H', @(x) ismember({upper(x)}, {'H', 'L', 'HL'}));
-addParameter(P, 'FileType', '', @(x) ismember({lower(x)}, {'', 'fasta', 'fastq', 'delimited'}));
-addParameter(P, 'Delimiter', '', @(x) ismember({lower(x)}, {';', ',', '\t', ''})); 
-addParameter(P, 'SeqRange', [1 Inf], @(x) isnumeric(x));
+addOptional( P, 'FileName',  '',      @(x) isempty(x) || (ischar(x) && exist(x, 'file')));
+addParameter(P, 'Chain',     'h',     @(x) ismember({lower(x)}, {'h', 'l', 'hl', 'lh'}));
+addParameter(P, 'FileType',  '',      @(x) ismember({lower(x)}, {'', 'fasta', 'fastq', 'delimited'}));
+addParameter(P, 'Delimiter', '',      @(x) ismember({lower(x)}, {'', ';', ',', '\t'})); 
+addParameter(P, 'SeqRange',  [1 Inf], @(x) isnumeric(x) && isa(x, 'double'));
 parse(P, varargin{:});
 P = P.Results;
-P.SeqRange = double(P.SeqRange); %For some reason, this is uint64. So change to double.
+P.Chain = strrep(upper(P.Chain), 'LH', 'HL');
 
-%Determine the file type here
-if isempty(P.FullFileName)
+if isempty(P.FileName)
     [InFileName, InFilePath] = uigetfile('*.fa*;*.*sv', 'Select the input sequence file', 'MultiSelect', 'off');
-    if isempty(InFileName)
-        error('%s: No file was selected.', mfilename);
-    end
-    P.FullFileName = [InFilePath InFileName];
+    assert(ischar(InFileName), '%s: No file was selected.', mfilename);
+    P.FileName = fullfile(InFilePath, InFileName);
 end
-[InFilePath, InFileName, InFileExt] = parseFileName(P.FullFileName);    
 
-%Check to see if there is a file type override
+[InFilePath, InFileName, InFileExt] = parseFileName(P.FileName);    
+
+%Determine the File Type
 if isempty(P.FileType)
     if strcmpi(InFileExt, '.fa') || strcmpi(InFileExt, '.fasta')
         P.FileType = 'fasta';
@@ -58,9 +58,9 @@ end
 if strcmpi(P.FileType, 'fasta')
     %Open the fasta file and convert to cell
     try
-        [SeqName, SeqData] = readFasta(P.FullFileName, 'SeqRange', P.SeqRange);
+        [SeqName, SeqData] = readFasta(P.FileName, 'SeqRange', P.SeqRange);
     catch
-        error('%s: Could not read fasta file ''%s''.', mfilename, P.FullFileName);
+        error('%s: Could not read fasta file "%s".', mfilename, P.FileName);
     end
     InputData = [SeqName(:) SeqData(:)];
     InSeqNameLoc = 1;
@@ -68,7 +68,7 @@ if strcmpi(P.FileType, 'fasta')
     InTemplateLoc = 0;
 elseif strcmpi(P.FileType, 'fastq')
     %Open the fasta file and convert to cell
-    [SeqName, SeqData] = fastqread(P.FullFileName, 'blockread', P.SeqRange);
+    [SeqName, SeqData] = fastqread(P.FileName, 'blockread', P.SeqRange);
     if ischar(SeqName)
         SeqName = {SeqName};
         SeqData = {SeqData};
@@ -78,8 +78,8 @@ elseif strcmpi(P.FileType, 'fastq')
     InSeqLoc = 2;
     InTemplateLoc = 0;
 elseif strcmpi(P.FileType, 'delimited')
-    InputHeader = readDlmFile(P.FullFileName, 'delimiter', P.Delimiter, 'LineRange', [1 1]); %For getting the header only
-    InputData = readDlmFile(P.FullFileName, 'delimiter', P.Delimiter, 'LineRange', P.SeqRange + 1); %For LineRange, we assume 1st line is header, hence get the next one.
+    InputHeader = readDlmFile(P.FileName, 'delimiter', P.Delimiter, 'LineRange', [1 1]); %For getting the header only
+    InputData = readDlmFile(P.FileName, 'delimiter', P.Delimiter, 'LineRange', P.SeqRange + 1); %For LineRange, we assume 1st line is header, hence get the next one.
 
     %Note: Only delimited files can take in paired sequences
     InTemplateLoc = find(contains(InputHeader, {'Template', 'TempCount', 'TempCt', 'Copy'}, 'IgnoreCase', true));
@@ -89,7 +89,7 @@ elseif strcmpi(P.FileType, 'delimited')
     InXSeqLoc = find(ismember(lower(strrep(InputHeader, '-', '')),  'seq'));
     
     if isempty(InHSeqLoc) && isempty(InLSeqLoc) && isempty(InXSeqLoc)
-        error('%s: Could not find the "Seq" or "H-Seq" or "L-Seq" column header in the file "%s".', mfilename, P.FullFileName);
+        error('%s: Could not find the "Seq" or "H-Seq" or "L-Seq" column header in the file "%s".', mfilename, P.FileName);
     end
     
     if isempty(InHSeqLoc) && isempty(InLSeqLoc)
@@ -106,7 +106,7 @@ elseif strcmpi(P.FileType, 'delimited')
     end
     
     if length(InSeqLoc) > 3
-        error('%s: Too many "Seq" or "H-Seq" or "L-Seq" in the column header in the file "%s".', mfilename, P.FullFileName);
+        error('%s: Too many "Seq" or "H-Seq" or "L-Seq" in the column header in the file "%s".', mfilename, P.FileName);
     end
 end
         

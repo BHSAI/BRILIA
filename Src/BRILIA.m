@@ -63,9 +63,10 @@
 %                   #                      Process # sequences per batch
 %     Cores       * max                    Use maximum number of cores
 %                   #                      Use # number of cores
-%     Resume      * n                      Do not resume from an interrupted job, ex server outage
-%                   y                      Resume from an interrupted job 
-%     Range       * [1,Inf]                Process all sequences 
+%     Resume      * y                      Resume from an interrupted job 
+%                   n                      Do not resume from an interrupted job, ex server outage
+%                   ask                    Ask user to confirm to resume if temp files are found
+%     SeqRange    * [1,Inf]                Process all sequences 
 %                   #                      Process only the #th sequence
 %                   [M,N]                  Process Mth to Nth seqeunce (include brackets "[]" , "," , and NO SPACE)
 %     CheckSeqDir * y                      Check both fowrad and rev-comp alignment for best annotation
@@ -102,7 +103,8 @@ end
 %Handle various inputs from matlab or OS command lines
 
 SpeciesList = getGeneDatabase('getlist');
-ChainList = {'H', 'L', 'HL'};
+ChainList = {'H', 'L', 'HL', 'LH'};
+SubFuncNames = [];
 
 P = inputParser;
 P.PartialMatching = 1; %Needed for some backward compatibility "Input" and "InputFile" will both work. 
@@ -115,9 +117,8 @@ addParameter(P, 'Vgene',         'f',     @(x) ischar(x) && all(ismember(strspli
 addParameter(P, 'Cores',         'max',   @(x) ischar(x) || isnumeric(x));
 addParameter(P, 'CheckSeqDir',   'y',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
 addParameter(P, 'StatusHandle',  [],      @(x) ishandle(x) || isempty(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
-addParameter(P, 'Range',         [1,Inf], @(x) isnumeric(x) || ischar(x));
-addParameter(P, 'Resume',        'n',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'})); %Resumes from known raw file
-%addParameter(P, 'ResumeFrom',    '',      @(x) ischar(x)); %File directory storing the *Raw.csv file(s).
+addParameter(P, 'SeqRange',      [1,Inf], @(x) isnumeric(x) || ischar(x));
+addParameter(P, 'Resume',        'y',     @(x) ischar(x) && ismember(lower(x), {'y', 'n', 'ask'})); %Resume from an incomplete job
 addParameter(P, 'OutputDir',     [],      @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'BatchSize',     30000,   @(x) isnumeric(x) && x >= 1);
 addParameter(P, 'SkipLineage',   'n',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
@@ -132,7 +133,7 @@ end
 
 while true
     if RunInLocalEnv
-        if ~HasShownCredit
+        if ~HasShownCredit %Show credits early, once
             showCredits('bhsai', 'imgt');
             HasShownCredit = true;
             fprintf('\nType input commands, ''exit'', or ''help''.  (Wrap files with spaces in quotes, like "C:\\Temp Dir\\)":\n'); %Only show this once
@@ -143,7 +144,6 @@ while true
         varargin = cleanCommandLineInput(Input);
         if isempty(varargin); continue; end
     else
-        %Will show credits AFTER ensuring BRILIA annotation will run
         varargin = cleanCommandLineInput(varargin{:});
     end
 
@@ -160,7 +160,7 @@ while true
             end
         end
         
-        %Getting help for this
+        %Getting help
         if any(strcmpi(varargin{1}, {'h', 'i', 'info', 'help', 'showhelp', 'showinfo'}))
             if length(varargin) > 1
                 showHelp(varargin{2});
@@ -170,11 +170,11 @@ while true
             if RunInLocalEnv; continue; else; return; end
         end
 
-        %Redirect to BRILIA subfunction
-        SubFuncNames = {'pwd', 'cd', 'dir', 'ls', ...
-                        'plotTree', 'runAnalysis', 'cmprRep', ...
-                        'setCores', 'showHelp', ...
-                        'GUI_BRILIA', 'GUI_plotTree'}; %For security, only accept allowed function calls!
+        %Summon subfunction
+        if isempty(SubFuncNames)
+            BasicFuncNames = {'system'; 'ls'; 'cd'; 'dir'};
+            SubFuncNames = [BasicFuncNames; arrayfun(@(x) x.name(1:end-2), dir(fullfile(findRoot, '**', '*.m')), 'un', 0)];
+        end
         if ismember(varargin{1}, SubFuncNames)
             try
                 FH = str2func(varargin{1});
@@ -185,44 +185,41 @@ while true
             if RunInLocalEnv; continue; else; return; end
         end
 
-        %Check it's a file or correct varargin for parm-value parsing later.
-        if exist(varargin{1}, 'file') || isempty(varargin{1})
+        %Check 1st input
+        if ~isempty(dir(varargin{1})) || isempty(varargin{1})
             varargin = ['InputFile' varargin]; %#ok<AGROW>
         end
     end
 
-    %Parse the inputs and return if this was a code-2-code summon
     try
         parse(P, varargin{:});
         P = P.Results;
     catch ME
-        fprintf('%s: Error parsing input at line = %d.\n', mfilename, ME.stack(1).line);
+        fprintf('%s: Error parsing input at line = %d.\n  %s\n', mfilename, ME.stack(1).line, ME.message);
         if RunInLocalEnv; continue; else; return; end
     end
 
-    %Show credit for ~RunInLocalEnv if it hasn't show it yet
+    InputFile = P.InputFile;
+    OutputDir = P.OutputDir;
+    Chain = strrep(upper(P.Chain), 'LH', 'HL');
+    Species = P.Species;
+    Strain = P.Strain;
+    Dgene = P.Dgene;
+    Vgene = P.Vgene;
+    Cores = P.Cores;
+    BatchSize = round(P.BatchSize);
+    SeqRange = round(P.SeqRange);
+    Resume = P.Resume;
+    StatusHandle = P.StatusHandle;
+    CheckSeqDir = P.CheckSeqDir;
+    SkipLineage = P.SkipLineage;
+    AutoExit = P.AutoExit;
+
     if ~HasShownCredit
         showCredits('bhsai', 'imgt');
         HasShownCredit = true;
     end
-
-    InputFile = P.InputFile;
-    UserOutDir = P.OutputDir;
-    Chain = upper(P.Chain);
-    Species = P.Species;
-    Strain = P.Strain;
-    Ddirection = P.Dgene;
-    Vfunction = P.Vgene;
-    Cores = P.Cores;
-    CheckSeqDir = P.CheckSeqDir;
-    Resume = P.Resume;
-    SeqRange = P.Range;
-    StatusHandle = P.StatusHandle;
-    BatchSize = P.BatchSize;
-    SkipLineage = P.SkipLineage;
-    AutoExit = P.AutoExit;
-
-    %Make sure Chain and Species are provided. These cannot be empty.
+    
     if isempty(Chain)
         fprintf('Error: Did not specify the "Chain" parameter. Valid values are:\n');
         fprintf('  %s\n', ChainList{:});
@@ -238,34 +235,39 @@ while true
     %--------------------------------------------------------------------------
     %Input and Output Files
 
-    %Get the full file names of input sequences
     if isempty(InputFile) %Ask user to choose
         InputFile = openFileDialog('*.fa*;*.*sv', 'Select the input sequence files', 'multiselect', 'on');
     elseif ischar(InputFile) %Search for all files that matches
         InputFile = dir(InputFile);
         InputFile = fullfile({InputFile.folder}, {InputFile.name});
     end
+    
     if isempty(InputFile)
         fprintf('No valid file was selected.\n\n');
         if RunInLocalEnv; continue; else; return; end
     end
 
-    %Determine output file names
+    %Correct chain from HL to H if dealing with fasta/q
+    if strcmpi(Chain, 'HL') && any(endsWith(InputFile, {'.fa', '.fasta', '.fastq'}, 'ignorecase', true))
+        fprintf('For Chain = HL option, only delimited (ie, *.csv) files can be used.\n')
+        fprintf('The delimited file must have defined "H-Seq" and "L-Seq" columns.\n'); 
+        if RunInLocalEnv; continue; else; return; end
+    end
+            
     OutputFile = cell(size(InputFile));
     for f = 1:length(OutputFile)
-        [OutPath, ~, ~, OutFilePre] = parseFileName(InputFile{f});
-        if ~isempty(UserOutDir)
-            OutputFile{f} = fullfile(UserOutDir, OutFilePre, [OutFilePre '.BRILIAv' Version(1) '.csv']);
+        [FilePath, ~, ~, FilePre] = parseFileName(InputFile{f});
+        if ~isempty(OutputDir)
+            OutputFile{f} = fullfile(OutputDir, FilePre, [FilePre '.BRILIAv' Version(1) '.csv']);
         else
-            OutputFile{f} = fullfile(OutPath, OutFilePre, [OutFilePre '.BRILIAv' Version(1) '.csv']);
+            OutputFile{f} = fullfile( FilePath, FilePre, [FilePre '.BRILIAv' Version(1) '.csv']);
         end
     end
 
     %==========================================================================
     %BRILIA processing begins 
 
-    DB = getGeneDatabase(Species);
-    DB = filterGeneDatabase(DB, 'Strain', Strain, 'Ddirection', Ddirection, 'Vfunction', Vfunction);
+    DB = getGeneDatabase(Species, 'Strain', Strain, 'Dgene', Dgene, 'Vgene', Vgene);
 
     showStatus('Setting up parallel computing ...', StatusHandle);
     [~, NumWorkers] = setCores(Cores);
@@ -276,194 +278,152 @@ while true
         %----------------------------------------------------------------------
         %File Management
 
-        %Specify the Temp folder and Raw and Err annotation files
-        [OutPath, OutFile, ~, OutFilePre] = parseFileName(OutputFile{f}, 'ignorefilecheck');
-        TempDir = fullfile(OutPath, 'Temp', filesep);
-        ErrFileName = fullfile(TempDir, [OutFilePre '.Err.csv']);
-        RawFileName = fullfile(TempDir, [OutFilePre '.Raw.csv']);
+        [OutPath, OutFile, ~, OutFilePre] = parseFileName(OutputFile{f});
+        ErrFileName = fullfile(OutPath, [OutFilePre '.Err.csv']);
+        TmpFileName = fullfile(OutPath, [OutFilePre '.Tmp.csv']);
 
-%         %If using ResumeFrom, try to move Raw.csv into the TempDir.
-%         if ~isempty(ResumeFrom)
-%             %Get just the folder path in case user specified a file instead
-%             [ResumePath, ResumeName, ResumeExt] = parseFileName(ResumeFrom, 'ignorefilecheck');
-%             if isempty(ResumeExt)
-%                 ResumePath = fullfile(ResumePath, ResumeName, filesep);
-%             end
-%             if ~exist(ResumePath, 'dir')
-%                 error('%s: Could not find folder to resume from at "%s"', mfilename, ResumeFrom);
-%             end
-%             showStatus(sprintf('Resuming from %s ...', ResumePath), StatusHandle); 
-% 
-%             %If *Raw.csv files exist, copy it to temp dir and resume.
-%             RawFileStruct = dir(fullfile(ResumePath, '*Raw.csv'));
-%             if isempty(RawFileStruct)
-%                 error('%s: Could not find *Raw.csv files required for resuming at "%s".', mfilename, ResumePath);
-%             end
-%             prepTempDir(TempDir);
-%             arrayfun(@(x) copyfile(fullfile(ResumePath, x.name), fullfile(TempDir, x.name), 'f'), RawFileStruct);
-%             Resume = 'y';
-%         end
-
-        %If Resume = 'y', make sure temp dir is not empty
-        if strcmpi(Resume, 'y') 
-            if ~exist(TempDir, 'dir') || ( exist(TempDir, 'dir') && isempty(dir([TempDir '*Raw.csv'])) )
-                warning('%s: Could not resume. Cannot find temp dir with *Raw.csv files at "%s".', mfilename, TempDir); 
-                Resume = 'n';
+        if isdir(OutPath)
+            [Success, Msg] = mkdir(OutPath);
+            assert(Success, '%s: Could not make the output dir "%s".\n  %s\n', mfilename, OutPath, Msg);
+        end
+        
+        %If there's an incomplete job, Resume from the highest sequence number
+        PastTmpFile = arrayfun(@(x) fullfile(x.folder, x.name), dir(fullfile(OutPath, [OutFilePre '*.Tmp.csv'])), 'un', 0);
+        PastErrFile = arrayfun(@(x) fullfile(x.folder, x.name), dir(fullfile(OutPath, [OutFilePre  '.Err.csv'])), 'un', 0);
+        if ~isempty(PastTmpFile)
+            if strcmpi(Resume(1), 'a')
+                Choice = lower(input('Found incomplete annotation files. Resume? [y or n] (Enter = y): ', 's'));
+                if isempty(Choice) || ~any(strcmpi(Choice(1), {'y', 'n'}))
+                    Resume = 'y';
+                else
+                    Resume = Choice(1);
+                end
+            end
+            
+            if strcmpi(Resume(1), 'y')
+                showStatus('Resuming from a past incomplete job.', StatusHandle);
+                MaxSeqNum = 0;
+                if ~isempty(PastErrFile)
+                    [VDJdata, ~, ~, ~, Map] = openSeqData(PastErrFile{1});
+                    MaxSeqNum = max(cell2mat(VDJdata(:, Map.SeqNum)));
+                end
+                for b = 1:length(PastTmpFile)
+                    [VDJdata, ~, ~, ~, Map] = openSeqData(PastTmpFile{b});
+                    MaxSeqNum = max([max(cell2mat(VDJdata(:, Map.SeqNum))), MaxSeqNum]);
+                end
+                if MaxSeqNum == 0
+                    showStatus('No sequences in temp files.', StatusHandle);
+                    Resume = 'n'; 
+                else
+                    SeqRange(1) = MaxSeqNum + 1;
+                end
+            end
+            
+            if strcmpi(Resume(1), 'n')
+                showStatus('Deleting incomplete job and starting over.\n', StatusHandle);
+                delete(PastTmpFile{:});
+                delete(PastErrFile{:});
             end
         end
+        
+        %Set the sequence range
+        if numel(SeqRange) == 1
+            SeqRange = repelem(SeqRange, 1, 2);
+        end
+        MaxSeqCount = countSeq(InputFile{f});
+        SeqRange(SeqRange > MaxSeqCount) = MaxSeqCount;
+        SeqRange(SeqRange < 1) = 1;
+        SeqCount = diff(SeqRange) + 1;
+        
+        %Part 1: performs V(D)J annotation
+        showStatus(sprintf('Opening "%s" ...', InputFile{f}), StatusHandle); 
+        for b = 1:ceil(SeqCount/BatchSize)
+            SeqRangeB = [SeqRange(1)+BatchSize*(b-1)  SeqRange(1)+b*BatchSize-1]; %batch seq range
+            SeqRangeB(end) = min([SeqRangeB(end) SeqCount]);
+            KeepLoc = ones(diff(SeqRangeB)+1, 1, 'logical');
+            
+            showStatus(sprintf('Processing sequences %d to %d (out of %d) ...', SeqRangeB(1), SeqRangeB(2), SeqCount), StatusHandle);
+            [VDJdata, VDJheader, ~, ~, Map] = convertInput2VDJdata(InputFile{f}, 'Chain', Chain, 'SeqRange', SeqRangeB);
 
-        %Begin initial raw annotation when Resume = 'n' 
-        if strcmpi(Resume, 'n')
-            %Determine if any temp raw annotation files already exists, which must be deleted
-            prepTempDir(TempDir);
+            showStatus('Fixing input sequences', StatusHandle);
+            [VDJdata, BadLoc] = fixInputSeq(VDJdata, Map);
+            KeepLoc(BadLoc) = 0;
+            
+            %Find potential CDR3 start and end locations using V and J gene seed
+            %alignment. Do this here, and not when doing VDJ alignment, because users
+            %might have complement sequences which must be flipped.
+%           showStatus('Determining sequence direction and CDR3 areas ...', StatusHandle)
+%                 VDJdata(KeepLoc, :) = seedCDR3position(VDJdata(KeepLoc, :), Map, DB, 'V', 80,  2, CheckSeqDir);
+%                 VDJdata(KeepLoc, :) = seedCDR3position(VDJdata(KeepLoc, :), Map, DB, 'J',  3, 14, 'n');
+%                 VDJdata(KeepLoc, :) = seedCDR3position(VDJdata(KeepLoc, :), Map, DB, 'Vk,Vl', 80,  2, CheckSeqDir);
+%                 VDJdata(KeepLoc, :) = seedCDR3position(VDJdata(KeepLoc, :), Map, DB, 'Jk,Jl',  3, 14, 'n');
 
-            %Determine if you should use segment mode for large files
-            if max(SeqRange) == Inf
-                SeqCount = getSeqCount(InputFile{f});
-            else
-                SeqCount = diff(SeqRange);
-            end
-            if SeqCount > BatchSize
-                SegmentMode = 1;
-            else
-                SegmentMode = 0;
-            end
+            showStatus('Finding heavy chain VDJ annotations ...', StatusHandle)
+            [VDJdata(KeepLoc, :), BadLoc1] = findVDJmatch(VDJdata(KeepLoc, :), Map, DB, 'Update', 'Y');
+            
+            showStatus('Finding light chain VJ annotations ...', StatusHandle)
+            [VDJdata(KeepLoc, :), BadLoc2] = findVJmatch(VDJdata(KeepLoc, :), Map, DB, 'Update', 'Y');
+            Idx = find(KeepLoc);
+            KeepLoc(Idx(BadLoc1|BadLoc2)) = 0;
+            
+            showStatus('Fixing indels in V genes ...', StatusHandle);
+            VDJdata(KeepLoc, :) = fixGeneIndel(VDJdata(KeepLoc, :), Map, DB);
 
-            %Part 1 performs initial annotations in batches
-            [~, InFileName, InFileExt] = parseFileName(InputFile{f});
-            showStatus(sprintf('Opening %s ...', InFileName), StatusHandle); 
-            for j = 1:BatchSize:SeqCount
-                %Determine the seq range
-                SeqRange = [j j+BatchSize-1];
-                if SeqRange(end) > SeqCount
-                    SeqRange(end) = SeqCount; 
-                end
-                if SeqRange(1) < 1
-                    SeqRange(1) = 1;
-                end
-                
-                %Correct chain from HL to H if dealing with fasta/q
-                if ~isempty(InFileExt) && ismember(lower(InFileExt), {'.fa', '.fasta', '.fastq'})
-                    if strcmpi(Chain, 'HL')
-                        fprintf('Warning: Only delimited files can do H+L chains. Defaulting to H.\n'); 
-                        Chain = 'H';
-                    end
-                end
+            showStatus('Accepting F genes over ORF/P ...', StatusHandle);
+            VDJdata(KeepLoc, :) = fixDegenVDJ(VDJdata(KeepLoc, :), Map, DB);
 
-                %Open the file and get the sequences within range
-                showStatus(sprintf('Processing sequences %d to %d (out of %d) ...', SeqRange(1), SeqRange(end), SeqCount), StatusHandle);
-                [VDJdata, VDJheader] = convertInput2VDJdata(InputFile{f}, 'Chain', Chain, 'SeqRange', SeqRange);
-                Map = getVDJmapper(VDJheader);
+            showStatus('Anchoring 104C and 118W/F ...', StatusHandle);
+            VDJdata(KeepLoc, :) = constrainGeneVJ(VDJdata(KeepLoc, :), Map, DB);
 
-                %Check input sequence for bad characters
-                showStatus('Fixing input sequences', StatusHandle);
-                [VDJdata, BadIdx] = fixInputSeq(VDJdata, Map);
-                if max(BadIdx) ~= 0
-%                     error('temp error');
-                    saveSeqData(ErrFileName, VDJdata(BadIdx, :), VDJheader, 'append');
-                    VDJdata(BadIdx, :) = [];
-                end
-
-                %If nothing is left, might be due to wrong delimiter choice
+            showStatus('Moving Nonprod/Invalid/Incomplete Seq to Err file ...', StatusHandle)
+            VDJdata = labelSeqQuality(VDJdata, Map, 0.4);
+            
+            FunctIdx = [Map.hFunct Map.lFunct];
+            FunctIdx = FuncIdx(FunctIdx > 0);
+            KeepLoc = all(strcmpi(VDJdata(:, FunctIdx), 'Y'), 2);
+            if ~all(KeepLoc)
+                saveSeqData(ErrFileName, VDJdata(~KeepLoc, :), VDJheader, 'append');
+                VDJdata = VDJdata(KeepLoc, :);
                 if isempty(VDJdata)
-                    warning('%s: No sequences. Recheck delimiter of input file, which is now set as "%s".', mfilename, Delimiter);
+                    warning('%s: No sequences left to annotate in this batch.', mfilename)
                     continue
                 end 
+            end
+            
+            if strcmpi(SkipLineage, 'y')
+                VDJdata = findCDR(VDJdata, Map, DB, 1:3, 'imgt');
+%                 VDJdata = buildVDJalignment(VDJdata, Map, DB);
+            end
 
-                %Find potential CDR3 start and end locations using V and J gene seed
-                %alignment. Do this here, and not when doing VDJ alignment, because users
-                %might have complement sequences which must be flipped.
-                showStatus('Determining sequence direction and CDR3 areas ...', StatusHandle)
-%                 VDJdata = seedCDR3position(VDJdata, Map, DB, 'V', 80,  2, CheckSeqDir);
-%                 VDJdata = seedCDR3position(VDJdata, Map, DB, 'J',  3, 14, 'n');
-%                 VDJdata = seedCDR3position(VDJdata, Map, DB, 'Vk,Vl', 80,  2, CheckSeqDir);
-%                 VDJdata = seedCDR3position(VDJdata, Map, DB, 'Jk,Jl',  3, 14, 'n');
+            %Save remaining sequences to temp dir
+            if SeqCount > BatchSize
+                CDR3Idx = [Map.hCDR3(1) Map.lCDR3(1)];
+                CDR3Idx = CDR3Idx(CDR3Idx > 0);
+                CDR3Len = cellfun('length', VDJdata(:, CDR3Idx));
 
-                %Search for initial VDJ alignment matches
-                showStatus('Finding initial-guess V(D)J annotations ...', StatusHandle)
-                [VDJdata, BadIdx] = findVDJmatch(VDJdata, Map, DB, 'Update', 'Y');
-                if max(BadIdx) ~= 0
-%                     error('temp error');
-                    saveSeqData(ErrFileName, VDJdata(BadIdx, :), VDJheader, 'append');
-                    VDJdata(BadIdx, :) = [];
-                end
-
-                %Search for initial VJ alignment matches
-                [VDJdata, BadIdx] = findVJmatch(VDJdata, Map, DB, 'Update', 'Y');
-                if max(BadIdx) ~= 0
-%                     error('temp error');
-                    saveSeqData(ErrFileName, VDJdata(BadIdx, :), VDJheader, 'append');
-                    VDJdata(BadIdx, :) = [];
-                end
-
-                %Fix insertion/deletion in V framework
-                showStatus('Fixing indels in V genes ...', StatusHandle);
-                VDJdata = fixGeneIndel(VDJdata, Map, DB);
-
-                %Remove pseudogenes from degenerate annotations containing functional ones.
-                showStatus('Accepting F genes over ORF/P ...', StatusHandle);
-                VDJdata = fixDegenVDJ(VDJdata, Map, DB);
-
-                %Insure that V and J segments cover the CDR3 region.
-                showStatus('Anchoring 104C and 118W/F ...', StatusHandle);
-                VDJdata = constrainGeneVJ(VDJdata, Map, DB);
-                
-                %Send all Non-functional or incomplete annotation to Err
-                showStatus('Moving Nonprod/Invalid/Incomplete Seq to Err file ...', StatusHandle)
-                VDJdata = labelSeqQuality(VDJdata, Map, 0.4);
-                FunctLoc = [Map.hFunct Map.lFunct];
-                FunctLoc(FunctLoc == 0) = [];
-                BadLoc = any(cellfun(@(x) contains(x, {'N', 'I', 'M'}), VDJdata(:, FunctLoc)), 2);
-                if any(BadLoc)
-%                     error('temp error');
-                    saveSeqData(ErrFileName, VDJdata(BadLoc, :), VDJheader, 'append');
-                    VDJdata(BadLoc, :) = [];
-                end
-                
-                %Finish scheme if annotonly
-                if strcmpi(SkipLineage, 'y')
-                    VDJdata = findCDR1(VDJdata, Map, DB);
-                    VDJdata = findCDR2(VDJdata, Map, DB);
-                    VDJdata = buildVDJalignment(VDJdata, Map, DB);
-                end
-
-                %Save remaining sequences to temp dir
-                if SegmentMode %If sequence file is segmented by CDR3 length
-                    CDR3Loc = [Map.hCDR3(1) Map.lCDR3(1)];
-                    CDR3Loc(CDR3Loc == 0) = [];
-                    CDR3Len = zeros(size(VDJdata, 1), length(CDR3Loc));
-                    for k = 1:size(VDJdata, 1)
-                        for q = 1:length(CDR3Loc)
-                            CDR3Len(k, q) = length(VDJdata{k, CDR3Loc(q)});
-                        end
+                %Save a separate file per unique CDR3H-L combo
+                UnqCDR3Len = unique(CDR3Len, 'rows');
+                for k = 1:size(UnqCDR3Len, 1)
+                    Idx = ones(size(CDR3Len, 1), 1, 'logical');
+                    for q = 1:length(CDR3Idx)
+                        Idx = Idx & (CDR3Len(:, q) == UnqCDR3Len(k, q));
                     end
-
-                    %Save a separate file per unique CDR3H-L combo
-                    UnqCDR3Len = unique(CDR3Len, 'rows');
-                    for k = 1:size(UnqCDR3Len, 1)
-                        Idx = ones(size(CDR3Len, 1), 1, 'logical');
-                        for q = 1:length(CDR3Loc)
-                            Idx = Idx & (CDR3Len(:, q) == UnqCDR3Len(k, q));
-                        end
-                        if strcmpi(Chain, 'HL')
-                            HCDR3Len = UnqCDR3Len(k, 1);
-                            LCDR3Len = UnqCDR3Len(k, 2);
-                        elseif strcmpi(Chain, 'H')
-                            HCDR3Len = UnqCDR3Len(k, 1);
-                            LCDR3Len = 0;
-                        elseif strcmpi(Chain, 'L')
-                            HCDR3Len = 0;
-                            LCDR3Len = UnqCDR3Len(k, 1);
-                        end
-                        SaveName = [TempDir 'CDR3-' num2str(HCDR3Len) '-' num2str(LCDR3Len) '.Raw.csv'];
-                        saveSeqData(SaveName, VDJdata(Idx, :), VDJheader, 'append');
+                    if strcmpi(Chain, 'HL')
+                        HCDR3Len = UnqCDR3Len(k, 1);
+                        LCDR3Len = UnqCDR3Len(k, 2);
+                    elseif strcmpi(Chain, 'H')
+                        HCDR3Len = UnqCDR3Len(k, 1);
+                        LCDR3Len = 0;
+                    elseif strcmpi(Chain, 'L')
+                        HCDR3Len = 0;
+                        LCDR3Len = UnqCDR3Len(k, 1);
                     end
-
-                %If file is small, just save in one file.    
-                else
-                    SaveName = [TempDir 'Raw.csv'];
-                    saveSeqData(SaveName, VDJdata, VDJheader, 'append');
+                    SaveName = [TempDir 'CDR3-' num2str(HCDR3Len) '-' num2str(LCDR3Len) '.Raw.csv'];
+                    saveSeqData(SaveName, VDJdata(Idx, :), VDJheader, 'append');
                 end
+            else %If file is small, just save in one file.    
+                SaveName = [TempDir 'Raw.csv'];
+                saveSeqData(SaveName, VDJdata, VDJheader, 'append');
             end
         end
 
@@ -554,8 +514,8 @@ while true
         %Combine raw annotations to a single file, then move to destination
         RawFileList = arrayfun(@(x) fullfile(TempDir, x.name), dir(fullfile(TempDir, '*Raw.csv')), 'unif', false);
         if length(RawFileList) > 1
-            [~, RawFileNameOnly] = parseFileName(RawFileName);
-            SrcFile = RawFileName;
+            [~, RawFileNameOnly] = parseFileName(TmpFileName);
+            SrcFile = TmpFileName;
             DstFile = fullfile(OutPath, RawFileNameOnly);
             try
                 combineSeqData(RawFileList, SrcFile);
@@ -565,7 +525,7 @@ while true
                 warning('%s: Could not move Raw files from "%s" to destination "%s".', mfilename, TempDir, DstFile);
             end
         elseif length(RawFileList) == 1
-            [~, RawFileNameOnly] = parseFileName(RawFileName);
+            [~, RawFileNameOnly] = parseFileName(TmpFileName);
             SrcFile = RawFileList{1};
             DstFile = fullfile(OutPath, RawFileNameOnly);
             try
