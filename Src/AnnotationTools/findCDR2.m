@@ -74,7 +74,7 @@ for k = 1:length(Map.Chain)
         
         %Compute location of CDRX from Vseq
         try
-            CDR2aaRef = upper(convNT2AA(Vseq(CDR2sRef:CDR2eRef),'ACGTonly',false));
+            CDR2aaRef = nt2aa(Vseq(CDR2sRef:CDR2eRef),'ACGTonly',false, 'alternativestart', false);
         catch
             warning('%s: Error. Skipping.', mfilename);
             continue

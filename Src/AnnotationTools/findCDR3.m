@@ -98,7 +98,7 @@ for k = 1:length(Map.Chain)
             else
                 CDR3nt = Seq(CDR3s:CDR3e);
             end
-            CDR3aa = convNT2AA(CDR3nt,'ACGTonly',false);
+            CDR3aa = nt2aa(CDR3nt,'ACGTonly',false,'alternativestart', false);
         end
         
         %If the default option of IMGT is selected, need to shift positions
