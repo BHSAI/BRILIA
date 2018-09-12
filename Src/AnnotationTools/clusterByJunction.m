@@ -36,7 +36,7 @@ switch Map.Chain
 end
 
 %Delete non-functional genes and keep functional ones
-BadLoc = any(~strcmpi(VDJdata(:, FunctIdx), 'Y'), 2) | any(cellfun(@isempty, VDJdata(:, CDR3LIdx)), 2);
+BadLoc = any(~strcmpi(VDJdata(:, FunctIdx), 'Y'), 2) | any(cellfun('isempty', VDJdata(:, CDR3LIdx)), 2);
 BadVDJdata = VDJdata(BadLoc, :);
 VDJdata = VDJdata(~BadLoc, :);
 

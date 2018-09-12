@@ -69,8 +69,14 @@ T | 0 -1  0 -1  0   T -> N A C G -
 void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
     
-    if (nrhs != 1 || !mxIsCell(prhs[0])) {
-        mexErrMsgIdAndTxt("calcPairDistMEX:input", "Input: Must be Mx1 cell of sequences.");
+    if (nrhs != 1) {
+        mexErrMsgIdAndTxt("calcPairDistMEX:nrhs", "Incorrect number of inputs. Expected 1.");
+    }
+    if (nlhs > 5) {
+        mexErrMsgIdAndTxt("calcPairDistMEX:nrhs", "Too many outputs. Max is 5.");
+    }
+    if (!mxIsCell(prhs[0])) {
+        mexErrMsgIdAndTxt("calcPairDistMEX:prhs", "Input must be Mx1 cell of sequences.");
     }
     
     mwSize const *pDim = mxGetDimensions(prhs[0]);
@@ -118,7 +124,8 @@ void mexFunction(int nlhs,        mxArray *plhs[],
             mwSize Len = LenA < LenB ? LenA : LenB;
             int Idx1 = j + k*NumSeq;
             int Idx2 = k + j*NumSeq;
-            double *pScore = calcSeqShmScore(pSeqA, pSeqB, Len);
+            double pScore[6] = {0};
+            calcSeqShmScore(pSeqA, pSeqB, Len, pScore);
             pHamDist[Idx1] = pScore[0];
             pHamDist[Idx2] = pScore[0];
             

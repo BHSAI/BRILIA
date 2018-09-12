@@ -25,6 +25,8 @@
 %      SeqNum of the immediate ancestor.
 
 function [Tdata, GrpNumStart] = buildTreeLink(Tdata, Map, GrpNumStart)
+error('%s: this is obsolete. See clusterGeneByLineage', mfilename);
+
 if nargin < 3
     GrpNumStart = 1;
 end
@@ -59,11 +61,6 @@ for j = 1:size(AncMap, 1)
         end
     end
 end
-
-%CDR3 PAIR DIST
-
-%INVALID_ Penalty > Ham of CDR3s only. THis will prevent bad linking!
-
 
 AncMap = [AncMap findTreeClust(AncMap)];
 for j = 1:max(AncMap(:, end))
@@ -102,6 +99,25 @@ for j = 1:max(AncMap(:, end))
     AncMap(ClustLoc, 1:3) = RootedAncMap(:, 1:3);
 end
 
+%Rearrange TData, replacing RefSeq with Seq of parent, and giving it parent
+%numbers. NOTE: in future releases, RefSeq will NOT be altered. 
+Tdata = Tdata(AncMap(:, 1), :);
+AncMap = renumberAncMap(AncMap);
+for c = 1:length(Chain)
+    Tdata(AncMap(:, 2) ~= 0, RefSeqIdx(c)) = Tdata(AncMap(AncMap(:, 2) ~= 0, 2), SeqIdx(c));
+    Tdata(AncMap(:, 2) ~= 0, Map.ParNum) = Tdata(AncMap(AncMap(:, 2) ~= 0, 2), Map.SeqNum);
+end
+Tdata(:, Map.GrpNum) = num2cell(GrpNumStart - 1 + AncMap(:, end));
+
+%Determine the number of children per each sequence
+for k = 1:size(AncMap, 1)
+    Tdata{k, Map.ChildCount} = length(findChild(AncMap, AncMap(k, 1)));
+end
+GrpNumStart = GrpNumStart + max(AncMap(:, end));
+
+% The clustering of germline together was a bad idea in the sense that these tend to get grouped randomly, speicailly for shorter CDR3.
+% It's better to separate them as suppose to try to join them. 
+% 
 % %The final step requires clustering germlines
 % RootIdx = AncMap(AncMap(:, 2) == 0, 1);
 % if numel(RefSeqIdx) == 1
@@ -126,19 +142,3 @@ end
 %     GNum = GNum + 1;
 % end
 % AncMap(:, 4) = abs(AncMap(:, 4));
-
-%Rearrange TData, replacing RefSeq with Seq of parent, and giving it parent
-%numbers. NOTE: in future releases, RefSeq will NOT be altered. 
-Tdata = Tdata(AncMap(:, 1), :);
-AncMap = renumberAncMap(AncMap);
-for c = 1:length(Chain)
-    Tdata(AncMap(:, 2) ~= 0, RefSeqIdx(c)) = Tdata(AncMap(AncMap(:, 2) ~= 0, 2), SeqIdx(c));
-    Tdata(AncMap(:, 2) ~= 0, Map.ParNum) = Tdata(AncMap(AncMap(:, 2) ~= 0, 2), Map.SeqNum);
-end
-Tdata(:, Map.GrpNum) = num2cell(GrpNumStart - 1 + AncMap(:, end));
-
-%Determine the number of children per each sequence
-for k = 1:size(AncMap, 1)
-    Tdata{k, Map.ChildCount} = length(findChild(AncMap, AncMap(k, 1)));
-end
-GrpNumStart = GrpNumStart + max(AncMap(:, end));

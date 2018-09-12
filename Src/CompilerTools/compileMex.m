@@ -47,6 +47,7 @@ end
 IncLoc = startsWith(varargin, '-I');
 SrcPath = cellfun(@(x) x(3:end), strtrim(varargin(IncLoc)), 'un', false);
 
+FileName = which(FileName);
 [FP, FN] = parseFileName(FileName);
 assert(~isempty(FP), '%s: Could not find the file "%s".', mfilename, FileName);
 FullName = fullfile(FP, FN);
@@ -73,7 +74,6 @@ if ischar(SrcPath)
     SrcPath = strsplit(SrcPath, ';');
 end
 SrcPath = unique(strtrim(SrcPath));
-
 AddFiles = extractIncludeFiles(FullName, SrcPath);
 IncFiles = AddFiles;
 while ~isempty(AddFiles)
@@ -86,7 +86,7 @@ while ~isempty(AddFiles)
     AddFiles = setdiff(TmpFiles, IncFiles);
 end
 
-%extractIncludeFiles will extract the C source codes that are referred to
+%extractIncludeFiles will extract the C/H source codes that are referred to
 %by the #include statements in the first C source code. This will NOT
 %recursively search for all source codes.
 function SrcFiles = extractIncludeFiles(FullName, SrcPath)
@@ -95,7 +95,7 @@ function SrcFiles = extractIncludeFiles(FullName, SrcPath)
 assert(FID > 0, '%s: Could not open file "%s". \n  MSG: %s.', mfilename, MSG);
 TXT = textscan(FID, '%s', 'delimiter', '\n');
 fclose(FID);
-IncludeLine = TXT{1}(cellfun(@(x) ~contains(strtrim(x), {'<', 'mex.h', '//#include'}) && contains(strtrim(x), '#include'), TXT{1}));
+IncludeLine = TXT{1}(cellfun(@(x) ~contains(strtrim(x), {'<', 'mex.h', 'cytpe.h', '//#include'}) && contains(strtrim(x), '#include'), TXT{1}));
 
 %Get just the include source code files
 SrcFiles = cell(1, length(IncludeLine));
@@ -121,4 +121,4 @@ for j = 1:length(SrcFiles)
         SrcFiles{j} = fullfile(Src.folder, Src.name);
     end
 end
-SrcFiles = unique(SrcFiles(~cellfun(@isempty, SrcFiles)));
+SrcFiles = unique(SrcFiles(~cellfun('isempty', SrcFiles)));

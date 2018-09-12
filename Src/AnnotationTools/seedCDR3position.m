@@ -31,36 +31,37 @@
 %    will not work.
 
 function VDJdata = seedCDR3position(VDJdata, Map, DB, X, Nleft, Nright, CheckSeqDir)
-Xseed = getGeneSeed(DB, X, Nleft, Nright, 'nt');
-
-CheckSeqDir = upper(CheckSeqDir(1)); %Ensure proper format
-%Get header locations since parfor can't handle broadcast variables
-Segment = X(1);
-if strcmpi(Map.Chain, 'H') %Heavy chain
-    SeqLoc = Map.hSeq;
-    if SeqLoc == 0; return; end %Invalid 
-    if Segment == 'V'
-        SpecialSeed = {'TGT'};      %conserved C
-        CDR3colLoc = Map.hCDR3(3);  %Where in VDJdata to store the location
-    else
-        SpecialSeed = {'TGG'};      %Conserved W
-        CDR3colLoc = Map.hCDR3(4);  %Where in VDJdata to store the location
-    end
-elseif strcmpi(Map.Chain, 'L')  %Light chain
-    SeqLoc = Map.lSeq;
-    if SeqLoc == 0; return; end %Invalid 
-    if Segment == 'V'
-        SpecialSeed = {'TGT'};      %conserved C
-        CDR3colLoc = Map.lCDR3(3);  %Where in VDJdata to store the location
-    else
-        SpecialSeed = {'TTT'; 'TTC'};  %Conserved F for light chain
-        CDR3colLoc = Map.lCDR3(4);     %Where in VDJdata to store the location
-    end
-else %Can't determine H or L side.
-    return; 
+if contains(X, {'Vk', 'Vl'}, 'ignorecase', true)
+    IsJ = 0;
+    Chain = 'l';
+    CIdx = 3; 
+    SpecialSeed = {'TGT'};   %Conserved C
+elseif contains(X, {'Jl', 'Jk'}, 'ignorecase', true)
+    IsJ = 1;
+    Chain = 'l';
+    CIdx = 4;
+    SpecialSeed = {'TTT'; 'TTC'};  %Conserved F for light chain
+elseif strcmpi(X, 'V')
+    IsJ = 0;
+    Chain = 'h';
+    CIdx = 3;
+    SpecialSeed = {'TGT'};   %Conserved C
+else
+    IsJ = 1;
+    Chain = 'h';
+    CIdx = 4;   
+    SpecialSeed = {'TGG'};   %Conserved W
 end
-SeedPat = sprintf('%s|', SpecialSeed{:});  %Special seed for V and J, which is the 'TGT' and the 'TGG' or 'TT[TC]'
-SeedPat(end) = [];
+if ~contains(Map.Chain, Chain, 'ignorecase', true); return; end
+
+SeedPat = [sprintf('%s|', SpecialSeed{1:end-1}) SpecialSeed{end}];
+SeqIdx = Map.([Chain 'Seq']);
+CDR3Idx = Map.([Chain 'CDR3'])(CIdx);
+
+Xseed = getGeneSeed(DB, X, Nleft, Nright, 'nt');
+if isempty(Xseed); return; end
+
+CheckRev = strcmpi(CheckSeqDir, 'y');
 
 %Setup the input for alignSeqMEX.
 MissRate   = 0;
@@ -84,62 +85,32 @@ else
     PreferSide  = 'n'; %none
 end
 
-%Find the CDR3start or CDR3end locations. Flip seq too if needed.
-for j = 1:size(VDJdata, 1)
+%Find the CDR3start or CDR3end locations. 
+parfor j = 1:size(VDJdata, 1)
     Tdata = VDJdata(j, :);  
-    Seq = Tdata{SeqLoc};
-    if length(Seq) < (Nleft + Nright + 1); continue; end %Skip short seqs
+    if length(Tdata{SeqIdx}) <= (Nleft + Nright); continue; end
+    [Score, StartAt] = alignSeqMEX(Tdata{SeqIdx}, Xseed, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
+    UnqPos = unique(StartAt(2, :) + Nleft + (StartAt(2, :) < 0));
     
-    %Do seed alignments, forward sense
-    AlignScores = zeros(size(Xseed, 1), 3);
-    for x = 1:size(Xseed, 1)
-       [Score, StartAt, MatchAt] = alignSeqMEX(Xseed{x}, Seq, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
-       if StartAt(2) > 0
-            AnchorLoc = Nleft - StartAt(2) + 2; %Comes from (Nleft + 1) - (StartAt(2) - 1) = PositionAnchorSeed - MissingSeqCount
-       else
-            AnchorLoc = Nleft + abs(StartAt(2)) + 1;
-       end       
-       AlignScores(x, :) = [Score(1)/(diff(MatchAt)+1) Score(2) AnchorLoc];
-    end
-
-    %Do seed alignments on reverse complement sequence
-    if CheckSeqDir == 'Y'
-        AlignScoresR = zeros(size(Xseed, 1), 3);
-        SeqNTR = seqrcomplement(Seq);
-        for x = 1:size(Xseed, 1)
-            [Score, StartAt, MatchAt] = alignSeqMEX(Xseed{x}, SeqNTR, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
-            if StartAt(2) > 0
-                AnchorLoc = Nleft - StartAt(2) + 2; %Comes from (Nleft + 1) - (StartAt(2) - 1) = PositionAnchorSeed - MissingSeqCount
-            else
-                AnchorLoc = Nleft + abs(StartAt(2)) + 1;
-            end       
-            AlignScoresR(x, :) = [Score(1)/(diff(MatchAt)+1) Score(2) AnchorLoc];
-        end
-
-        %Accept complement sequence if it's a higher score AND less positions
-        if max(AlignScoresR(:, 2)) > max(AlignScores(:, 2))
-            FwdPos = unique(AlignScores(:, 3));  %Check how many unique anchor positions there are
-            RevPos = unique(AlignScoresR(:, 3));
-            if length(RevPos) <= length(FwdPos) %Means seeds are converging more on reverse direction          
-                Tdata{1, SeqLoc} = SeqNTR;
-                AlignScores = AlignScoresR;
-            end
+    if CheckRev
+        SeqR = seqrcomplement(Tdata{SeqIdx});
+        [ScoreR, StartAtR] = alignSeqMEX(SeqR, Xseed, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide); 
+        UnqPosR = unique(StartAtR(2, :) + Nleft + (StartAtR(2, :) < 0));
+        
+        if max(ScoreR(2, :)) > max(Score(2, :)) && length(UnqPosR) <= length(UnqPos) %Accept complement sequence if it's a higher score AND less positions
+            Tdata{SeqIdx} = SeqR;
+            UnqPos = UnqPosR;
         end
     end
     
-    %Finalize all potential CDR3 anchor locations, including the special
-    %conserved codon
-    SpecPos = regexp(Seq, SeedPat);
-    CDR3Pos = unique([AlignScores(:, 3); SpecPos(:)]);
-    if Segment == 'J' %Need to include 2 nt of codon for J (since it's the end)
-        CDR3Pos = CDR3Pos + 2; 
-    end
-    InvalidPos = (CDR3Pos > length(Seq))  |  (CDR3Pos < 1);
-    CDR3Pos(InvalidPos) = [];
+    SpecPos = strfind(Tdata{SeqIdx}, SeedPat); %Include special CDR3 anchor locations
+    CDR3Pos = unique([UnqPos(:); SpecPos(:)])';
+    if IsJ; CDR3Pos = CDR3Pos +2; end %Need to include 2 nt of codon for J (since it's the end)
+    ValidLoc = ~(CDR3Pos > length(Tdata{SeqIdx}))  |  (CDR3Pos < 1);
+    CDR3Pos = CDR3Pos(ValidLoc);
 
-    %Update to VDJdata ONLY if there is a seed
     if ~isempty(CDR3Pos)
-        Tdata{1, CDR3colLoc} = unique([Tdata{1, CDR3colLoc}(:); CDR3Pos(:)])';
+        Tdata{CDR3Idx} = CDR3Pos;
         VDJdata(j, :) = Tdata; %Add Tdata to sliced variable VDJdata
     end
 end

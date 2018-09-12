@@ -26,7 +26,7 @@ IsSpliced = iscell(VDJdata{1});
 if ~IsSpliced
     VDJdata = spliceData(VDJdata, Map); %Has to be done to ensure proper group numbers
 end
-for y = 1:length(VDJdata)
+parfor y = 1:length(VDJdata)
     VDJdata{y} = clusterByLineagePerGroup(VDJdata{y}, Map, UseSHMHAM, KeepCyclic);
 end
 VDJdata = joinData(VDJdata, Map); %Have to join to ensure cluster-based splicing w/ correct GrpNum
@@ -36,19 +36,8 @@ end
 
 function Tdata = clusterByLineagePerGroup(Tdata, Map, UseSHMHAM, KeepCyclic)
 if isempty(Tdata) || size(Tdata, 1) == 1; return; end
-
 LongDist = 1E5; %Distance to use to prevent linking. Can't be Inf to other reasons.
-
-if UseSHMHAM
-    disp('USING SHMHAM')
-else
-    disp('USING HAM')
-end
-% if ismember(91, cell2mat(Tdata(:, Map.SeqNum))); error('clusterByLineagePerGroup'); end
-
-%Determine the distances between sequences, adding H and L together
 Tdata = padtrimSeqGroup(Tdata, Map, 'cdr3length', 'max', 'Seq');
-
 if isempty(Tdata); return; end
 
 InvalidLoc = zeros(size(Tdata, 1), 'logical');
@@ -70,10 +59,22 @@ for c = 1:length(Map.Chain)
     end
 end
 
+%If there is a 0 distance (regardless of Ham or ShmHam dist), this means the sequences are same. Group them up.
+[X, Y] = find(PairDist == 0);
+DiagLoc = X == Y;
+X = unique(X(~DiagLoc));
+KeepLoc = repelem(true, 1, size(PairDist, 2));
+if ~isempty(X) %Need to modify
+    KeepLoc(X(2:end)) = 0;
+    Tdata{X(1), Map.Template} = sum(cell2mat(Tdata(X, Map.Template)));
+    Tdata = Tdata(KeepLoc, :);
+    PairDist = PairDist(KeepLoc, KeepLoc);
+    InvalidLoc = InvalidLoc(KeepLoc, KeepLoc);
+end
+
 if KeepCyclic
     AncMap = calcAncMap(PairDist);
     AncMap(:, 4) = findTreeClust(AncMap);
-
 else
     PairDist(InvalidLoc) = LongDist; %make it high, but not inf;
 
@@ -93,6 +94,7 @@ else
 
     AncMap = calcAncMap(PairDist);
 
+    %Makesure to break up anything with longer distance into separate clonotypes
     CutLoc = AncMap(:, 3) >= LongDist;
     AncMap(CutLoc, 2) = 0;
     AncMap(CutLoc, 3) = G2CDist(CutLoc);
@@ -127,12 +129,17 @@ else
     for j = 1:max(AncMap(:, end))
         ClustLoc = AncMap(:, end) == j;
         NumIdx = AncMap(ClustLoc, 1);
-        if sum(ClustLoc) <= 2; continue; end
         RootedAncMap = calcRootedAncMap(PairDist(NumIdx, NumIdx));
         RootedAncMap(2:end, 2) = NumIdx(RootedAncMap(2:end, 2));
         RootedAncMap(:, 1) = NumIdx;
         AncMap(ClustLoc, 1:3) = RootedAncMap(:, 1:3);
     end
+
+    if any(findTreeCycle(AncMap))
+        error('%s: something is wrong');
+        warning('%s: Found a cyclic dependency in group number %d.', mfilename, UnqGrpNum);
+    end
+    
     Tdata = Tdata(AncMap(:, 1), :);
     AncMap = renumberAncMap(AncMap);
 
@@ -151,4 +158,3 @@ for k = 1:size(AncMap, 1)
 end
 
 Tdata(:, Map.GrpNum) = num2cell(AncMap(:, 4));
-

@@ -59,13 +59,13 @@ for k = 1:length(Map.Chain)
     end
 
     %Identify beginning and end locations of CDR3
-    SeqLens = cellfun(@length, VDJdata(:, SeqLoc));
+    SeqLens = cellfun('size', VDJdata(:, SeqLoc), 2);
     CDR3Bgns = cell2mat(VDJdata(:, CDR3Loc(3))); %NT pos
     CDR3Ends = cell2mat(VDJdata(:, CDR3Loc(4))); %NT pos
     CDR3Lens = (CDR3Ends - CDR3Bgns + 1)/3;      %AA len
 
     %Remove invalid CDR3s
-    InvalidLoc = (CDR3Bgns <= 1) | (CDR3Ends <= 1) | (CDR3Lens <= 5) | (CDR3Ends > SeqLens) | (CDR3Bgns >= CDR3Ends);
+    InvalidLoc = (CDR3Bgns <= 1) | (CDR3Ends <= 1) | (CDR3Lens <= 1) | (CDR3Ends > SeqLens) | (CDR3Bgns >= CDR3Ends);
     if any(InvalidLoc)
         BadVDJdata = cat(1, BadVDJdata, VDJdata(InvalidLoc, :));
         VDJdata(InvalidLoc, :) = [];
@@ -123,7 +123,7 @@ for k = 1:length(Map.Chain)
                 MinDelRight = max(SeqLen);
                 for j = 1:length(GrpIdx)
                     EvalSeq = VDJdata{GrpIdx(j), EvalSeqLoc};
-                    NonXloc = regexpi(EvalSeq, '[^X*]');
+                    NonXloc = regexpi(EvalSeq, '[^N*]');
                     CurDelLeft = NonXloc(1) - 1;
                     CurDelRight = length(EvalSeq) - NonXloc(end);
                     if CurDelLeft < MinDelLeft
@@ -161,7 +161,7 @@ for k = 1:length(Map.Chain)
 
             %Determine left side edits
             if LeftAdd(j) >= 0
-                LeftPad = repmat('X', 1, LeftAdd(j));
+                LeftPad = repmat('N', 1, LeftAdd(j));
                 S1 = 1;
             else
                 LeftPad = '';
@@ -170,7 +170,7 @@ for k = 1:length(Map.Chain)
 
             %Determine right side edits
             if RightAdd(j) >= 0
-                RightPad = repmat('X', 1, RightAdd(j));
+                RightPad = repmat('N', 1, RightAdd(j));
                 S2 = length(EvalSeq);
             else
                 RightPad = '';

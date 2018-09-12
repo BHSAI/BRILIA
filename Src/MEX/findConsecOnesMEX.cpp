@@ -57,19 +57,13 @@ void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
 
     if (nrhs != 1) {
-        mexErrMsgIdAndTxt("mxFindConsecOnes:nrhs", "Need one input only.");
+        mexErrMsgIdAndTxt("mxFindConsecOnes:nrhs", "Incorrect number of inputs. Expected 1.");
     }
-    
-    if (mxIsComplex(prhs[0])) { 
-        mexErrMsgIdAndTxt("mxFindConsecOnes:prhs", "Must be a real number.");
-    }
-    
-    if (mxGetN(prhs[0]) > 1 && mxGetM(prhs[0]) > 1) {
-        mexErrMsgIdAndTxt("mxFindConsecONes:prhs", "Must be a 1xN or Mx1 vector.");
-    }
-    
     if (nlhs != 1) {
-        mexErrMsgIdAndTxt("mxFindConsecOnes:nlhs", "Need one output only.");
+        mexErrMsgIdAndTxt("mxFindConsecOnes:nlhs", "Incorrect number of inputs. Expected 1.");
+    }
+    if (mxGetN(prhs[0]) > 1 && mxGetM(prhs[0]) > 1) {
+        mexErrMsgIdAndTxt("mxFindConsecONes:prhs", "Input must be a 1xN or Mx1 vector.");
     }
 
     mwSize M = mxGetM(prhs[0]);

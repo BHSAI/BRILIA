@@ -39,24 +39,15 @@ void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
 
     if (nrhs != 3) {
-        mexErrMsgIdAndTxt("findPerimeterMEX:nrhs", "Need 3 inputs.");
+        mexErrMsgIdAndTxt("findPerimeterMEX:nrhs", "Incorrect number of inputs. Expected 3.");
     }
-    
-    if (mxIsComplex(prhs[0]) || mxIsComplex(prhs[1]) || mxIsComplex(prhs[2])) { 
-        mexErrMsgIdAndTxt("findPerimeterMEX:prhs", "Inputs must be real numbers.");
+    if (nlhs < 2 || nlhs > 3) {
+        mexErrMsgIdAndTxt("findPerimeterMEX:nlhs", "Incorrect number of outputs. Min is 2. Max is 3.");
     }
-    
     if (mxGetM(prhs[0]) != 1 || mxGetN(prhs[0]) != 2) {
-        mexErrMsgIdAndTxt("findPerimeterMEX:prhs", "1st input must be a 1x2 size matrix.");
+        mexErrMsgIdAndTxt("findPerimeterMEX:prhs", "Input must be a 1x2 size matrix.");
     }
     
-    if (nlhs > 3) {
-        mexErrMsgIdAndTxt("findPerimeterMEX:nlhs", "Too many outputs - max is 3.");
-    }
-
-    if (nlhs < 2) {
-        mexErrMsgIdAndTxt("findPerimeterMEX:nlhs", "Too few outputs - min is 2.");
-    }
     
     double *pSize = mxGetPr(prhs[0]);
     double Rc = mxGetScalar(prhs[1]);

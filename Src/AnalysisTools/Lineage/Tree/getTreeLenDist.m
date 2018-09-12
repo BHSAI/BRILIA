@@ -32,7 +32,7 @@ for j = 1:length(UnqGrpNum)
     MaxMissCt = -1;
     for k = 1:length(Idx)
         Seq = VDJdata{Idx(k), H.SeqLoc};
-        MissCt = sum(~((Seq == RefSeq) | Seq == 'X' | RefSeq == 'X'));
+        MissCt = sum(~((Seq == RefSeq) | Seq == 'N' | RefSeq == 'N'));
         if k == 1
             MinMissCt = MissCt;
         end

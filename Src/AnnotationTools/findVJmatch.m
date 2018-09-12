@@ -40,8 +40,10 @@
 %
 %  See also findVDJmatch
 
-function [VDJdata,varargout] = findVJmatch(VDJdata,Map,DB,varargin)
-%Parse the input
+function [VDJdata, BadLoc] = findVJmatch(VDJdata,Map,DB,varargin)
+BadLoc = repelem(false, size(VDJdata,1), 1);
+if isempty(VDJdata); return; end
+
 P = inputParser;
 addParameter(P,'Update','y',@(x) ismember(lower(x(1)),{'y','n'}));
 addParameter(P,'Jreserve',9,@isnumeric);
@@ -49,14 +51,9 @@ parse(P,varargin{:});
 Update = P.Results.Update;
 Jreserve = P.Results.Jreserve;
 
-BadIdx = zeros(size(VDJdata,1),1,'logical');
-
 %Find headers since parfor can't handle it
 if Map.lSeq == 0 %Make sure header exists for right chain   
-    if nargout >=2
-        varargout{1} = BadIdx;
-    end
-    return; 
+    return
 end
 SeqLoc      = Map.lSeq;
 OverSeq5Loc = Map.lOverSeq5;
@@ -83,7 +80,7 @@ parfor j = 1:size(VDJdata,1)
     Tdata = VDJdata(j,:);
     Seq = Tdata{1,SeqLoc};
     if length(Seq) < Jreserve+1 %Seq is too short
-        BadIdx(j) = 1;
+        BadLoc(j) = 1;
         continue; 
     end
     CDR3s = Tdata{1,CDR3sLoc};
@@ -109,7 +106,7 @@ parfor j = 1:size(VDJdata,1)
     VrefCDR3 = Vxmap{VmapNum,AnchorLoc}; %Location of C from right end of V
     CDR3s = Vlen + Vdel - VrefCDR3 + 1;
     if CDR3s <= 0 %Have an issue
-        BadIdx(j) = 1;
+        BadLoc(j) = 1;
         continue;
     end
 
@@ -198,18 +195,14 @@ parfor j = 1:size(VDJdata,1)
 end
 
 %If there are errors, show them now.
-BadLoc = find(BadIdx == 1);
-for b = 1:length(BadLoc)
-    fprintf('%s: Bad sequence # %d\n',mfilename,BadLoc(b));
+if any(BadLoc)
+    fprintf('%s: Bad sequences found.\n', mfilename);
+    fprintf('  Removing Seq %d\n', find(BadLoc));
 end
 
 %Update VDJdata 
-if upper(Update(1)) == 'Y'
-    UpdateIdx = ~BadIdx;
+if strcmpi(Update(1), 'Y')
+    UpdateIdx = ~BadLoc;
     VDJdata(UpdateIdx,:) = buildRefSeq(VDJdata(UpdateIdx,:),Map,DB,'L','germline','single');
     VDJdata(UpdateIdx,:) = updateVDJdata(VDJdata(UpdateIdx,:),Map,DB);    
-end
-
-if nargout >=2
-    varargout{1} = BadIdx;
 end

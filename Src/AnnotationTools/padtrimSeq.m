@@ -1,5 +1,5 @@
 %padtrimSeq will either pad or trim sequences so that SeqA and SeqB are the
-%same length, and centered about an anchoring letter. Uses 'X' for padding.
+%same length, and centered about an anchoring letter. Uses 'N' for padding.
 %
 %  NewSeqA = padtrimSeq(SeqA,AnchorA,LeftOpt,RightOpt)
 %
@@ -105,7 +105,7 @@ if InputCount == 1
 
     %Create the padded/trimmed SeqA and SeqB
     if Aadj(1) > 0
-        LeftApad = repmat('X',1,Aadj(1));
+        LeftApad = repmat('N',1,Aadj(1));
         S1a = 1;
     else
         LeftApad = '';
@@ -113,7 +113,7 @@ if InputCount == 1
     end
 
     if Aadj(2) > 0
-        RightApad = repmat('X',1,Aadj(2));
+        RightApad = repmat('N',1,Aadj(2));
         S2a = length(SeqA);
     else
         RightApad = '';
@@ -182,7 +182,7 @@ elseif InputCount == 2
 
     %Create the padded/trimmed SeqA and SeqB
     if Aadj(1) > 0
-        LeftApad = repmat('X',1,Aadj(1));
+        LeftApad = repmat('N',1,Aadj(1));
         S1a = 1;
     else
         LeftApad = '';
@@ -190,7 +190,7 @@ elseif InputCount == 2
     end
 
     if Aadj(2) > 0
-        RightApad = repmat('X',1,Aadj(2));
+        RightApad = repmat('N',1,Aadj(2));
         S2a = length(SeqA);
     else
         RightApad = '';
@@ -198,7 +198,7 @@ elseif InputCount == 2
     end
 
     if Badj(1) > 0
-        LeftBpad = repmat('X',1,Badj(1));
+        LeftBpad = repmat('N',1,Badj(1));
         S1b = 1;
     else
         LeftBpad = '';
@@ -206,7 +206,7 @@ elseif InputCount == 2
     end
 
     if Badj(2) > 0
-        RightBpad = repmat('X',1,Badj(2));
+        RightBpad = repmat('N',1,Badj(2));
         S2b = length(SeqB);
     else
         RightBpad = '';

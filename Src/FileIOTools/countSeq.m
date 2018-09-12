@@ -15,7 +15,7 @@ if nargin == 0 || isempty(FileName)
     assert(ischar(InFileName), '%s: No file was selected.', mfilename);
     FileName = fullfile(InFilePath, InFileName);
 else
-    assert(exist(FileName, 'file')>0, '%s: Could not find file "%s".', mfilename, FileName);
+    assert(exist(FileName, 'file') > 0, '%s: Could not find file "%s".', mfilename, FileName);
 end
 
 if endsWith(FileName, {'.fa', 'fasta'}, 'ignorecase', true)

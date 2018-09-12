@@ -1,4 +1,4 @@
-%getTreeData2 will extract necessary information required to plot a tree
+%getTreeData will extract necessary information required to plot a tree
 %given VDJdata from ONE cluster (same group number).
 %
 %  INPUT
@@ -10,8 +10,6 @@
 %    AncMapStruct: Structure holding various Mx3 AncMap
 %      .HAM = AncMap with par2child hamming distance
 %      .SHM = AncMap with par2child BRILIA shm distance
-%      .HAMPERC = AncMap with par2child hamming distance / seq length
-%      .SHMPERC = AncMap with par2child BRILIA shm distance / seq length
 %    TreeName: suggested name of the tree based on VDJ and VJ annotation.
 %      If H chain, {'Vgene | Dgene | Jgene' 'Grp #, Size #, TC #'}
 %      If L chain, {'Vxgene | Jxgene' 'Grp #, Size #, TC #'}
@@ -38,124 +36,81 @@ TreeName = [];
 CDR3Name = [];
 TemplateCount = 0;
 
-if iscell(Map)
-    Map = getVDJmapper(Map);
-end
+Map = getVDJmapper(Map);
 
 %Check if there are multiple groups
 GrpNum = cell2mat(Tdata(:, Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
 if length(UnqGrpNum) > 1
     warning('%s: Tdata must contain annotations from the same cluster. No tree was made.', mfilename);
-    return;
+    return
 end
 
 %Determine key tree parameter data
-SeqNumLoc = Map.SeqNum;
-TemplateLoc = Map.Template;
-CDR3Locs = [];
-CDR3sLocs = [];
-CDR3eLocs = [];
-SeqLocs = [];
-RefSeqLocs = [];
-GeneNameLocs = {};
-for j = 1:length(Map.Chain)
-    if strcmpi(Map.Chain(j), 'H')
-        CDR3Loc = Map.hCDR3;
-        SeqLoc = Map.hSeq;
-        RefSeqLoc = Map.hRefSeq;
-        GeneNameLoc = Map.hGeneName;
-    else
-        CDR3Loc = Map.lCDR3;
-        SeqLoc = Map.lSeq;
-        RefSeqLoc = Map.lRefSeq;
-        GeneNameLoc = Map.lGeneName;
-    end
-    try
-        CDR3Locs = cat(2, CDR3Locs, CDR3Loc(1));
-        CDR3sLocs = cat(2, CDR3sLocs, CDR3Loc(3));
-        CDR3eLocs = cat(2, CDR3eLocs, CDR3Loc(4));
-        SeqLocs = cat(2, SeqLocs, SeqLoc);
-        RefSeqLocs = cat(2, RefSeqLocs, RefSeqLoc);
-        GeneNameLocs = cat(2, GeneNameLocs, GeneNameLoc);
-    catch
-    end
+SeqNumIdx = Map.SeqNum;
+ParNumIdx = Map.ParNum;
+TemplateIdx = Map.Template;
+SeqIdx = nonzeros([Map.hSeq; Map.lSeq]);
+RefSeqIdx = nonzeros([Map.hRefSeq; Map.lRefSeq]);
+CDR3Idx = zeros(length(Map.Chain), 1);
+CDR3SIdx = zeros(length(Map.Chain), 1);
+CDR3EIdx = zeros(length(Map.Chain), 1);
+GeneNameIdx = cell(length(Map.Chain), 1);
+for c = 1:length(Map.Chain)
+    C = lower(Map.Chain(c));
+    CDR3Idx(c) = Map.([C 'CDR3'])(1);
+    CDR3SIdx(c) = Map.([C 'CDR3'])(3);
+    CDR3EIdx(c) = Map.([C 'CDR3'])(4);
+    GeneNameIdx{c} = Map.([C 'GeneName']);
 end
 
-%Make sure all values are present
-CDR3Locs(CDR3Locs == 0) = [];
-CDR3sLocs(CDR3sLocs == 0) = [];
-CDR3eLocs(CDR3eLocs == 0) = [];
-SeqLocs(SeqLocs == 0) = [];
-RefSeqLocs(RefSeqLocs == 0) = [];
+AncMap = zeros(size(Tdata, 1), 5); %[Child Par HAMdist HAMperc TemplateCount];
+AncMap(:, [1:2 5]) = cell2mat(Tdata(:, [SeqNumIdx; ParNumIdx; TemplateIdx]));
+AncMap = renumberAncMap(AncMap);
+if any(findTreeCycle(AncMap))
+    error('%s: something is wrong');
+    warning('%s: Found a cyclic dependency in group number %d.', mfilename, UnqGrpNum);
+end
 
-%--------------------------------------------------------------------------
-%Getting AncMapS
-
-AncMapAll = zeros(size(Tdata, 1), 5); %[Child Par HAMdist HAMperc TemplateCount];
 for j = 1:size(Tdata, 1)
-    %Determine this child seq's absolute parent seq number
-    ChildSeqNum = Tdata{j, SeqNumLoc};
-    ParentSeqNum = 0;
-    ParentSeq = Tdata(j, RefSeqLocs);
-    for g = 1:size(Tdata, 1)
-        if g == j; continue; end
-        Match = zeros(1, length(SeqLocs));
-        for k = 1:length(SeqLocs)
-            if strcmpi(ParentSeq{k}, Tdata{g, SeqLocs(k)})
-                Match(k) = 1;
-            end
-        end
-        if min(Match) == 1
-            ParentSeqNum = Tdata{g, SeqNumLoc};
-            break
-        end
-    end
-
-    %Determine the SHMdist and HAMdist and template count
-    HAMdist = 0;
+    MatchCt = 0;
     SeqLen = 0;
-    for k = 1:length(SeqLocs)
-        ChildSeq = Tdata{j, SeqLocs(k)};
-        ParentSeq = Tdata{j, RefSeqLocs(k)};
-        HAMdistT = calcPairDistMEX({ParentSeq, ChildSeq});
-        HAMdist = HAMdist + HAMdistT(1, 2);
-        SeqLen = SeqLen + length(ParentSeq);
+    if AncMap(j, 2) == 0 %RefSeq is the inferred germline
+        RPos = j; 
+        RIdx = RefSeqIdx;
+    else %RefSeq is another sequence
+        RPos = AncMap(j, 2);
+        RIdx = SeqIdx;
     end
-    HAMperc = HAMdist / SeqLen * 100;
-
-    %Determine Template Count
-    TemplateCount = Tdata{j, TemplateLoc};
-    if isempty(TemplateCount) || TemplateCount <= 0
-        TemplateCount = 1;
+    for c = 1:length(SeqIdx)
+        MatchCt = MatchCt + sum(cmprSeqMEX(Tdata{j, SeqIdx(c)}, Tdata{RPos, RIdx}, 'n'));
+        SeqLen = SeqLen + length(Tdata{RPos, RIdx});
     end
-    
-    AncMapAll(j, :) = [ChildSeqNum ParentSeqNum HAMdist HAMperc TemplateCount];
+    AncMap(j, 3:4) = [(SeqLen-MatchCt) ((SeqLen-MatchCt)/SeqLen*100)]; %HamDist, HamPerc
 end
 
-%Determine if you need to add the germline with template count 0
-AddedGermline = 0; %To tell CDR3Name code to fetch germline CDR3
-if AncMapAll(1, 2) == 0 && AncMapAll(1, 3) > 0
-    AncMapAll = cat(1, zeros(1, size(AncMapAll, 2)), AncMapAll);
-    AncMapAll(:, 1:2) = AncMapAll(:, 1:2) + 1;
-    AncMapAll(2, 2) = 1; %Link 1st (now 2nd) to germline (now 1st)
-    AncMapAll(1, 2) = 0; %Ensure it's always 0.
-    AddedGermline = 1;
+%Add a germline sequence in case the 1st observed sequence has HamDist > 0 to germline
+NeedGermline = AncMap(1, 2) == 0 && AncMap(1, 3) > 0; %To tell CDR3Name code to fetch germline CDR3
+if NeedGermline
+    AncMap = cat(1, zeros(1, size(AncMap, 2)), AncMap);
+    AncMap(:, 1:2) = AncMap(:, 1:2) + 1;
+    AncMap(2, 2) = 1; %Link 1st (now 2nd) to germline (now 1st)
+    AncMap(1, 2) = 0; %Ensure it's always 0.
 end
-AncMapAll = renumberAncMap(AncMapAll);
+AncMap = renumberAncMap(AncMap);
 
 %Create the structured version of AncMap
 DistOrder = {'HAM', 'HAMPERC'};
 for k = 1:length(DistOrder)
-    AncMapS.(DistOrder{k}) = AncMapAll(:, [1:2 k+2 size(AncMapAll, 2)]);
+    AncMapS.(DistOrder{k}) = AncMap(:, [1:2 k+2 size(AncMap, 2)]);
 end
 
 %--------------------------------------------------------------------------
 %Getting TreeName
 if nargout >= 2
-    TreeName = cell(length(GeneNameLocs) + 1, 1);
-    for j = 1:length(GeneNameLocs)
-        GeneNames = Tdata(1, GeneNameLocs{j});
+    TreeName = cell(length(GeneNameIdx) + 1, 1);
+    for j = 1:length(GeneNameIdx)
+        GeneNames = Tdata(1, GeneNameIdx{j});
         for w = 1:length(GeneNames)
             TempNames = strsplit(GeneNames{w}, '|');  %Get the first recommended name
             GeneNames{w} = strrep(TempNames{1}, 'IG', ''); 
@@ -164,47 +119,50 @@ if nargout >= 2
         RepPat([1 end]) = [];
         TreeName{j} = sprintf(RepPat, GeneNames{:});
     end
-    TreeName{end} = sprintf('Grp %d, Size %d, TC %d', UnqGrpNum, size(Tdata, 1), sum(cell2mat(Tdata(:, TemplateLoc))));
+    TreeName{end} = sprintf('Grp %d, Size %d, TC %d', UnqGrpNum, size(Tdata, 1), sum(cell2mat(Tdata(:, TemplateIdx))));
 end
 
 %--------------------------------------------------------------------------
 %Getting CDR3Name
 if nargout > 3
-    CDR3Name = cell(size(Tdata, 1) + AddedGermline, 1);
+    CDR3Name = cell(size(Tdata, 1) + NeedGermline, 1);
     for j = 1:size(Tdata, 1)
         %Combine and extract CDR3 Info
-        if length(CDR3Locs) > 1
-            RepPat = repmat('%s:', 1, length(CDR3Locs));        
-            CDR3seq = sprintf(RepPat, Tdata{j, CDR3Locs});
+        if length(CDR3Idx) > 1
+            RepPat = repmat('%s:', 1, length(CDR3Idx));        
+            CDR3seq = sprintf(RepPat, Tdata{j, CDR3Idx});
             CDR3seq(end) = [];
-            CDR3Name{j + AddedGermline} = CDR3seq;
+            CDR3Name{j + NeedGermline} = CDR3seq;
         else
-            CDR3Name{j + AddedGermline} = Tdata{j, CDR3Locs};
+            CDR3Name{j + NeedGermline} = Tdata{j, CDR3Idx};
         end
     end
 
-    if AddedGermline == 1
+    if NeedGermline
         %Add in the germline sequence CDR3
-        CDR3NameGerm = cell(1, length(CDR3Locs));
-        for k = 1:length(CDR3Locs)
-            if ~isempty(CDR3sLocs) && ~isempty(CDR3eLocs)
-                RefSeq = Tdata{1, RefSeqLocs(k)};
-                CDR3s = Tdata{1, CDR3sLocs(k)};
-                CDR3e = Tdata{1, CDR3eLocs(k)};
-                CDR3NameGerm{k} = convNT2AA(RefSeq(CDR3s:CDR3e), 'ACGTonly', false);
+        CDR3NameGerm = cell(1, length(CDR3Idx));
+        for k = 1:length(CDR3Idx)
+            if ~isempty(CDR3SIdx) && ~isempty(CDR3EIdx)
+                RefSeq = Tdata{1, RefSeqIdx(k)};
+                CDR3s = Tdata{1, CDR3SIdx(k)};
+                CDR3e = Tdata{1, CDR3EIdx(k)};
+                CDR3NameGerm{k} = nt2aa(RefSeq(CDR3s:CDR3e), 'ACGTonly', false);        
             end
         end
+        
 
         %Combine and extract CDR3 Info
         CDR3seq = sprintf('%s:', CDR3NameGerm{:});
         CDR3Name{1} = CDR3seq(1:end-1);
+        
+        if contains(CDR3Name{1}, '*')
+            CDR3Name{1} = CDR3Name{2}; %Taking ancestral sequence instead
+        end
     end
 end
 
 %--------------------------------------------------------------------------
-%Getting TemplateCount
+%Getting TemplateCount after all the germline edits
 if nargout >= 4
-    TemplateCount = zeros(size(Tdata, 1) + AddedGermline, 1);
-    TemplateCount(1+AddedGermline:end) = cell2mat(Tdata(:, TemplateLoc));
-end
-    
+    TemplateCount = AncMap(:, 5);
+end 

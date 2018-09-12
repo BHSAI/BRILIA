@@ -71,7 +71,7 @@ if contains(Map.Chain, 'H', 'ignorecase', true)
         end
 
         %Find the mismatched nts with respect to 1st seq of cluster only.
-        XlocRef = RefSeq == 'X';
+        XlocRef = RefSeq == 'N';
         ConsMissCt = zeros(size(RefSeq));
         for k = 1:size(Tdata, 1)
             Seq = Tdata{k, Map.hSeq};
@@ -79,7 +79,7 @@ if contains(Map.Chain, 'H', 'ignorecase', true)
                 return
             end
             if isempty(Seq); return; end
-            XlocSeq = Seq == 'X';
+            XlocSeq = Seq == 'N';
             MissLoc = ~(RefSeq == Seq | XlocSeq | XlocRef);
             ConsMissCt = ConsMissCt + MissLoc;
         end
@@ -302,12 +302,12 @@ if contains(Map.Chain, 'L', 'ignorecase', true)
         end
 
         %Find the mismatched nts with respect to 1st seq of cluster only.
-        XlocRef = RefSeq == 'X';
+        XlocRef = RefSeq == 'N';
         ConsMissCt = zeros(size(RefSeq));
         for k = 1:size(Tdata, 1)
             Seq = Tdata{k, Map.lSeq};
             if isempty(Seq); return; end
-            XlocSeq = Seq == 'X';
+            XlocSeq = Seq == 'N';
             MissLoc = ~(RefSeq == Seq | XlocSeq | XlocRef);
             ConsMissCt = ConsMissCt + MissLoc;
         end

@@ -28,7 +28,7 @@ MapNames = MapNames(endsWith(MapNames, 'map'));
 M = getMapHeaderVar(DB.MapHeader);
 
 for j = 1:length(MapNames)
-    DelLoc = cellfun(@isempty, DB.(MapNames{j})(:, M.Seq));
+    DelLoc = cellfun('isempty', DB.(MapNames{j})(:, M.Seq));
     DB.(MapNames{j})(DelLoc, :) = [];
 end
 

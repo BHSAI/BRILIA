@@ -6,7 +6,7 @@
 %
 %  TDTscore = calcTDTscore(Seq)
 %
-%  TDTscore = calcTDTscore(Seq,Prob)
+%  TDTscore = calcTDTscore(Seq, Prob)
 %
 %  INPUT
 %    Seq: nucleotide sequence consisting of ACGTU letters
@@ -24,36 +24,36 @@
 %    - Both the forward and complement sequence are used to determine the
 %      maximum TDTscore, which is the one that is returned. 
 %    - If no sequence are placed inside, will return an empty score [].
-%    - Ambiguous characters (eg 'N' or 'X') are NOT counted in the score.
+%    - Ambiguous or wildcard characters are NOT counted in the score.
 %
 %  See also findBetterD, trimGeneEdge
 
-function TDTscore = calcTDTscore(SeqF,varargin)
-%Set the probability matrix
-if length(varargin) >= 1
-    Prob = varargin{1}; 
-    if length(Prob) ~= 4
-        error('Prob should be a double value of length = 4');
-    elseif max(Prob) > 1 || min(Prob) < 0
-        error('Prob individual value must range from 0 to 1');
-    elseif sum(Prob) ~= 1
-        error('Sum of Prob should be equal to 1');
-    end
-else
-    Prob = [0.25 0.08 0.60 0.07]; %[Pa Pc Pg Pt]
-end
-
+function TDTscore = calcTDTscore(SeqF, varargin)
 %If no sequence, return empty value
 if isempty(SeqF)
     TDTscore = [];
     return
 end
 
+%Set the probability matrix
+if ~isempty(varargin)
+    Prob = varargin{1}; 
+    if length(Prob) ~= 4
+        error('%s: Input "Prob" should be a double value of length = 4.', mfilename);
+    elseif max(Prob) > 1 || min(Prob) < 0
+        error('%s: Input "Prob" value must range from 0 to 1.', mfilename);
+    elseif sum(Prob) ~= 1
+        error('%s: Input "Prob" does not add up to 1.', mfilename);
+    end
+else
+    Prob = [0.25 0.08 0.60 0.07]; %[Pa Pc Pg Pt]
+end
+
 %Remove ambiguous characters and get +/- sense sequence
 SeqFint = nt2int(SeqF);
-DelThis = SeqFint > 4 | SeqFint == 0;
-SeqF(DelThis) = [];
-SeqFint(DelThis) = [];
+KeepLoc = ~(SeqFint > 4 | SeqFint == 0);
+SeqF = SeqF(KeepLoc);
+SeqFint = SeqFint(KeepLoc);
 SeqR = seqcomplement(SeqF);
 SeqRint = nt2int(SeqR);
 

@@ -20,28 +20,28 @@
 %        L-Vgene: light chain V gene name
 %        L-Jgene: light chain J gene name
 %        L-CDR3: germline CDR3 per cluster of the light chain
-%        TreeImageName: file name of the corresponding group lineage tree
+%        TreeImageName: file name of the corresponding group lineage tree (to be filled later)
 
 function TreeSearchTable = getTreeSearchTable(VDJdata, VDJheader)
 %Determine what data to extract from VDJdata
-[H, L, Chain] = getAllHeaderVar(VDJheader);
-if strcmpi(Chain, 'H')
-    ExtractThese = [H.GrpNumLoc H.TemplateLoc H.TemplateLoc H.CDR3Loc(1)  H.GeneNameLoc(1) H.GeneNameLoc(2) H.GeneNameLoc(3)];
-elseif strcmpi(Chain, 'L')
-    ExtractThese = [L.GrpNumLoc L.TemplateLoc H.TemplateLoc L.CDR3Loc(1)  L.GeneNameLoc(1) L.GeneNameLoc(2)];
+Map = getVDJmapper(VDJheader);
+if strcmpi(Map.Chain, 'H')
+    ExtractThese = [Map.GrpNum; Map.Template; Map.Template; Map.hCDR3(1);  Map.hGeneName]; %The 2 Map.Template is a workaround. 2nd column will be replaced.
+elseif strcmpi(Map.Chain, 'L')
+    ExtractThese = [Map.GrpNum; Map.Template; Map.Template; Map.lCDR3(1);  Map.lGeneName];
 else
-    ExtractThese = [H.GrpNumLoc H.TemplateLoc H.TemplateLoc H.CDR3Loc(1)  H.GeneNameLoc(1) H.GeneNameLoc(2) H.GeneNameLoc(3) L.CDR3Loc(1) L.GeneNameLoc(1) L.GeneNameLoc(2)];
+    ExtractThese = [Map.GrpNum; Map.Template; Map.Template; Map.hCDR3(1);  Map.hGeneName(1); Map.lCDR3(1); Map.lGeneName];
 end
 
 %For each cluster, collect data
-GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
+GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
 TreeSearchTable = cell(length(UnqGrpNum), length(ExtractThese) + 1);
 for y = 1:length(UnqGrpNum)
     GrpIdx = find(UnqGrpNum(y) == GrpNum);
     TreeSearchTable(y, 1:end-1) = VDJdata(GrpIdx(1), ExtractThese);
     TreeSearchTable{y, 2} = length(GrpIdx);
-    TreeSearchTable{y, 3} = sum(cell2mat(VDJdata(GrpIdx, H.TemplateLoc)));
+    TreeSearchTable{y, 3} = sum(cell2mat(VDJdata(GrpIdx, Map.Template)));
 end
 TreeSearchHeader = [VDJheader(ExtractThese) 'TreeImageName'];
 TreeSearchHeader{2} = 'UniqueSequences';

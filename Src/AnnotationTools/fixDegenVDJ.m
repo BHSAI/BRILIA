@@ -13,6 +13,7 @@
 %      removed if amongst function gene suggestions.
 
 function VDJdata = fixDegenVDJ(VDJdata, Map, DB)
+if isempty(VDJdata); return; end
 %Determine chain and extract key locations
 if strcmpi(Map.Chain, 'HL')
     VDJ = {'V', 'D', 'J', 'Vk', 'Jk', 'Vl', 'Jl'};

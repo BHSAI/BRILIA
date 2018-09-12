@@ -36,6 +36,7 @@ if ~iscell(VDJdata{1}) %VDJdata is not spliced
     VDJdata = updateVDJdata(VDJdata, Map, DB);
 else %VDJdata is spliced for parfor
     parfor y = 1:length(VDJdata)
+        if isempty(VDJdata{y}); pause; end
         if Map.hSeq > 0 %#ok<PFBNS> %Heavy chain. %Standardize the other fields as well (1st one is the root)
             VDJdata{y}(:, [Map.hLength(:); Map.hGeneName(:); Map.hGeneNum(:); Map.hDel(:)]) = repmat(VDJdata{y}(1, [Map.hLength(:); Map.hGeneName(:); Map.hGeneNum(:); Map.hDel(:)]), size(VDJdata{y}, 1), 1);
         end

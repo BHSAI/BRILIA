@@ -20,10 +20,11 @@
 %    VDJdata = joinData(VDJdata); 
 %    
 function VDJdataS = spliceData(VDJdata, Map)
-if iscell(Map)
-    Map = getVDJmapper(Map);
+Map = getVDJmapper(Map);
+if iscell(VDJdata{1}) %Already spliced
+    VDJdataS = VDJdata;
+    return
 end
-
 GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 UnqGrpNum = unique(GrpNum);
 VDJdataS = cell(length(UnqGrpNum), 1);

@@ -63,33 +63,30 @@ if max(CDR3anchor) == 0 && ForceAnchor == 1 %No anchor, no forceanchor.
 end
 
 %Setup inputs for alignSeqMEX
-if MissRate < 0; MissRate = 0; end
-if MissRate > 1; MissRate = 1; end
-
-Alphabet    = 'n'; %nt
-
+MissRate = max(min(MissRate, 1), 0);
+Alphabet = 'n'; %nt
 if max(CDR3anchor) > 0
     ExactMatch = 'y';
 else
     ExactMatch = 'n';
 end
-
-if X == 'V'
-    TrimSide    = 'r'; %right
-    PenaltySide = 'l'; %left
-    PreferSide  = 'l'; %left
-elseif X == 'J'
-    TrimSide    = 'l'; %left
-    PenaltySide = 'r'; %right
-    PreferSide  = 'r'; %right
-elseif X == 'D'
-    TrimSide    = 'b'; %both
-    PenaltySide = 'n'; %none
-    PreferSide  = 'n'; %none
-else
-    TrimSide    = 'n'; %none
-    PenaltySide = 'n'; %none
-    PreferSide  = 'n'; %none
+switch X
+    case 'V'
+        TrimSide    = 'r'; %right
+        PenaltySide = 'l'; %left
+        PreferSide  = 'l'; %left
+    case 'J'
+        TrimSide    = 'l'; %left
+        PenaltySide = 'r'; %right
+        PreferSide  = 'r'; %right
+    case 'D'
+        TrimSide    = 'b'; %both
+        PenaltySide = 'n'; %none
+        PreferSide  = 'n'; %none
+    otherwise
+        TrimSide    = 'n'; %none
+        PenaltySide = 'n'; %none
+        PreferSide  = 'n'; %none
 end
 
 %--------------------------------------------------------------------------

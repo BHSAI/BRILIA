@@ -53,7 +53,7 @@ end
 VDJinfo = readDlmFile(fullfile(findRoot, 'Tables', 'DataHeaderInfo.csv'));
 [~, Idx1, Idx2] = intersect(VDJheader, VDJinfo(:, 1), 'stable');
 
-if 0 %length(Idx1) == length(VDJheader) %You have all the info!
+if length(Idx1) == length(VDJheader) %You have all the info!
     IntLoc = find(startsWith(VDJinfo(Idx2, 2), 'int', 'ignorecase', true));
     StrPat = repmat('%s', 1, length(VDJheader));
     StrPat(IntLoc*2) = 'f';
@@ -77,6 +77,7 @@ else
     
     %Attempt to convert all numeric strings to numbers
     [~, ~, ~, NumLoc, ~] = getAllHeaderVar(VDJheader);
+    NumLoc = vertcat(NumLoc, find(strcmpi(VDJheader, 'ParNum'))); %FIX THIS!
     for j = 1:length(NumLoc)
         for r = 1:size(VDJdata, 1)
             if isnumeric(VDJdata{r, NumLoc(j)}); continue; end

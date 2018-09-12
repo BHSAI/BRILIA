@@ -29,7 +29,7 @@ if any(contains(Map.Chain, 'h', 'ignorecase', true))
             %Determine if there are extra nts left for padding
             ExtraLeft = VMDNJ(1)+ Vdel - length(VrefSeq);
             if ExtraLeft > 0
-                VrefSeq = sprintf('%s%s',repmat('X',ExtraLeft,1),VrefSeq);
+                VrefSeq = sprintf('%s%s',repmat('N',ExtraLeft,1),VrefSeq);
             elseif ExtraLeft < 0 %Delete some
                 VrefSeq(1:abs(ExtraLeft)) = [];
             end
@@ -44,7 +44,7 @@ if any(contains(Map.Chain, 'h', 'ignorecase', true))
 
             %Assemble the V alignment string and save
             Valign = VrefSeq;
-            Valign(VsamSeq == VrefSeq | VsamSeq == 'X') = '.';
+            Valign(VsamSeq == VrefSeq | VsamSeq == 'N') = '.';
             HeavyAlign{j,1} = sprintf('%s|%s',Valign,lower(Vref3));
         end
 
@@ -72,7 +72,7 @@ if any(contains(Map.Chain, 'h', 'ignorecase', true))
 
             %Assemble the alignment and save
             Dalign = DrefSeq;
-            Dalign(DsamSeq==DrefSeq | DsamSeq == 'X') = '.';
+            Dalign(DsamSeq==DrefSeq | DsamSeq == 'N') = '.';
             HeavyAlign{j,2} = sprintf('%s|%s|%s',lower(Dref5),Dalign,lower(Dref3));
         end
 
@@ -88,7 +88,7 @@ if any(contains(Map.Chain, 'h', 'ignorecase', true))
             %Determine if there are extra nts left for padding
             ExtraRight = VMDNJ(5) + JntDel - length(JrefSeq);
             if ExtraRight > 0
-                JrefSeq = sprintf('%s%s',JrefSeq,repmat('X',ExtraRight,1));
+                JrefSeq = sprintf('%s%s',JrefSeq,repmat('N',ExtraRight,1));
             elseif ExtraRight < 0
                 JrefSeq(end-abs(ExtraRight)+1:end)= [];
             end
@@ -103,7 +103,7 @@ if any(contains(Map.Chain, 'h', 'ignorecase', true))
 
             %Assemble the alignment and save
             Jalign = JrefSeq;
-            Jalign(JsamSeq == JrefSeq | JsamSeq == 'X') = '.';
+            Jalign(JsamSeq == JrefSeq | JsamSeq == 'N') = '.';
             HeavyAlign{j,3} = sprintf('%s|%s',lower(Jref5),Jalign);
         end
     end
@@ -141,7 +141,7 @@ if any(contains(Map.Chain, 'l', 'ignorecase', true))
             %Determine if there are extra nts left for padding
             ExtraLeft = VNJ(1)+ Vdel - length(VrefSeq);
             if ExtraLeft > 0
-                VrefSeq = sprintf('%s%s',repmat('X',ExtraLeft,1),VrefSeq);
+                VrefSeq = sprintf('%s%s',repmat('N',ExtraLeft,1),VrefSeq);
             elseif ExtraLeft < 0 %Delete some
                 VrefSeq(1:abs(ExtraLeft)) = [];
             end
@@ -156,7 +156,7 @@ if any(contains(Map.Chain, 'l', 'ignorecase', true))
 
             %Assembe the V alignment string and save
             Valign = VrefSeq;
-            Valign(VsamSeq == VrefSeq | VsamSeq == 'X') = '.';
+            Valign(VsamSeq == VrefSeq | VsamSeq == 'N') = '.';
             LightAlign{j,1} = sprintf('%s|%s',Valign,lower(Vref3));
         end
 
@@ -179,7 +179,7 @@ if any(contains(Map.Chain, 'l', 'ignorecase', true))
             %Determine if there are extra nts left for padding
             ExtraRight = VNJ(3) + JntDel - length(JrefSeq);
             if ExtraRight > 0
-                JrefSeq = sprintf('%s%s',JrefSeq,repmat('X',ExtraRight,1));
+                JrefSeq = sprintf('%s%s',JrefSeq,repmat('N',ExtraRight,1));
             elseif ExtraRight < 0
                 JrefSeq(end-abs(ExtraRight)+1:end)= [];
             end
@@ -194,7 +194,7 @@ if any(contains(Map.Chain, 'l', 'ignorecase', true))
 
             %Assemble the alignment and save
             Jalign = JrefSeq;
-            Jalign(JsamSeq == JrefSeq | JsamSeq == 'X') = '.';
+            Jalign(JsamSeq == JrefSeq | JsamSeq == 'N') = '.';
             LightAlign{j,2} = sprintf('%s|%s',lower(Jref5),Jalign);
         end
     end

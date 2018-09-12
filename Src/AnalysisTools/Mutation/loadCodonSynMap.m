@@ -35,13 +35,13 @@ end
 codonSRMap = containers.Map; %Java object so using Java naming convention lowercase 
 for k = 1:length(IntCodonList)
     IntCodon = IntCodonList{k};
-    IntAA = convNT2AA(IntCodon);
+    IntAA = nt2aa(IntCodon, 'alternative', false);
     MutAA = zeros(4, 3); %Stores the new AA
     for n = 1:3
         for x = 1:4
             NewIntCodon = IntCodon;
             NewIntCodon(n) = x;
-            MutAA(x, n) = convNT2AA(NewIntCodon);
+            MutAA(x, n) = nt2aa(NewIntCodon, 'alternative', false);
         end
     end
     

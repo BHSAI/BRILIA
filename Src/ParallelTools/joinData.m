@@ -6,6 +6,7 @@
 %    VDJDataS: spliced VDJdata that stores a cell with cell arrays of
 %      VDJdata split by group number
 %    Map: strcuture of indices of VDJdata cell headers
+%    'stable': do not renumber group numbers on the join
 %   
 %  OUTPUT
 %    VDJdata: a MxN cell array of VDJdata
@@ -18,20 +19,17 @@
 %    end
 %    VDJdata = joinData(VDJdata); 
 %  
-function VDJdataS = joinData(VDJdataS, Map)
-if isempty(VDJdataS) || ~iscell(VDJdataS{1})
-    error('%s: VDJdataS is not a cell of VDJdata cells.', mfilename);
-end
-if iscell(Map)
-    Map = getVDJmapper(Map);
-end
-
+function VDJdataS = joinData(VDJdataS, Map, varargin)
+if isempty(VDJdataS) || ~iscell(VDJdataS{1}); return; end %Already joined
+Map = getVDJmapper(Map);
 GrpNumShift = 0;
-for j = 1:length(VDJdataS)
-    if isempty(VDJdataS{j}); continue; end
-    VDJdataS{j} = renumberVDJdata(VDJdataS{j}, Map, 'grp');
-    GrpNum = cell2mat(VDJdataS{j}(:, Map.GrpNum)) + GrpNumShift;
-    GrpNumShift = max(GrpNum);
-    VDJdataS{j}(:, Map.GrpNum) = num2cell(GrpNum);
+if ~contains('stable', varargin, 'ignorecase', 1)
+    for j = 1:length(VDJdataS)
+        if isempty(VDJdataS{j}); continue; end
+        VDJdataS{j} = renumberVDJdata(VDJdataS{j}, Map, 'grp');
+        GrpNum = cell2mat(VDJdataS{j}(:, Map.GrpNum)) + GrpNumShift;
+        GrpNumShift = max(GrpNum);
+        VDJdataS{j}(:, Map.GrpNum) = num2cell(GrpNum);
+    end
 end
 VDJdataS = vertcat(VDJdataS{:});

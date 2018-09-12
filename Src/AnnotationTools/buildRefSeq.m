@@ -132,15 +132,15 @@ for k = 1:length(Map.Chain)
                 else 
                     Nseq = '';
                 end
-            catch
-                save('debug_builRefSeq.mat')
-                error('%s: failed.', mfilename)
+            catch ME
+                disp(ME)
+                error('%s: failed to build germline seq.', mfilename)
             end
 
             %Assemble the full length sequence, left side
             ExtraLeft = VMDNJ(1) - length(VrefSeq);
             if ExtraLeft > 0
-                VrefSeq = sprintf('%s%s', repmat('X', 1, ExtraLeft), VrefSeq);
+                VrefSeq = sprintf('%s%s', repmat('N', 1, ExtraLeft), VrefSeq);
             elseif ExtraLeft < 0
                 VrefSeq(1:abs(ExtraLeft)) = [];
             end
@@ -148,7 +148,7 @@ for k = 1:length(Map.Chain)
             %Assemble the full length sequence, right side
             ExtraRight = VMDNJ(5) - length(JrefSeq);
             if ExtraRight > 0 
-                JrefSeq = sprintf('%s%s', JrefSeq, repmat('X', 1, ExtraRight));
+                JrefSeq = sprintf('%s%s', JrefSeq, repmat('N', 1, ExtraRight));
             elseif ExtraRight < 0
                 JrefSeq(end-(abs(ExtraRight))+1:end) = [];
             end
@@ -229,7 +229,7 @@ for k = 1:length(Map.Chain)
             %Assemble the full length sequence, left side
             ExtraLeft = VNJ(1) - length(VrefSeq);
             if ExtraLeft > 0
-                VrefSeq = sprintf('%s%s', repmat('X', 1, ExtraLeft), VrefSeq);
+                VrefSeq = sprintf('%s%s', repmat('N', 1, ExtraLeft), VrefSeq);
             elseif ExtraLeft < 0
                 VrefSeq(1:abs(ExtraLeft)) = [];
             end
@@ -237,7 +237,7 @@ for k = 1:length(Map.Chain)
             %Assemble the full length sequence, right side
             ExtraRight = VNJ(3) - length(JrefSeq);
             if ExtraRight > 0 
-                JrefSeq = sprintf('%s%s', JrefSeq, repmat('X', 1, ExtraRight));
+                JrefSeq = sprintf('%s%s', JrefSeq, repmat('N', 1, ExtraRight));
             elseif ExtraRight < 0
                 JrefSeq(end-(abs(ExtraRight))+1:end) = [];
             end

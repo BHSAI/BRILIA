@@ -18,7 +18,7 @@ if nargin == 0
 else
     if ischar(FileName)
         FileName = strsplit(FileName, pathsep);
-        FileName(cellfun(@isempty, FileName)) = [];
+        FileName(cellfun('isempty', FileName)) = [];
     end
     for f = 1:length(FileName)
         [FP, FN] = parseFileName(FileName{f}); %Ensure to get full path
@@ -46,7 +46,7 @@ for f = 1:length(FileName)
     TXT1 = strrep(TXT1, '/*', '');
     TXT1 = strrep(TXT1, '*/', '');
     TXT1 = strrep(TXT1, '//', '');
-    FirstTxtIdx = find(~cellfun(@isempty, regexpi(TXT1, '\w+', 'once')), 1);
+    FirstTxtIdx = find(~cellfun('isempty', regexpi(TXT1, '\w+', 'once')), 1);
     
     FID2 = fopen(MFileName, 'w');
     assert(FID2 > 0, '%s: Could not write to "%s"', mfilename, MFileName);

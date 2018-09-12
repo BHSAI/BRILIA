@@ -26,6 +26,8 @@
 %      lineage relationships.
 
 function [VDJdata, BadVDJdata] = clusterGene(VDJdata, Map)
+error('%s: this is obsolete. See clusterGeneByLineage', mfilename);
+
 %Determine chain and extract key locations, sorting in order
 switch Map.Chain
     case 'HL'
@@ -43,7 +45,7 @@ switch Map.Chain
 end
 
 %Delete non-functional genes and keep functional ones
-BadLoc = any(~strcmpi(VDJdata(:, FunctIdx), 'Y'), 2) | any(cellfun(@isempty, VDJdata(:, CDR3LIdx)), 2);
+BadLoc = any(~strcmpi(VDJdata(:, FunctIdx), 'Y'), 2) | any(cellfun('isempty', VDJdata(:, CDR3LIdx)), 2);
 BadVDJdata = VDJdata(BadLoc, :);
 VDJdata = VDJdata(~BadLoc, :);
 

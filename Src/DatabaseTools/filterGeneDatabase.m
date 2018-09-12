@@ -61,7 +61,7 @@ if contains(DB.FilePath, fullfile('Databases', 'Mouse'), 'ignorecase', true)
     if StrainNum > 1 
         SearchFor = strrep(UnqStrain{StrainNum}, ';', '|');
         for j = 1:length(Fields)
-            DelLoc = cellfun(@isempty, regexpi(DB.(Fields{j})(:, M.Strain), SearchFor, 'once'));
+            DelLoc = cellfun('isempty', regexpi(DB.(Fields{j})(:, M.Strain), SearchFor, 'once'));
             DB.(Fields{j})(DelLoc, M.Seq) = {''};
         end
     end

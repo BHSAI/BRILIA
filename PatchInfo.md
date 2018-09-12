@@ -1,21 +1,34 @@
 ## Patch notice for version 4.0.0 MAJOR CHANGES
  - Reworked the algorithm for lineage assembly 
     - no "cutoff" required anymore
-    - 
- - output file reworked to be only 1 file now. 
-    - RefSeq is now ALWAYS the inferred germline by annotaiton, WITHOUT lineage correction
-    - The parent sequence number is provided. If it's 0, that's the clonotype representative for the cluster.
+    - uses bias in SHMs and Hotspot Motifs to determine clonotypes
+ - Added the following data columns to the output files
+    - ParNum is the parent sequence's SeqNum for each sequence. 0 means the parent sequence is germline.
  - Reworked inputs to BRILIA
-    - No more "setting file" options 
-    - options have changed for simplicity 
-    - 
- - Can now process multiple files via command line usage using the wildcard "*" in file names and folders
- - Added repertoire comparison tools
- 
- PERFORMANCE CHANGES
- - Moved more function to C++ for speed enhancement
- - 
+    - Can process multiple files via command line using wildcards
+      Example: BRILIA "C:\User\Data\**\*.fastq" Species Mouse will process all fastq in subfolders.
+    - No 'DevPerc' option anymore (see Lineage Algorithm note above)
+    - 'Vfunction' option is now 'Vgene' 
+    - 'Ddirection' option is now 'Dgene'
+    
+ - Added repertoire comparison tools, runGroupAnalysis
+ - Invalid annotations include alignments with >40% Hamming distance 20nts left and right of CDR3.
+ - Added fastq file alignment quality filters (MinQuality), which will
 
+ LINEAGE: and up to FR3 and FR4? to determine lineages. Will NOT use more than that, as this dilutes out HAM %. 
+ ANALYSIS: runGroupAnalysis
+ DATABASE: Custom database
+ DATAIO: added NCBI's SRA toolkit to download SRA files directly from the web.
+
+ - Will process custom database FASTA files. For executable, will create a Database folder and use fasta files there to do annotations.
+ -
+
+ PERFORMANCE IMPROVEMENTS
+ - Moved more function to C++ for speed enhancement
+ - Made annotation and plotting codes multi-threaded
+ - Added parallel computing progress tracker (ProgressTracker.m)
+ - Added spliceData and joinData to enable parallel computing
+ - 
 --------------------------------------------------------------------------
 ## Patch notice for version 3.1.4
  - Enabled inputs of file path or name with a space if encapsulated in quotes. EX: "C:\Temp Dir\"

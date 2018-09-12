@@ -18,6 +18,7 @@
 %      CDR3 region
 
 function VDJdata = constrainGeneVJ(VDJdata, Map, DB)
+if isempty(VDJdata); return; end
 %Determine chain and extract key locations
 M = getMapHeaderVar(DB.MapHeader);
 

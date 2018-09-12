@@ -66,6 +66,9 @@ catch
     warning('%s: Could not run plotHotMotifBarGraph.', mfilename);
 end
 
+EmptyLoc = cellfun('isempty', SearchTable(:, 1));
+SearchTable = SearchTable(~EmptyLoc, :);
+
 % try
 %     SearchTable{j, 3} = plotGeneUsage(GeneUsage, 'SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', 'GeneUsage.png', 'Visible', 'off');
 %     SearchTable{j, 2} = 'VDJ gene usage frequency chart per clonotype.';
@@ -91,14 +94,14 @@ plotTree(VDJdata, VDJheader, 'SaveDir', SaveDir, 'SaveSubDir', 'Tree', 'SaveAs',
 %--------------------------------------------------------------------------
 %Preparing search table for saving
 
-for k = 1:size(SearchTable, 1) 
+for k = 2:size(SearchTable, 1) 
     [~, SearchTable{k, 3}, ~] = parseFileName(SearchTable{k, 3});
 end
 
 SearchTableFileName = prepSaveTarget('SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', 'AnalysisSearchTable', 'SaveExt', '.csv');
 if exist(SearchTableFileName, 'file') %Open file, replace redundant, and than reseave. EDIT.
     PastSearchTable = readDlmFile(SearchTableFileName);
-    SameLoc = findCell(PastSearchTable(2:end, 1), SearchTable(2:end));
+    SameLoc = findCell(PastSearchTable(2:end, 1), SearchTable(2:end, 1));
     if SameLoc(1) > 0
         PastSearchTable(SameLoc + 1, :) = [];
     end

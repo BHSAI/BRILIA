@@ -18,8 +18,6 @@ tranlation between amino acid letter and its property code.
        'HBNASNAGBHHBSFPOOWYHX'
 */
 
-#include "mex.h"
-#include <string>
 #include "StringTool.hpp"
 
 void convAA2Prop(mxChar *pSeq, mwSize Len, mxChar *pProp) {
@@ -47,14 +45,15 @@ void convAA2Prop(mxChar *pSeq, mwSize Len, mxChar *pProp) {
 void mexFunction(int nlhs,       mxArray *plhs[],
                  int nrhs, const mxArray *prhs[]) {
     
-    if (nrhs < 1) 
-        mexErrMsgIdAndTxt("convAA2PropMEX:input", "Not enough inputs.");
-    
-    if (nlhs > 1) 
-        mexErrMsgIdAndTxt("convAA2PropMEX:output", "Too many outputs.");
-    
-    if (!mxIsChar(prhs[0]) || mxGetM(prhs[0]) > 1) 
-        mexErrMsgIdAndTxt("convAA2PropMEX:input", "Input: Must be char.");
+    if (nrhs != 1) {
+        mexErrMsgIdAndTxt("convAA2PropMEX:nrhs", "Incorrect number of inputs. Expect 1.");
+    }
+    if (nlhs > 1) {
+        mexErrMsgIdAndTxt("convAA2PropMEX:nlhs", "Too many outputs. Max is 1.");
+    }
+    if (!mxIsChar(prhs[0]) || mxGetM(prhs[0]) > 1) {
+        mexErrMsgIdAndTxt("convAA2PropMEX:prhs", "Input must be 1xN char array.");
+    }
     
     mxChar *pSeq = mxGetChars(prhs[0]);
     mwSize Len = mxGetN(prhs[0]);

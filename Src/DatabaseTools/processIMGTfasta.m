@@ -254,7 +254,7 @@ if isempty(DB)
                     TwoDotLoc = regexp(CurSeq, '[^\.][\.]{2, 2}[^\.]') + 1;
                     TwoDotLoc = cat(1, TwoDotLoc, TwoDotLoc+1);
                     TwoDotLoc = TwoDotLoc(:)';
-                    CurSeq([OneDotLoc TwoDotLoc]) = 'X';
+                    CurSeq([OneDotLoc TwoDotLoc]) = 'N';
                     if ~isempty(OneDotLoc) || ~isempty(TwoDotLoc)
                         fprintf('%s has a < 3-gap segment\n', GeneName);
                     end

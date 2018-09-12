@@ -49,19 +49,13 @@ void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
 
     if (nrhs != 1) {
-        mexErrMsgIdAndTxt("mxFindConsecOnes:nrhs", "Need one input only.");
+        mexErrMsgIdAndTxt("mxFindConsecOnes:nrhs", "Incorrect number of inputs. Expected 1.");
     }
-    
-    if (mxIsComplex(prhs[0])) { 
-        mexErrMsgIdAndTxt("mxFindConsecOnes:prhs", "Must be a real number.");
-    }
-    
-    if (mxGetN(prhs[0]) > 1 && mxGetM(prhs[0]) > 1) {
-        mexErrMsgIdAndTxt("mxFindConsecONes:prhs", "Must be a 1xN or Mx1 vector.");
-    }
-    
     if (nlhs != 1) {
-        mexErrMsgIdAndTxt("mxFindConsecOnes:nlhs", "Need one output only.");
+        mexErrMsgIdAndTxt("mxFindConsecOnes:nlhs", "Incorrect number of outputs. Expected 1.");
+    }
+    if (mxGetN(prhs[0]) > 1 && mxGetM(prhs[0]) > 1) {
+        mexErrMsgIdAndTxt("mxFindConsecOnes:prhs", "Input must be a 1xN or Mx1 vector.");
     }
 
     mwSize M = mxGetM(prhs[0]);
@@ -69,7 +63,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
     mwSize Len = M > N ? M : N;
     plhs[0] = mxCreateDoubleMatrix(M, N, mxREAL);
     
-    if (M == 0 || N == 0) {return;}
+    if (M == 0 || N == 0) { return; }
 
     double *pLabel = mxGetPr(plhs[0]);
     if (mxIsDouble(prhs[0])) {

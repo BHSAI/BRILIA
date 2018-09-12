@@ -176,15 +176,13 @@ void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
     
     if (nrhs != 1) {
-        mexErrMsgIdAndTxt("convStr2NumMEX:input", "Can accept only 1 input.");
+        mexErrMsgIdAndTxt("convStr2NumMEX:nrhs", "Incorrect number of inputs. Expected 1.");
     }
-    
-    if (nrhs == 1 && !(mxIsChar(prhs[0]) || mxIsCell(prhs[0]))) {
-        mexErrMsgIdAndTxt("convStr2NumMEX:input", "Input must be a char or cell array.");
-    }
-    
     if (nlhs > 1) {
-        mexErrMsgIdAndTxt("convStr2NumMEX:output", "Too many outputs - max is 1.");
+        mexErrMsgIdAndTxt("convStr2NumMEX:nlhs", "Too many outputs. Max is 1.");
+    }
+    if (nrhs == 1 && !(mxIsChar(prhs[0]) || mxIsCell(prhs[0]))) {
+        mexErrMsgIdAndTxt("convStr2NumMEX:prhs", "Input must be a char or cell array or chars.");
     }
         
     if (mxIsCell(prhs[0])) {

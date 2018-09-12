@@ -21,11 +21,8 @@ Jnames = MutDistData.J(:, 1);
 Jdata = cell2mat(MutDistData.J(:, 2:end));
 Jsum = sum(Jdata, 1);
 
-[Gx, Ax] = formatPlotSize([], 6, 3);
-% for j = 1:length(Vnames)
-%     Gx = bar(Ax, Vdata(j, :));
-%     ylim([0 max(Vdata(:))]);
-% end
+Gx = figure;
+Ax = axes;
 
 VJsum = [fliplr(Vsum) zeros(1, 15*3) Jsum];
 VJtickLabel = [-length(Vsum):1 zeros(1, 15*3) 1:length(Jsum)];
@@ -39,6 +36,7 @@ plot([CDR1start CDR1end], max(VJsum)*0.95 * [1 1], 'r', 'LineWidth', 3);
 plot([CDR2start CDR2end], max(VJsum)*0.95 * [1 1], 'b', 'LineWidth', 3);
 plot([length(Vsum)+1 length(Vsum)+3*15-1], max(VJsum)*0.95 * [1 1], 'Color', [0 0.8 0], 'LineWidth', 3);
 
+resizeFigure(Gx, 6, 3);
 resizeSubplots(Gx, 'HorzSpacer', 0.05)
 savePlot(Gx, 'Save', 'y', 'SaveAs', 'plotMutDistData.png')
 % 

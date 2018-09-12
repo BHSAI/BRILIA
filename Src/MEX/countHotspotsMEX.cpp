@@ -18,19 +18,20 @@ Partial motifs at the sequence edge will NOT be considered a hotspot.
 
 */
 
-#include "mex.h"
 #include "HotspotTool.hpp"
 
 void mexFunction(int nlhs,        mxArray *plhs[],
                  int nrhs, const  mxArray *prhs[]) {
     
     if (nrhs != 1) {
-        mexErrMsgIdAndTxt("countHotspotsMEX:input", "Input: Incorrect number of inputs - expected 1 input.");
-    } else if (nrhs == 1 && !(mxIsCell(prhs[0]) || mxIsChar(prhs[0]))) {
-        mexErrMsgIdAndTxt("countHotspotsMEX:input", "Input: Input must be a string or cell of sequence strings.");
-    } else if (nlhs < 1 || nlhs > 2) {
-        mexErrMsgIdAndTxt("countHotspotsMEX:input", "Output: Incorrect number of outputs - expected 1 or 2.");
+        mexErrMsgIdAndTxt("countHotspotsMEX:nrhs", "Incorrect number of inputs - expected 1 input.");
     }
+    if (nlhs < 1 || nlhs > 2) {
+        mexErrMsgIdAndTxt("countHotspotsMEX:nlhs", "Incorrect number of outputs. Expected 1 or 2.");
+    }
+    if (nrhs == 1 && !(mxIsCell(prhs[0]) || mxIsChar(prhs[0]))) {
+        mexErrMsgIdAndTxt("countHotspotsMEX:prhs", "Input must be a string or cell of sequence strings.");
+    } 
     
     if (mxIsCell(prhs[0])) {
         mwSize const *pDim = mxGetDimensions(prhs[0]);

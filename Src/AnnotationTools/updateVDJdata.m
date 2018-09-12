@@ -16,5 +16,5 @@
 
 function VDJdata = updateVDJdata(VDJdata, Map, DB)
 VDJdata = countSHM(VDJdata, Map); %SHM info on the VMDNJ segments
-VDJdata = findCDR3(VDJdata, Map, DB, 'anchor'); %Get the CDR3 seq and info, using anchor method
+VDJdata = findCDR(VDJdata, Map, DB, 3); %Get the CDR3 seq and info, using anchor method
 

@@ -11,6 +11,10 @@
 %    Map: 
 
 function Map = getVDJmapper(VDJheader)
+if isstruct(VDJheader)
+    Map = VDJheader;
+    return
+end
 [H, L, Chain] = getAllHeaderVar(VDJheader);
 CommonFields = {'SeqNameLoc', 'SeqNumLoc', 'GrpNumLoc', 'TemplateLoc', 'ChildCountLoc'};
 CommonLocs = cellfun(@(x) H.(x), CommonFields, 'uniformoutput', false)';

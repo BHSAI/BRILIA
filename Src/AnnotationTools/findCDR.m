@@ -22,6 +22,7 @@
 %    This must be run after finding V(D)J annotations.
 %
 function VDJdata = findCDR(VDJdata, Map, DB, varargin)
+if isempty(VDJdata); return; end
 UseIMGTLoc = strcmpi(varargin, 'IMGT');
 UseIMGT = any(UseIMGTLoc);
 varargin = varargin(~UseIMGTLoc);
@@ -132,6 +133,7 @@ else
 end
 
 function VDJdata = findCDR3_Calc(VDJdata, Map, DB, C, V, UseIMGT)
+if isempty(VDJdata); return; end
 DelIdx = Map.([C 'Del'])([1 end]);
 SeqIdx = Map.([C 'Seq']);
 LenIdx = Map.([C 'Length'])([1 end]);
@@ -173,7 +175,7 @@ for j = 1:length(UnqVDBIdx)
     
     SeqCDR = cell(size(Idx));
     for k = 1:length(Idx)
-        if min([CDRS(k) CDRE(k)]) > 0
+        if min([CDRS(k) CDRE(k)]) > 0 && CDRE(k) <= length(VDJdata{Idx(k), SeqIdx})
             SeqCDR{k} = nt2aa(VDJdata{Idx(k), SeqIdx}(CDRS(k):CDRE(k)), 'ACGTonly', false, 'alternativestart', false);
         end
     end

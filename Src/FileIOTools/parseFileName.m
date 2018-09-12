@@ -43,6 +43,7 @@ function [FilePath, FileName, FileExt, FilePre, Exist] = parseFileName(FullFileN
 if nargin > 1
     error('%s: A 2nd input is no longer supported.', mfilename);
 end
+if isempty(FullFileName); FullFileName = ''; end
 [FilePath, FilePre, FileExt] = fileparts(strtrim(FullFileName));
 if isempty(FileExt) %It was a folder, so rejoin
     FilePath = fullfile(FilePath, FilePre);

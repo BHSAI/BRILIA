@@ -7,7 +7,7 @@
 %    Seq: nt sequence given by IMGT
 %  
 %  OUTPUT
-%    NoGapSeq: nt sequence without gaps, replacing wildcard gaps with 'X'
+%    NoGapSeq: nt sequence without gaps, replacing wildcard gaps with 'N'
 %    GapInfo: A string sequence in the format M(-G(M(-G, where +M numbers
 %      are nt counts, and -G numbers are gap counts.
 %      count. This is used to return a NoGapSeq to a GappedSeq

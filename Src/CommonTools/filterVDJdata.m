@@ -277,7 +277,7 @@ end
 function BinIdxT = searchSeq(M,QuerySeq)
 %Prepare query
 QuerySeq = upper(QuerySeq);
-XlocQ = (QuerySeq == 'X');
+XlocQ = (QuerySeq == 'N');
 
 %Search for match to query
 BinIdxT = zeros(size(M),'logical');
@@ -285,7 +285,7 @@ for j = 1:length(M(:))
     if ~ischar(M{j}); continue; end
     if length(M{j}) == length(QuerySeq)
         SeqT = upper(M{j});
-        XlocT = SeqT == 'X';
+        XlocT = SeqT == 'N';
         MatchLoc = (SeqT == QuerySeq) | XlocQ | XlocT;
         if min(MatchLoc) == 1
             BinIdxT(j) = 1;

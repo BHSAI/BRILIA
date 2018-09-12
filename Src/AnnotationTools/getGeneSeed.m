@@ -53,7 +53,7 @@ if isempty(Xmap); return; end
 %Remove all sequences without conserved residue or empty sequences
 M = getMapHeaderVar(DB.MapHeader);
 DelLoc = cellfun(@(x) x < 3, Xmap(:, M.Anchor)) | ...
-         cellfun(@isempty, Xmap(:, M.Seq)) | ...
+         cellfun('isempty', Xmap(:, M.Seq)) | ...
          ~strcmpi(Xmap(:, M.Funct), 'F');
 Xmap(DelLoc,:) = [];
 if isempty(Xmap); return; end
@@ -73,12 +73,13 @@ elseif startsWith(X, 'J')
 end
 
 if strcmpi(Alphabet, 'aa')
-    TempSeedSeq = convNT2AA(TempSeedSeq, 'ACGTOnly', false);
+    TempSeedSeq = nt2aa(TempSeedSeq, 'ACGTOnly', false, 'alternative', false);
 end
 
 TempSeedSeq = unique(TempSeedSeq);
 
 %Determine similar by 1 sequences
+TempSeedSeq = regexprep(upper(TempSeedSeq), '[^NXACGTU]', 'N');
 [Ham, ~, ~, Penalty] = calcPairDistMEX(TempSeedSeq);
 Ham(Penalty > 0) = Inf;
 AncMap = calcAncMap(Ham);

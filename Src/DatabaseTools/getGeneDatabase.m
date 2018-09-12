@@ -67,11 +67,26 @@
 
 function [DB, FiltOption] = getGeneDatabase(varargin)
 %Locate the databases
-RootPath = findRoot();
-DBPath = fullfile(RootPath, 'Databases'); [RootPath 'Databases' filesep];
-if ~exist(DBPath, 'dir')
-    error('%s: Could not locate the "Databases" folder at "%s"', mfilename, DBPath);
+RootPath = findExeDir(); %Will find either EXE or code root dir
+DBPath = fullfile(RootPath, 'Databases');
+if isdeployed
+    TempDBPath = fullfile(findRoot(), 'Databases'); %findRoot will find the temporary code root dir
+    if ~exist(DBPath, 'dir')
+        [Success, Msg] = copyfile(TempDBPath, DBPath);
+        assert(Success, '%s: Could not copy file "%s" to "%s".\n %s', TempDBPath, DBPath, Msg);
+    else %Need to figure out what is NOT there
+        DirToAdd = dir(TempDBPath);
+        DirToAdd = DirToAdd([DirToAdd.isdir]);
+        DirExist = dir(DBPath);
+        DirExist = DirExist([DirExist.isdir]);
+        DirToAddLoc = ~ismember({DirToAdd.name}, {DirExist.name});
+        if ~any(DirToAddLoc)
+            fprintf('%s: Copying database folder to "%s".\n', mfilename, DBPath);
+        end
+        copyfile(fullfile({DirToAdd(DirToAddLoc).folder}, {DirToAdd(DirToAddLoc).name}), DBPath);
+    end
 end
+assert(exist(DBPath, 'dir') > 0, '%s: Could not locate the "Databases" folder at "%s"', mfilename, DBPath);
 
 DBFolders = dir(DBPath);
 DBFolders = DBFolders(~(ismember({DBFolders.name}, {'.', '..'}) | ~[DBFolders.isdir]));

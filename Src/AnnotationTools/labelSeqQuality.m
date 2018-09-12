@@ -19,6 +19,7 @@
 %    VDJdata: VDJdata with the "Function" column filled in with N, Y, or I
 %
 function VDJdata = labelSeqQuality(VDJdata, Map, ThreshHold)
+if isempty(VDJdata); return; end
 Chain = lower(Map.Chain);
 if nargin < 3
     ThreshHold = 0.4;
@@ -57,10 +58,16 @@ for c = 1:length(Map.Chain)
             continue
         end
 
+        %Sanity check - make sure there there isn't too many mismatch 20 nts nearby in FR3 and 4, and overall alignment
         RefSeq = VDJdata{j, RefSeqIdx};
         if ~isempty(RefSeq)
-            Score = sum(cmprSeqMEX(Seq, RefSeq));
-            if Score(1)/length(RefSeq) < (1 - ThreshHold)
+            MatchLoc = cmprSeqMEX(Seq, RefSeq);
+            FR3S = max(CDR3S - 20 + 1, 1);
+            FR4E = min(CDR3E + 20, length(RefSeq));
+            AllScore = sum(MatchLoc)/length(RefSeq);
+            FR3Score = sum(MatchLoc(FR3S:CDR3S-1))/(CDR3S-FR3S);
+            FR4Score = sum(MatchLoc(CDR3E+1:FR4E))/(FR4E-CDR3E);
+            if min([AllScore FR3Score FR4Score]) < (1 - ThreshHold)
                 VDJdata{j, FunctIdx} = 'I';
                 continue
             end
@@ -73,14 +80,14 @@ for c = 1:length(Map.Chain)
         end
 
         %See if there is any stop codon in the CDR3 sequence.
-        AAseq = convNT2AA(Seq(CDR3S:CDR3E), 'ACGTonly', 'false', 'frame', 1);
+        AAseq = nt2aa(Seq(CDR3S:CDR3E), 'ACGTonly', false, 'frame', 1);
         if ~isempty(find(AAseq == '*', 1))
             VDJdata{j, FunctIdx} = 'N';
             continue
         end
         
         %Stop codons in V/J are classified as "M" for maybe sequencing error or not.
-        AAseq = convNT2AA(Seq, 'ACGTonly', 'false', 'frame', mod(CDR3S-1, 3) + 1);
+        AAseq = nt2aa(Seq, 'ACGTonly', false, 'frame', mod(CDR3S-1, 3) + 1);
         if ~isempty(find(AAseq == '*', 1))
             VDJdata{j, FunctIdx} = 'M';
             continue

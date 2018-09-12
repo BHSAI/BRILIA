@@ -27,7 +27,7 @@
 %        2) has a 20% miss rate in the V alignment caused by indel-induced
 %           frame shift error
 function VDJdata = fixGeneIndel(VDJdata, Map, DB)
-%Extract the VDJ database
+if isempty(VDJdata); return; end
 M = getMapHeaderVar(DB.MapHeader);
 
 %Begin fixing indel error in V genes

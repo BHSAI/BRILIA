@@ -23,7 +23,7 @@ for j = 1:size(VDJdata, 1) - 1
     end
        
     if isempty(Seq1); continue; end
-    Xloc1 = Seq1 == 'X';
+    Xloc1 = Seq1 == 'N';
 
     %Look for other sequence that are same as Seq1
     for q = j+1:size(VDJdata, 1)
@@ -45,7 +45,7 @@ for j = 1:size(VDJdata, 1) - 1
             Seq2 = VDJdata{q, Map.lSeq};
         end
         if length(Seq1) ~= length(Seq2); continue; end %Can't be same
-        Xloc2 = Seq2 == 'X';
+        Xloc2 = Seq2 == 'N';
 
         %See if they are the same
         MatchIdx = (Seq1 == Seq2) | Xloc1 | Xloc2;

@@ -10,9 +10,25 @@
 %
 %  INPUT
 %    FileName: Full name of input file. If empty, will ask users. 
-%    FileType ['fasta', 'fastq', 'delimited']: Specifying
-%      FileType prevents erroneous determination of file type.
-%    Delimiter [';' ',' '\t']: Needed only for delimited file type
+%
+%     Param       Value (* = default)      Details
+%     ----------- ------------------------ --------------------------------
+%     FileType    * ''                     Autodetect sequence input file type
+%                   'fasta'                Assume fasta files
+%                   'fastq'                Assume fastq files
+%                   'delimited'            Assume delmited file
+%     Chain       * H                      Heavy chain
+%                   L                      Light chain
+%                   HL                     Heavy and Light chains
+%     Delimiter   * ''                     Autodetect delimiter. Needed only for delimited file type.
+%                   ','                    CSV
+%                   ';'                    SSV
+%                   '\t'                   TSV
+%     SeqRange    * [1,Inf]                Process all sequences 
+%                   #                      Process only the #th sequence
+%                   [M,N]                  Process Mth to Nth seqeunce (include brackets "[]" , "," , and NO SPACE)
+%     MinQuality  * '2'                    Pred Score (ASCII Base = 33) for P_error = 0.01995. Only for fastq files.
+%                                          %https://www.drive5.com/usearch/manual/quality_score.html for info.
 %
 %  OUTPUT
 %    VDJdata: main BRILIA data cell
@@ -28,9 +44,14 @@ addParameter(P, 'Chain',     'h',     @(x) ismember({lower(x)}, {'h', 'l', 'hl',
 addParameter(P, 'FileType',  '',      @(x) ismember({lower(x)}, {'', 'fasta', 'fastq', 'delimited'}));
 addParameter(P, 'Delimiter', '',      @(x) ismember({lower(x)}, {'', ';', ',', '\t'})); 
 addParameter(P, 'SeqRange',  [1 Inf], @(x) isnumeric(x) && isa(x, 'double'));
+addParameter(P, 'MinQuality', '2',    @(x) ischar(x) || isnumeric(x)); %ASCII_BASE=33, '2' = P_error 0.01995
 parse(P, varargin{:});
 P = P.Results;
 P.Chain = strrep(upper(P.Chain), 'LH', 'HL');
+
+if isnumeric(P.MinQuality)
+    P.MinQuality = sprintf('%d', P.MinQuality);
+end
 
 if isempty(P.FileName)
     [InFileName, InFilePath] = uigetfile('*.fa*;*.*sv', 'Select the input sequence file', 'MultiSelect', 'off');
@@ -68,10 +89,24 @@ if strcmpi(P.FileType, 'fasta')
     InTemplateLoc = 0;
 elseif strcmpi(P.FileType, 'fastq')
     %Open the fasta file and convert to cell
-    [SeqName, SeqData] = fastqread(P.FileName, 'blockread', P.SeqRange);
-    if ischar(SeqName)
-        SeqName = {SeqName};
-        SeqData = {SeqData};
+    if P.MinQuality == 0
+        [SeqName, SeqData] = fastqread(P.FileName, 'blockread', P.SeqRange);
+        if ischar(SeqName)
+            SeqName = {SeqName};
+            SeqData = {SeqData};
+        end
+    else
+        [SeqName, SeqData, Quality] = fastqread(P.FileName, 'blockread', P.SeqRange);
+        if ischar(Quality)
+            SeqName = {SeqName};
+            SeqData = {SeqData};
+            Quality = {Quality};            
+        end
+        MinQuality = uint8(P.MinQuality);
+        parfor j = 1:length(SeqName)
+            BadLoc = uint8(Quality{j}) < MinQuality;
+            SeqData{j}(BadLoc) = 'N';
+        end
     end
     InputData = [SeqName(:) SeqData(:)];        
     InSeqNameLoc = 1;
@@ -141,9 +176,4 @@ else
     VDJdata(:, L.SeqLoc) = InputData(:, InSeqLoc(2));
 end
 
-if nargout >= 3
-    varargout{1} = InFileName;
-    if nargout >= 4
-        varargout{2} = InFilePath;
-    end
-end
+Map = getVDJmapper(VDJheader);

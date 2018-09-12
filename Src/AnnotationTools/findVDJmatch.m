@@ -15,13 +15,10 @@
 %
 %      Param           Value       Description
 %      --------------- ---------   ----------------------------------------
-%      'Update'        'y' 'n'     Yes or No to updating other fields
-%                                    besides the gene fields, such as CDR3, 
-%                                    SHM, RefSeq.
-%      'DJreserve'     9           How may nts on right of Seq to preserve
-%                                    for D+J gene matching
-%      'Dreserve'      3           How may nts on right of Seq to preserve
-%                                    for D gene matching
+%      'Update'        * 'y'       Update data such as CDR3, SHM, RefSeq
+%                        'n'       Do not update other fields besides genes
+%      'DJreserve'     *  9        Preserve 3' nts for D+J before V match
+%      'Dreserve'      *  3        Perserve 5' nts for D before J match
 %
 %  NOTE
 %    If CDR3start and CDR3end anchor locations are provided in VDJdata, 
@@ -43,6 +40,9 @@
 %  See also findVJmatch
 
 function [VDJdata, BadLoc] = findVDJmatch(VDJdata, Map, DB, varargin)
+BadLoc = repelem(false, size(VDJdata,1), 1);
+if isempty(VDJdata); return; end
+
 P = inputParser;
 addParameter(P, 'Update', 'y', @(x) ismember(lower(x(1)), {'y', 'n'}));
 addParameter(P, 'DJreserve', 9, @isnumeric);
@@ -115,14 +115,19 @@ parfor j = 1:size(VDJdata, 1)
 
     %See if there's an in-frame 118W codon seed (if yes, use 'forceanchor')
     if max(CDR3e) == 0 %Find some CDR3e options
-        CDR3e = strfind(Seq(Vlen+1:end), 'TGG') + 2 + Vlen; %regexp(Seq(Vlen+1:end), 'TGG', 'end') + Vlen;
+        CDR3e = strfind(Seq(Vlen+1:end), 'TGG') + 2 + Vlen;
         if isempty(CDR3e); CDR3e = 0; end
     end
+    
+    %CODING_NOTE: future release, try to remove this "forceanchor" as it will cause issues when dealing with out-of-frame junctions. 
+    %Either skip it, or check BOTH force anchor + unforced anchor to determine which is the winning alignment.
+    %2018-09-11
+    
     ForceAnchor = '';
     if max(CDR3e) > 0
         %Determine in-frame TGGs
         InframeLoc = (mod(CDR3e-CDR3s-2, 3) == 0) & CDR3e > CDR3s;
-        if max(InframeLoc) > 0
+        if any(InframeLoc)
             CDR3e = CDR3e(InframeLoc);
             ForceAnchor = 'forceanchor'; %Ensure one of the anchor matches, UNLESS you get 0 matches.
         end

@@ -24,8 +24,6 @@
 %      --------------- ---------   ----------------------------------------
 %      DistanceUnit    'ham'       Set x-axis to hamming distance.
 %                      'hamperc'   Set x-axis to hamming distance %.
-%                      'shm'       Set x-axis to shm distance.
-%                      'shmperc'   Set x-axis to shm distance %.
 %      DotMaxSize      N >= 100    Max dot area size, in (pixel^2). Default
 %                                    is 300.
 %      DotMinSize      N >= 1      Min dot area size, in (pixel^2). Default
@@ -70,45 +68,43 @@
 %    plotTree('briliaoutput.csv', 'SaveAs', '/newdir/plotTree/tree.png')
 
 function varargout = plotTree(varargin)
+varargout = cell(1, nargout);
+
 P = inputParser;
-addParameter(P, 'GrpMinSize', 0, @(x) isnumeric(x) && x >= 1);
-addParameter(P, 'GrpMaxSize', Inf, @(x) isnumeric(x) && x >= 1);
-addParameter(P, 'DistanceUnit', 'hamperc', @(x) any(validatestring(lower(x), {'shm', 'ham', 'shmperc', 'hamperc'})));
-addParameter(P, 'DotMaxSize', 300, @(x) isnumeric(x) && x >= 1);
-addParameter(P, 'DotMinSize', 1, @(x) isnumeric(x) && x >= 1);
-addParameter(P, 'DotScalor', 5, @(x) isnumeric(x) && x >= 1);
-addParameter(P, 'DotColorMap', [], @(x) isempty(x) || (isnumeric(x) && size(x, 2) == 3));
-addParameter(P, 'Legend', 'y', @(x) any(validatestring(lower(x), {'y', 'n'})));
-addParameter(P, 'LegendFontSize', 10, @(x) isnumeric(x) && x >= 1);
-addParameter(P, 'Xmax', [], @(x) isempty(x) || (isnumeric(x) && x > 10));
-addParameter(P, 'Yincr', 0.125, @(x) isnumeric(x) && x > 0);
-addParameter(P, 'FigMaxHeight', 5, @(x) isnumeric(x) && x > 1);
-addParameter(P, 'FigWidth', 3.3, @(x) isnumeric(x) && x > 1);
-addParameter(P, 'Visible', 'off', @(x) ischar(x) && ismember(lower(x), {'on', 'off'}));
-addParameter(P, 'FigSpacer', 0.01, @(x) isnumeric(x) && x >= 0)
-addParameter(P, 'SaveAs', '', @(x) ischar(x) || isempty(x));
-addParameter(P, 'SaveDir', '', @(x) ischar(x) || isempty(x));
-addParameter(P, 'SaveSubDir', 'Tree', @(x) ischar(x) || isempty(x));
-addParameter(P, 'StatusHandle', [], @(x) isempty(x) || ishandle(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
-addParameter(P, 'ShowOnly', false, @islogical);
+addParameter(P, 'GrpNum',           [],         @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'GrpMinSize',       1,          @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'GrpMaxSize',       Inf,        @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'DistanceUnit',     'hamperc',  @(x) ischar(x) && any(ismember(lower(x), {'shm', 'ham', 'shmperc', 'hamperc'})));
+addParameter(P, 'DotMaxSize',       300,        @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'DotMinSize',       1,          @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'DotScalor',        5,          @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'DotColorMap',      [],         @(x) isempty(x) || (isnumeric(x) && size(x, 2) == 3));
+addParameter(P, 'Legend',           'y',        @(x) ischar(x) && any(ismember(lower(x), {'y', 'n'})));
+addParameter(P, 'LegendFontSize',   10,         @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'Xmax',             [],         @(x) isempty(x) || (isnumeric(x) && x > 10));
+addParameter(P, 'Yincr',            0.125,      @(x) isnumeric(x) && x > 0);
+addParameter(P, 'FigMaxHeight',     5,          @(x) isnumeric(x) && x > 1);
+addParameter(P, 'FigWidth',         3.3,        @(x) isnumeric(x) && x > 1);
+addParameter(P, 'FigSpacer',        0.01,       @(x) isnumeric(x) && x >= 0)
+addParameter(P, 'Visible',          'off',      @(x) ischar(x) && ismember(lower(x), {'on', 'off'}));
+addParameter(P, 'SaveAs',           '',         @(x) ischar(x) || isempty(x));
+addParameter(P, 'SaveDir',          '',         @(x) ischar(x) || isempty(x));
+addParameter(P, 'SaveSubDir',       'Tree',     @(x) ischar(x) || isempty(x));
+addParameter(P, 'StatusHandle',     [],         @(x) isempty(x) || ishandle(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
+addParameter(P, 'ShowOnly',         false,      @islogical);
 
 if ~(~isempty(varargin) && ischar(varargin{1}) && ismember(lower(varargin{1}), {'getinput', 'getinputs', 'getvarargin'}))
     [VDJdata, VDJheader, ~, FilePath, varargin] = getPlotVDJdata(varargin{:});
-    if isempty(VDJdata)
-        varargout = cell(1, nargout);
-        return;
-    end
-    [H, ~, ~] = getAllHeaderVar(VDJheader);
-    GrpNum = cell2mat(VDJdata(:, H.GrpNumLoc));
-    UnqGrpNum = unique(GrpNum);
+    if isempty(VDJdata); return; end
 end
 
 [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin{:});
 if ReturnThis
    varargout = {Ps, Pu, ExpPs, ExpPu};
-   return;
+   return
 end
 
+GetGrpNum = Ps.GrpNum;
 GrpMinSize = Ps.GrpMinSize;
 GrpMaxSize = Ps.GrpMaxSize;
 DistanceUnit = Ps.DistanceUnit;
@@ -144,57 +140,57 @@ end
 %Determine where to save
 if ~ShowOnly
     if isempty(SaveAs)
-        FullSaveName = prepSaveTarget('SaveDir', FilePath, 'SaveSubDir', SaveSubDir, 'SaveAs', 'Tree.png', 'MakeSaveDir', 'y');
+        SaveAs = prepSaveTarget('SaveDir', FilePath, 'SaveSubDir', SaveSubDir, 'SaveAs', 'Tree.png', 'MakeSaveDir', 'y');
     else
-        FullSaveName = prepSaveTarget('SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', SaveAs, 'MakeSaveDir', 'y');
+        SaveAs = prepSaveTarget('SaveDir', SaveDir, 'SaveSubDir', SaveSubDir, 'SaveAs', SaveAs, 'MakeSaveDir', 'y');
     end
-    SaveAs = FullSaveName;
 else
     SaveAs = '';
+    Visible = 'on';
 end
 
 %--------------------------------------------------------------------------
-%Begin drawing trees
-ImageNames = cell(length(UnqGrpNum), 1);
-ImageGrpNums = zeros(length(UnqGrpNum), 1);
-for y = 1:length(UnqGrpNum)
-    %Get the tree data for the group
-    GrpIdx = GrpNum == UnqGrpNum(y);
-    GrpSize = sum(GrpIdx);
-    if GrpSize < GrpMinSize || GrpSize > GrpMaxSize; continue; end
-    [AncMapS, TreeName, CDR3Name, TemplateCount] = getTreeData(VDJdata(GrpIdx, :), VDJheader);
+
+%Select relevant groups and splice VDJdata for parfor
+G = getGrpIdx(VDJdata, VDJheader, GetGrpNum);
+KeepLoc = [G.Size] >= GrpMinSize & [G.Size] <= GrpMaxSize;
+G = G(KeepLoc);
+Map = getVDJmapper(VDJheader);
+if isempty(G); return; end
+VDJdata = spliceData(VDJdata([G.Idx], :), VDJheader);
+
+%For storing the actual file names
+ImgNames = cell(length(G), 1);
+ImgGrpNums = zeros(length(G), 1);
+
+%For tracking progress
+PT = ProgressTracker(length(G), [], 'Trees drawn', StatusHandle);
+DQ = PT.DataQueue;
+showStatus(sprintf('Drawing %d trees.', length(G)), StatusHandle)
+
+parfor y = 1:length(G)
+    VDJdata{y} = padtrimSeqGroup(VDJdata{y}, Map, 'grpnum', 'trim', 'Seq'); 
+    [AncMapS, TreeName, CDR3Name, TemplateCount] = getTreeData(VDJdata{y}, VDJheader);
     AncMap = AncMapS.(upper(DistanceUnit));
     try
         TreeCoord = calcTreeCoord(AncMap);
     catch
-        warning('%s: Skipping due to cyclic dependency for group %d.', mfilename, UnqGrpNum(y));
-        continue;
+        warning('%s: Skipping due to cyclic dependency for group %d.', mfilename, G(y).GrpNum);
+        continue
     end
     MaxHorzCoord = max(TreeCoord(:, 1));
     MaxVertCoord = max(TreeCoord(:, 2));
 
     %Determine the legend and colors
     if strcmpi(Legend, 'y') && ~isempty(CDR3Name)
-        try
-            [CDR3legend, UnqCDR3seq] = makeTreeLegend_CDR3(CDR3Name);
-        catch
-            save('debug_clusterGene.mat')
-        end
+        [CDR3legend, UnqCDR3seq] = makeTreeLegend_CDR3(CDR3Name);
         [DotColor, UnqDotColor] = mapDotColor_CDR3(CDR3Name, UnqCDR3seq, 'ColorMap', DotColorMap);
     end
 
-    if ~ShowOnly 
-        [Gx, Ax] = makeDefaultFigure(Visible, FigWidth, FigMaxHeight, DistanceUnit, ExpPu);
-        if mod(y, 5) == 0
-            showStatus(sprintf('Drawing Tree %d / %d', y, length(UnqGrpNum)), StatusHandle);
-        end
-    else
-        [Gx, Ax] = makeDefaultFigure('on', FigWidth, FigMaxHeight, DistanceUnit, ExpPu);
-    end
-    
-    %Clear and add title now. Required early to get the axes tight inset.
-    cla(Ax);
+    [Gx, Ax] = makeDefaultFigure(Visible, FigWidth, FigMaxHeight, DistanceUnit, ExpPu);    
+    cla(Ax); %Clear and add title now. Required early to get the axes tight inset.
     set(get(Ax, 'Title'), 'String', TreeName);
+    drawnow('nocallbacks');
 
     %----------------------------------------------------------------------
     %Calculate the figure and axes heights
@@ -211,17 +207,10 @@ for y = 1:length(UnqGrpNum)
         LegendHeight = LegendFontHeight * length(UnqCDR3seq);
     end
    
-    if LegendHeight > TreeHeight
-        AxesHeight = LegendHeight;
-    else
-        AxesHeight = TreeHeight;
-    end
-        
-    if (AxesHeight + AxesBorderHeight) > FigMaxHeight
+    AxesHeight = max(LegendHeight, TreeHeight);
+    FigHeight = min(AxesHeight + AxesBorderHeight, FigMaxHeight);
+    if FigHeight == FigMaxHeight
         AxesHeight = FigMaxHeight - AxesBorderHeight;
-        FigHeight = FigMaxHeight;
-    else
-        FigHeight = AxesHeight + AxesBorderHeight;
     end
     
     Gx.Position(4) = FigHeight;
@@ -235,16 +224,10 @@ for y = 1:length(UnqGrpNum)
 
     %Calculate the XLim required to fit the legend without overlapping
     if strcmpi(Legend, 'y') && ~isempty(CDR3legend{1})
-        ReqLegendTextHeight = AxesHeight / length(CDR3legend);
-        CurLegendTextHeight = (LegendFontSize + 1) / 72;
-        if CurLegendTextHeight < ReqLegendTextHeight
-            ReqLegendTextHeight = CurLegendTextHeight;
-        end
+        ReqLegendTextHeight = min(AxesHeight/length(CDR3legend), (LegendFontSize + 1) / 72);         
         ReqLegendFontSize = round(ReqLegendTextHeight * 72) - 1; %Remember, 1 pt spacer rule
         if ReqLegendTextHeight < (LegendFontSize + 1) / 72
-            if ReqLegendFontSize < 2
-                ReqLegendFontSize = 2;
-            end
+            ReqLegendFontSize = max(2, ReqLegendFontSize);
             ReqLegendTextHeight = (ReqLegendFontSize + 1) / 72;
         end
         
@@ -295,8 +278,8 @@ for y = 1:length(UnqGrpNum)
     DotHighs = InchPerY * (TreeCoord(:, 2) - Ylim(1)) + DotRadii;
     ExpandTop = max(DotHighs) - Ax.Position(4);
     if ExpandTop > 0 
-        HighestDot = find(DotHighs == max(DotHighs));
-        HighestDotRad = DotRadii(HighestDot(1));
+        HighestDotIdx = find(DotHighs == max(DotHighs), 1);
+        HighestDotRad = DotRadii(HighestDotIdx);
         if ExpandTop < AvailExpHeight
             Gx.Position(4) = Gx.Position(4) + ExpandTop;
             Ax.Position(4) = Ax.Position(4) + ExpandTop;
@@ -310,8 +293,8 @@ for y = 1:length(UnqGrpNum)
     DotLows = InchPerY * (TreeCoord(:, 2) - Ylim(1)) - DotRadii;
     ExpandBot = -min(DotLows);
     if ExpandBot > 0 
-        LowestDot = find(DotLows == min(DotLows));
-        LowestDotRad = DotRadii(LowestDot(1));
+        LowestDotIdx = find(DotLows == min(DotLows), 1);
+        LowestDotRad = DotRadii(LowestDotIdx);
         if ExpandBot < AvailExpHeight
             Ax.Position(4) = Ax.Position(4) + ExpandBot;
             Ylim(1) = Ylim(1) - ExpandBot / InchPerY;
@@ -370,7 +353,8 @@ for y = 1:length(UnqGrpNum)
     end
     
     %Set axes prop BEFORE plotting to avoid some cutoff issues.
-    set(Ax, 'XLim', Xlim, 'YLim', Ylim, ...
+    set(Ax, 'XLim', Xlim, ...
+            'YLim', Ylim, ...
             'XTick', XTickVal, ...
             'XTickLabel', XTickLab, ...
             'XMinorTick', 'off', ...
@@ -421,64 +405,53 @@ for y = 1:length(UnqGrpNum)
     end
     
     if ~ShowOnly 
-        SavePre = sprintf('.Grp%d', UnqGrpNum(y));
+        SavePre = sprintf('.Grp%d', G(y).GrpNum);
         SuggestedSaveName = prepSaveTarget('SaveAs', SaveAs, 'SavePrefix', SavePre);
-        FullSaveName = savePlot(Gx, 'SaveAs', SuggestedSaveName, ExpPu{:});
-        ImageGrpNums(y) = UnqGrpNum(y);
-        ImageNames{y} = FullSaveName;
-    end
-end
-
-if strcmpi(Visible, 'off') 
-    try
+        ImgNames{y} = savePlot(Gx, 'SaveAs', SuggestedSaveName, ExpPu{:});
+        ImgGrpNums(y) = G(y).GrpNum;
         close(Gx);
-    catch
-        varargout{1} = [];
-        varargout{2} = [];
-        varargout{3} = [];
-        return
     end
+    
+    send(DQ, y); %To show progress
 end
 
-if ShowOnly
-    varargout{1} = [];
-    varargout{2} = [];
-    varargout{3} = [];
-else
-    %Create the tree search table
-    DelLoc = ImageGrpNums == 0;
-    ImageGrpNums(DelLoc) = [];
-    ImageNames(DelLoc) = [];
-    TreeSearchTable = getTreeSearchTable(VDJdata, VDJheader);
-    [~, ~, TableIdx] = intersect(ImageGrpNums, cell2mat(TreeSearchTable(2:end, 1)));
-    TreeSearchTable = TreeSearchTable([1; TableIdx+1], :);
-    for j = 1:length(ImageNames) %Remove the NewFilePath from the TreeFiles
-        [FilePath, FileName, ~] = parseFileName(ImageNames{j});
-        ImageNames{j} = FileName;
-    end
-    TreeSearchTable(2:end, end) = ImageNames;
-    writeDlmFile(TreeSearchTable, [FilePath 'TreeSearchTable.csv']);
-    varargout{1} = ImageGrpNums;
-    varargout{2} = ImageNames;
-    varargout{3} = TreeSearchTable;
+if ShowOnly; return; end
+
+%Create the tree search table
+VDJdata = joinData(VDJdata, VDJheader, 'stable');
+TreeSearchTable = getTreeSearchTable(VDJdata, VDJheader);
+[~, ~, TableIdx] = intersect(ImgGrpNums, cell2mat(TreeSearchTable(2:end, 1)));
+TreeSearchTable = TreeSearchTable([1; TableIdx+1], :);
+for j = 1:length(ImgNames) %Remove the NewFilePath from the TreeFiles
+    [FilePath, FileName, ~] = parseFileName(ImgNames{j});
+    ImgNames{j} = FileName;
 end
+TreeSearchTable(2:end, end) = ImgNames;
+writeDlmFile(TreeSearchTable, fullfile(FilePath, 'TreeSearchTable.csv'));
+varargout{1} = ImgGrpNums;
+varargout{2} = ImgNames;
+varargout{3} = TreeSearchTable;
 
 function varargout = makeDefaultFigure(Visible, FigWidth, FigMaxHeight, DistanceUnit, ExpPu)
-DefaultFormat = {'FontName', 'Arial', 'FontSize', 10, ...
-                 'TitleFontName', 'Arial', 'TitleFontSize', 12, ...
-                 'TickLength', [0.005 0.005], 'TickDir', 'both' ...
-                 'YTickLabelMode', 'manual', 'YTickLabel', '',  ...
+DefaultFormat = {'FontName', 'Arial', ...
+                 'FontSize', 10, ...
+                 'TitleFontName', 'Arial', ...
+                 'TitleFontSize', 12, ...
+                 'TickLength', [0.005 0.005], ...
+                 'TickDir', 'both' ...
+                 'YTickLabelMode', 'manual', ...
+                 'YTickLabel', '',  ...
                  'XTickLabelMode', 'auto', ...
-                 'box', 'on'};
-Gx = figure('Visible', Visible, 'renderer', 'painters', 'Units', 'inches');
-Ax = axes(Gx, 'Units', 'inches');
-drawnow;
-
-Gx = resizeFigure(Gx, 'FigWidth', FigWidth, 'FigHeight', FigMaxHeight, 'Recenter', 'n');
-XaxisName = [strrep(upper(DistanceUnit), 'PERC', ' %') ' Distance'];
+                 'Box', 'on' ...
+                 'Units', 'inches'}; 
+Gx = resizeFigure('FigWidth', FigWidth, 'FigHeight', FigMaxHeight, 'Visible', Visible, 'Recenter', 'n');
+set(Gx, 'renderer', 'painters', 'Units', 'inches');
+Ax = get(Gx, 'children');
+XaxisName = strrep(upper(DistanceUnit), 'PERC', ' %');
 xlabel(Ax, XaxisName);
 setAxes(Ax, DefaultFormat{:});
 setAxes(Ax, ExpPu{:}); %Any axes setting will override defaults
-drawnow;
+drawnow('nocallbacks');
+
 varargout{1} = Gx;
 varargout{2} = Ax;

@@ -79,7 +79,7 @@ for y = 1:length(UnqGrpNum)
     for g = 1:length(GrpIdx)
         RefSeq = VDJdata{GrpIdx(g), B.RefSeqLoc};
         Seq = VDJdata{GrpIdx(g), B.SeqLoc};
-        MutLoc = ~(RefSeq == Seq | RefSeq == 'X' | Seq == 'X');
+        MutLoc = ~(RefSeq == Seq | RefSeq == 'N' | Seq == 'N');
         VmutLoc = fliplr(MutLoc(1:CDR3s-1)); %Want left side to be pos 1, so flip
         JmutLoc = MutLoc(CDR3e+1:end);
         
