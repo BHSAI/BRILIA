@@ -199,8 +199,7 @@ while true
     try
         %Backward compatibility - change Vfunction to Vgene, Ddirection to Dgene, and ignore DevPerc
         CharLoc = cellfun('isclass', varargin, 'char');
-        varargin(CharLoc) = regexprep(varargin(CharLoc), 'Vfunction', 'Vgene', 'ignorecase');
-        varargin(CharLoc) = regexprep(varargin(CharLoc), 'Ddirection', 'Dgene', 'ignorecase');
+        varargin(CharLoc) = regexprep(varargin(CharLoc), {'Vfunction', 'Ddirectoin'}, {'Vgene', 'Dgene'}, 'ignorecase');
         
         [Ps, ~, ReturnThis] = parseInput(P, varargin{:});
         if ReturnThis && ~RunInLocalEnv
