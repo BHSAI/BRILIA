@@ -176,11 +176,7 @@ while true
         if ismember(varargin{1}, SubFuncNames)
             try
                 FH = str2func(varargin{1});
-                if numel(varargin) >= 2
-                    FH(varargin{2:end});
-                else
-                    FH();
-                end
+                FH(varargin{2:end});
             catch ME
                 disp(ME)
                 disp(varargin)
@@ -199,7 +195,7 @@ while true
     try
         %Backward compatibility - change Vfunction to Vgene, Ddirection to Dgene, and ignore DevPerc
         CharLoc = cellfun('isclass', varargin, 'char');
-        varargin(CharLoc) = regexprep(varargin(CharLoc), {'Vfunction', 'Ddirectoin'}, {'Vgene', 'Dgene'}, 'ignorecase');
+        varargin(CharLoc) = regexprep(varargin(CharLoc), {'Vfunction', 'Ddirection'}, {'Vgene', 'Dgene'}, 'ignorecase');
         
         [Ps, ~, ReturnThis] = parseInput(P, varargin{:});
         if ReturnThis && ~RunInLocalEnv

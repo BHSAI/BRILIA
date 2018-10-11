@@ -44,5 +44,8 @@ end
 if ~IsLatest
     Msg{1} = sprintf('Latest web version is %d.%d.%d, but you have version %d.%d.%d.', WebVersion, MyVersion);
     Msg{2} = sprintf('Download the newest version at https://github.com/BHSAI/BRILIA.');
-    fprintf(repmat('%s\n', 1, length(Msg)), Msg{:});
+else
+    Msg{1} = sprintf('You have the latest version: %s', BRILIA('version'));
 end
+
+fprintf('%s\n', Msg{:});
