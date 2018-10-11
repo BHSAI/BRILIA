@@ -100,9 +100,6 @@ assert(exist(DBPath, 'dir') > 0, '%s: Could not locate the "Databases" folder at
 %Return for list search only
 if ~isempty(varargin) && ischar(varargin{1}) && any(strcmpi(varargin{1}, {'getlist', 'list'}))
     DB = SpeciesList(:);
-    if isdeployed
-        fprintf('- %s\n', SpeciesList{:});
-    end
     return
 end
 
