@@ -88,7 +88,10 @@ if isempty(SaveAs)
         SaveAs = DefaultSaveAs;
     end
 end
-[FilePath, FileName, FileExt] = parseFileName(fullfile(SaveDir, [SaveAs SaveExt])); %Note that FilePath will return curdir if SaveAs does not have the filepaths in it
+[FilePath, FileName, FileExt] = parseFileName(fullfile(SaveDir, SaveAs));
+if isempty(FileExt)
+    [FilePath, FileName, FileExt] = parseFileName(fullfile(SaveDir, [SaveAs SaveExt])); %Note that FilePath will return curdir if SaveAs does not have the filepaths in it
+end
 if isempty(FileName) 
     error('%s: The SaveAs name [ %s ] is not valid', mfilename, SaveAs);
 end

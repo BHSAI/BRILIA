@@ -10,5 +10,5 @@ MexFiles = dir(fullfile(RootDir, '**', '*MEX.cpp'));
 MexFiles = fullfile({MexFiles.folder}, {MexFiles.name});
 
 for f = 1:length(MexFiles)
-    compileMex(MexFiles{f}, 'genmfile', '-outdir', fileparts(MexFiles{f}));
+    compileMex(MexFiles{f}, 'makeMFile', '-outdir', fileparts(MexFiles{f}));
 end

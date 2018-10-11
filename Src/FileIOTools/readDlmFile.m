@@ -126,7 +126,7 @@ if isempty(Delimiter)
     end
     
     %Delimiter is the most frequent one with equal number in both lines
-    SortMat = [Line1Ct' Line2Ct' [1:3]'];
+    SortMat = [Line1Ct' Line2Ct' (1:3)'];
     ValidOnes = Line1Ct' == Line2Ct';
     SortMat = SortMat(ValidOnes, :);
     SortMat = sortrows(SortMat);

@@ -42,7 +42,13 @@ else
     CellStr = varargin;
 end
 
-CharIdx = find(cellfun(@ischar, CellStr));
+%Determine if this is a matlab-style input, like 'function_name(a, b, c)'
+if numel(CellStr) == 1 && ischar(CellStr{1}) && contains(CellStr{1}, {'(', ')'})
+    StrOnly = regexprep(CellStr{1}, {' ', ')', ''''}, ''); %Remove spaces
+    CellStr = strsplit(StrOnly, {'(', ')', ','});
+end
+
+CharIdx = find(cellfun('isclass', CellStr, 'char'));
 for k = 1:length(CharIdx)
     Str = CellStr{CharIdx(k)};
     NonDashIdx = regexp(Str, '[^-]', 'once');
@@ -54,7 +60,7 @@ for k = 1:length(CharIdx)
     %Check if this a string that can be a number
     if isempty(regexpi(Str, '[^0-9\]\[\-\.\:\,]'))
         try
-            NumVal = convStr2Num(Str); %This will properly convert a 1:3 into 1,2,3 . Not with convStr2NumMEX.
+            NumVal = convStr2Num(Str); %Do not use the MEX version, as it will not convert 1:3 into 1,2,3.
             if ~isempty(NumVal)
                 CellStr{CharIdx(k)} = NumVal;
                 continue

@@ -18,8 +18,12 @@ for j = 1:length(varargin)
 end
 
 function displayHelpText(FuncName)
-HelpDir = fullfile(findRoot, 'HelpText');
-HelpFile = fullfile(HelpDir, [FuncName '.txt']);
+if ~isdeployed
+    HelpDir = fullfile(findRoot, 'HelpText');
+    HelpFile = fullfile(HelpDir, [FuncName '.txt']);
+else
+    HelpFile = [FuncName '.txt'];
+end
 if ~exist(HelpFile, 'file')
     warning('%s: Could not find the help text for "%s" at "%s".', mfilename, FuncName, HelpFile);
     return

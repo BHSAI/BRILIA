@@ -51,6 +51,14 @@ end
 S = cellfun(@(x) regexpi(x, '\s*=\s*', 'split'), T{1}, 'UniformOutput', false);
 Sstr = cellfun(@(x) x{1}, S, 'UniformOutput', false);
 Sval = cellfun(@(x) strrep(strrep(x{2}, '''', ''), ';', ''), S, 'UniformOutput', false);
+
+%Backward compatibility for version before v4.0.0
+Sstr = regexprep(Sstr, 'Vfunction', 'Vgene', 'ignorecase');
+Sstr = regexprep(Sstr, 'Ddirection', 'Dgene', 'ignorecase');
+DevPercLoc = ~startsWith(Sstr, 'DevPerc', 'ignorecase', true);
+Sstr = Sstr(DevPercLoc);
+Sval = Sval(DevPercLoc);
+
 SettingNames = fieldnames(BRILIA('getinput'));
 [~, Idx, ~] = intersect(lower(Sstr), lower(SettingNames));
 

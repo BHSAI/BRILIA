@@ -18,21 +18,21 @@
 %      2  0  0  0  0  2  0  1  0  0  1  0  0  0  0   %A
 %      0  2  0  0  0  0  1  0  2  0  0  1  0  0  1   %C
 %      0  0  2  0  1  0  0  0  0  2  0  1  0  0  0   %G
-%      0  0  0  2  1  0  0  0  0  0  1  0  2  2  1   %T
+%      0  0  0  2  1  0  0  0  0  0  1  0  2  2  1   %T/U
 %      0  0  0  0  0  0  1  1  0  0  0  0  0  0  0   %N or all others
 %
 function Count = countNT(Seq)
-
 if iscell(Seq)
     Seq = vertcat(Seq{:});
 elseif ~ischar(Seq)
-    error('%s: Input must be a char or cell array of equal-length sequences', mfilename);
+    error('%s: Input must be a char or cell array of equal-length sequences.', mfilename);
 end
 Seq = upper(Seq);
 
 Count = zeros(5, size(Seq, 2));
-Letters = 'ACGT';
+Letters = 'ACGTU';
 for j = 1:length(Letters)
     Count(j, :) = sum(Seq == Letters(j), 1);
 end
-Count(5, :) = size(Seq, 1) - sum(Count(1:4, :), 1);
+Count(4, :) = Count(4, :) + Count(5, :); %Workaround to add the U's to T's.
+Count(5, :) = size(Seq, 1) - sum(Count(1:4, :), 1); %What's left are N's

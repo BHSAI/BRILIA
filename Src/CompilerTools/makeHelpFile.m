@@ -1,11 +1,11 @@
-%genHelpBRILIA will search through all m files and directories, pull out
+%makeHelpFile will search through all m files and directories, pull out
 %the help text, and save it to a RootDir\HelpText\mfilename.txt. This is
 %used with showHelp(mfilename) to show the help file in a command line
 %environment.
 %
-%  genHelpBRILIA
+%  makeHelpFile
 %
-function genHelpBRILIA
+function makeHelpFile
 RootDir = findRoot;
 Files = dir(fullfile(RootDir, '**', '*.m'));
 FileName = fullfile({Files.folder}, {Files.name});
@@ -13,6 +13,8 @@ FileName = fullfile({Files.folder}, {Files.name});
 TargetDir = fullfile(RootDir, 'HelpText');
 [Success, Msg] = mkdir(TargetDir);
 assert(Success > 0, '%s: Could not create HelpText folder at "%s".\n  %s', mfilename, TargetDir, Msg)
+
+delete(fullfile(TargetDir, '*.txt'));
 
 for f = 1:length(FileName)
     [~, MFileName] = fileparts(FileName{f});

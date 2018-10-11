@@ -50,9 +50,12 @@ varargin(TitleParamLoc) = [];
 
 for a = 1:length(Axs)
     %Modify the Axes handle
+    FieldNames = fieldnames(Axs(a));
     for j = 1:2:length(varargin)
         try
-            set(Axs(a), varargin{j}, varargin{j+1});
+            if any(strcmpi(FieldNames, varargin{j})) %Oddly, isfield does NOT work for axes handles like isfield(gca, 'Units') will fail.
+                set(Axs(a), varargin{j}, varargin{j+1});
+            end
         catch ME
             warning('%s: Could not set axes properties.\n%s', mfilename, ME.message);
         end

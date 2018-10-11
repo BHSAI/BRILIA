@@ -14,3 +14,8 @@ if Option == 0 || Option == 2
     BRILIA([FilePath 'MouseH_Comma.csv'], 'Species', 'Mouse', 'Strain', 'C57BL', 'Chain', 'H');
     runAnalysis([FilePath 'MouseH_Comma' filesep 'MouseH_Comma.BRILIAv4.csv']);
 end
+
+if Option == 0 || Option == 3
+    BRILIA([FilePath 'MouseH_Comma.csv'], 'SettingFile', fullfile(findRoot, 'Examples', 'MouseH', 'SettingFile.txt'));
+    runAnalysis([FilePath 'MouseH_Comma' filesep 'MouseH_Comma.BRILIAv4.csv']);
+end

@@ -37,6 +37,11 @@ else
     error('%s: Incorrect number of inputs.', mfilename);
 end
 
+if any(findTreeCycle(AncMap))
+    TreeCoord = [];
+    return
+end
+
 %If it is a leaf (no child), update TreeCoord. If not, resummon until you do.
 ChildNum = findChild(AncMap, ParentNum);
 if isempty(ChildNum) %Leaf

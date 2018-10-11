@@ -1,5 +1,5 @@
 function Combo = combvec2(varargin)
-Dim = cellfun(@length, varargin);
+Dim = cellfun('length', varargin);
 Tot = prod(Dim(:), 1);
 Combo = zeros(Tot, nargin);
 for j = 1:nargin

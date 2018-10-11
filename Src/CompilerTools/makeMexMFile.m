@@ -1,7 +1,7 @@
-%genMexMFile will make the .m files for each MEX file so that users can use
+%makeMexMFile will make the .m files for each MEX file so that users can use
 %the help function in matlab or showhelp function in BRILIA executable.
 %
-%  genMexMFile(FileName)
+%  makeMexMFile(FileName)
 %
 %  INPUT
 %    FileName: file name or cell array of file names. If empty, will
@@ -10,7 +10,7 @@
 %  OUTPUT
 %    Text .txt files with the text of each mex file source code above the
 %    first #include statement.
-function genMexMFile(FileName)
+function makeMexMFile(FileName)
 if nargin == 0
     RootDir = findRoot;
     Files = dir(fullfile(RootDir, '**', '*MEX.c*'));

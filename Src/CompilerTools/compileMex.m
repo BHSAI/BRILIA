@@ -5,14 +5,14 @@
 %
 %  compileMex(FileName, varargin)
 %
-%  compileMex(..., 'genmfile')
+%  compileMex(..., 'makemfile')
 %
 %  INPUT
 %     FileName: FileName you want to compile
 %     varargin: 1xM cell of any inputs wanted for the mex compiler. Note
 %     that to specify a include folder, use the "-I<Path>" notation of the
 %     mex compiler.
-%     '-gennmfile': will generate .m files based on the comments ABOVE the
+%     '-makemfile': will generate .m files based on the comments ABOVE the
 %        first #include statement. The .m files will be at the same place
 %        as the .mex files.
 %
@@ -30,7 +30,7 @@
 %    
 %   compileMex('convAA2PropMEX.cpp')
 function compileMex(FileName, varargin)
-GenMFileLoc = contains(varargin, 'genmfile', 'ignorecase', true); 
+GenMFileLoc = contains(varargin, 'makemfile', 'ignorecase', true); 
 DoGenMFile = any(GenMFileLoc);
 if DoGenMFile
     varargin(GenMFileLoc) = [];
@@ -58,7 +58,7 @@ UnqSrcPath = unique(cellfun(@(x) ['-I' fileparts(x)], InclFiles, 'un', false)');
 mex(FullName, InclFiles{:}, UnqSrcPath{:}, '-outdir', OutDir, varargin{:});
 
 if DoGenMFile
-    genMexMFile(FullName);
+    makeMexMFile(FullName);
 end
 
 %findIncludeFiles will search for all #include source files that is

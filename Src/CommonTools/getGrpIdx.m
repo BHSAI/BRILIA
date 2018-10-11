@@ -33,9 +33,11 @@ end
 
 GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 if isnumeric(SizeFilter)
-    UnqGrpNum = SizeFilter;
+    UnqGrpNum = SizeFilter; %It's not really SizeFilter, but the Group # you want to get
 else
-    UnqGrpNum = unique(GrpNum);
+    [UnqGrpNum, ~, ~, Idx] = unique2(GrpNum);
+    TransLoc = cellfun('size', Idx, 1) > 1;
+    Idx(TransLoc) = cellfun(@(x) x.', Idx(TransLoc), 'un', 0); %make sure it's 1xN vector to be able to do [G(1:N).Idx];
 end
 
 if isempty(UnqGrpNum)
@@ -46,7 +48,7 @@ end
 G(1:length(UnqGrpNum)) = struct('GrpNum', [], 'Idx', [], 'Template', [], 'Size', []);
 for y = 1:length(UnqGrpNum)
     G(y).GrpNum = UnqGrpNum(y);
-    G(y).Idx = find(UnqGrpNum(y) == GrpNum)'; %make sure it's 1xN vector
+    G(y).Idx = Idx{y}; 
     G(y).Template = sum(cell2mat(VDJdata(G(y).Idx, Map.Template)));
     G(y).Size = length(G(y).Idx);
 end

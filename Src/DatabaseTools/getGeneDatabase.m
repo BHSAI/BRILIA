@@ -1,24 +1,17 @@
 %getGeneDatabase will get the gene database from a directory containing
 %IMGT fasta files, labeled as IGXX_SPECIES.fa. 
 %
-%  DB = getGeneDatabase(Species)
-%
-%  DB = getGeneDatabase(FolderName)
+%  DB = getGeneDatabase(SpeciesFolderName)
 %
 %  Names = getGeneDatabase('getlist')
 %
 %  INPUT
-%    Species: the species name, which should be the same as the folder name
-%      store where this m file is. mfilepath/Species/
-%    FolderName: Folder storing the IMGT fasta files (saved as
-%      IGXX_SPECIES.fa). These fasta files should have the IMGT gap ("...")
-%      in the V gene sequences to ensure all CDR and FWR regions are
-%      aligned. Use this if using IMGT's fasta files, or if users want to
-%      add sequences but with the gap information.
-%    CsvFile: comma delimited file containing the IMGT genes without gap,
-%      but marking where the gaps would have been and locations of CDR and
-%      C and F/W anchor. This file is generated everytime someone runs this
-%      using the FolderPath option instead.
+%    SpeciesFolderName: the name of the species, which is the same as the
+%    Databases folder that is created where the BRILIA.exe file is. These
+%    Database\SpeciesFolderName folders contains IMGT fasta files that are
+%    saved as IGHV.fa, IGHD.fa, IGHJ.fa, IGKV.fa. etc. These fasta files
+%    should have the IMGT gap ("...") in the V gene sequences to ensure all 
+%    CDR and FWR regions are aligned. 
 %
 %  OUTPUT
 %    DB: Structure of database file containing the following fields:
@@ -38,8 +31,29 @@
 %      Vgene        V gene function filter used (ex: orf,f,p)
 %      Dgene        D gene direction (fwd vs inv) filter used
 %
+%  NOTE on using custom gene databases
+%    This function will look in [Exe_Root]/Databases/[Species] for the
+%    database folders. These folders should be named by their species name.
+%    To use a custom database, create a new folder within the Databases
+%    folder, and then add the fasta files. The files MUST start with IGHV,
+%    IGHJ, IGHD, IGKV, IGKL, IGLV, IGLJ so that BRILIA knows how to process
+%    these fasta files. There alsmot must be a complete VDJ set for heavy
+%    chain, and VJ set for light chain.
+%
+%    Example: 
+%    1) BRILIA.exe is located at:
+%        C:\User\BRILIA
+%    2) Custom mouse genes is added as: 
+%        C:\User\BRILIA\Databases\mouse1
+%    3) Heavy chain fasta files with IMGT gap notations are added as:
+%        C:\User\BRILIA\Databases\mouse1\IGHV.fa
+%                                       \IGHD.fa
+%                                       \IGHJ.fa
+%    4) Run BRILIA as: 
+%        C:\User\BRILIA.exe my_seq_file.fastq Species mouse1 Chain H
+%
 %  NOTE on map
-%    Each map contains the following information:
+%    Each DB.Xmap contains the following cell array columns in order:
 %      'Seq': gene sequence without gap
 %      'GeneName': gene name
 %      'Function': functionality f, orf, p, [f], [p]
@@ -61,10 +75,6 @@
 %    folder that is being summoned. If there is no csv file, it will
 %    generate one based on the fasta files within that folder, and use it.
 %
-%  NOTE on gene locations
-%    This function will look in the directory ./Database_Manager/[Species]
-%    to load the sequences files stored in the csv file.
-
 function [DB, FiltOption] = getGeneDatabase(varargin)
 %Locate the databases
 RootPath = findExeDir(); %Will find either EXE or code root dir
@@ -73,27 +83,19 @@ if isdeployed
     TempDBPath = fullfile(findRoot(), 'Databases'); %findRoot will find the temporary code root dir
     if ~exist(DBPath, 'dir')
         [Success, Msg] = copyfile(TempDBPath, DBPath);
-        assert(Success, '%s: Could not copy file "%s" to "%s".\n %s', TempDBPath, DBPath, Msg);
+        assert(Success, '%s: Could not copy file "%s" to "%s".\n %s', mfilename, TempDBPath, DBPath, Msg);
     else %Need to figure out what is NOT there
-        DirToAdd = dir(TempDBPath);
-        DirToAdd = DirToAdd([DirToAdd.isdir]);
-        DirExist = dir(DBPath);
-        DirExist = DirExist([DirExist.isdir]);
-        DirToAddLoc = ~ismember({DirToAdd.name}, {DirExist.name});
-        if ~any(DirToAddLoc)
-            fprintf('%s: Copying database folder to "%s".\n', mfilename, DBPath);
+        [DirToAdd, DirNameToAdd] = dir2(TempDBPath, 'dir');
+        [~, DirNameExist] = dir2(DBPath, 'dir');
+        Idx = find(~ismember(DirNameToAdd, DirNameExist));
+        for q = 1:length(Idx)
+            copyfile(DirToAdd{Idx(q)}, fullfile(DBPath, DirNameToAdd{Idx(q)}));
         end
-        copyfile(fullfile({DirToAdd(DirToAddLoc).folder}, {DirToAdd(DirToAddLoc).name}), DBPath);
     end
 end
-assert(exist(DBPath, 'dir') > 0, '%s: Could not locate the "Databases" folder at "%s"', mfilename, DBPath);
+assert(exist(DBPath, 'dir') > 0, '%s: Could not locate the "Databases" folder at "%s".', mfilename, DBPath);
 
-DBFolders = dir(DBPath);
-DBFolders = DBFolders(~(ismember({DBFolders.name}, {'.', '..'}) | ~[DBFolders.isdir]));
-DBFolders = fullfile({DBFolders.folder}, {DBFolders.name});
-KeepLoc = ~cellfun(@(y) ~any(arrayfun(@(x) endsWith(x.name, {'.fa', '.csv'}, 'ignorecase', true), dir(y))), DBFolders);
-DBFolders = DBFolders(KeepLoc);
-SpeciesList = cellfun(@(x) x(find(x == filesep, 1, 'last')+1:end), DBFolders, 'un', 0);
+[DBFolders, SpeciesList] = dir2(DBPath, 'dir');
 
 %Return for list search only
 if ~isempty(varargin) && ischar(varargin{1}) && any(strcmpi(varargin{1}, {'getlist', 'list'}))

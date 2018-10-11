@@ -125,9 +125,7 @@ addParameter(P, 'Resume',        'y',     @(x) ischar(x) && ismember(lower(x), {
 addParameter(P, 'CheckSeqDir',   'y',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
 addParameter(P, 'SkipLineage',   'n',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
 addParameter(P, 'AutoExit',      'n',     @(x) ischar(x) && ismember(lower(x), {'y', 'n'}));
-
-%CODING_NOTE: add backward compatability for Vfunction = Vgene and Ddirection = Dgene.
-%2018-09-12
+addParameter(P, 'SettingFile',   '',      @(x) isempty(x) || ~isempty(dir(x))); %This is kept for backward compatibility only. Will be removed.
 
 while true
     if RunInLocalEnv
@@ -138,9 +136,12 @@ while true
         end
         
         Input = input('BRILIA> ', 's'); %Start with user input
-        if strcmpi(Input, 'exit'); return; end
+        if isempty(Input) 
+            continue
+        elseif strcmpi(Input, 'exit')
+            return
+        end
         varargin = cleanCommandLineInput(Input);
-        if isempty(varargin); continue; end
     else
         varargin = cleanCommandLineInput(varargin{:});
     end
@@ -157,7 +158,7 @@ while true
             end
         end
         
-        if any(strcmpi(varargin{1}, {'h', 'i', 'info', 'help', 'showhelp', 'showinfo'}))
+        if any(strcmpi(varargin{1}, {'?', 'h', 'i', 'info', 'help', 'showhelp', 'showinfo'}))
             if length(varargin) > 1
                 showHelp(varargin{2});
             else
@@ -175,9 +176,17 @@ while true
         if ismember(varargin{1}, SubFuncNames)
             try
                 FH = str2func(varargin{1});
-                FH(varargin{2:end});
+                if numel(varargin) >= 2
+                    FH(varargin{2:end});
+                else
+                    FH();
+                end
             catch ME
-                disp(ME);
+                disp(ME)
+                disp(varargin)
+                for j = 1:length(ME.stack)
+                    disp(ME.stack(j))
+                end
             end
             if RunInLocalEnv; continue; else; return; end
         end
@@ -188,28 +197,47 @@ while true
     end
 
     try
-        parse(P, varargin{:});
-    catch ME
-        fprintf('%s: Error parsing input at line = %d.\n  %s\n', mfilename, ME.stack(1).line, ME.message);
-        if RunInLocalEnv; continue; else; return; end
-    end
+        %Backward compatibility - change Vfunction to Vgene, Ddirection to Dgene, and ignore DevPerc
+        CharLoc = cellfun('isclass', varargin, 'char');
+        varargin(CharLoc) = regexprep(varargin(CharLoc), 'Vfunction', 'Vgene', 'ignorecase');
+        varargin(CharLoc) = regexprep(varargin(CharLoc), 'Ddirection', 'Dgene', 'ignorecase');
+        
+        [Ps, ~, ReturnThis] = parseInput(P, varargin{:});
+        if ReturnThis && ~RunInLocalEnv
+            varargout{1} = Ps;
+            return
+        end
+        
+        %Override defaults with what is in the SettingFile
+        if ~isempty(Ps.SettingFile)
+            Ps = readSettingFile(Ps.SettingFile, Ps);
+        end
 
-    InputFile = P.Results.InputFile;
-    OutputDir = P.Results.OutputDir;
-    Chain = strrep(upper(P.Results.Chain), 'LH', 'HL');
-    Species = P.Results.Species;
-    Strain = P.Results.Strain;
-    Vgene = P.Results.Vgene;
-    Dgene = P.Results.Dgene;
-    Cores = P.Results.Cores;
-    BatchSize = round(P.Results.BatchSize);
-    SeqRangeT = round(P.Results.SeqRange);
-    StatusHandle = P.Results.StatusHandle;
-    Resume = P.Results.Resume;
-    CheckSeqDir = P.Results.CheckSeqDir;
-    SkipLineage = P.Results.SkipLineage;
-    AutoExit = P.Results.AutoExit;
-    MinQuality = P.Results.MinQuality;
+    catch ME
+        if RunInLocalEnv 
+            fprintf('%s: Error parsing input at line = %d.\n  %s\n', mfilename, ME.stack(1).line, ME.message);
+            continue
+        else
+            error('%s: Error parsing input at line = %d.\n  %s\n', mfilename, ME.stack(1).line, ME.message);
+        end
+    end
+    
+    InputFile = Ps.InputFile;
+    OutputDir = Ps.OutputDir;
+    Chain = strrep(upper(Ps.Chain), 'LH', 'HL');
+    Species = Ps.Species;
+    Strain = Ps.Strain;
+    Vgene = Ps.Vgene;
+    Dgene = Ps.Dgene;
+    Cores = Ps.Cores;
+    BatchSize = round(Ps.BatchSize);
+    SeqRangeT = round(Ps.SeqRange);
+    StatusHandle = Ps.StatusHandle;
+    Resume = Ps.Resume;
+    CheckSeqDir = Ps.CheckSeqDir;
+    SkipLineage = Ps.SkipLineage;
+    AutoExit = Ps.AutoExit;
+    MinQuality = Ps.MinQuality;
 
     if ~HasShownCredit
         showCredits('bhsai', 'imgt');
@@ -415,7 +443,7 @@ while true
         %Part 2 does everything AFTER intial annotations
         if strcmpi(SkipLineage, 'n')
             showStatus(sprintf('Processing %s ...', RawFileName), StatusHandle);
-            [VDJdata, VDJheader, ~, ~, Map] = openSeqData(fullfile(RawFileName));
+            [VDJdata, VDJheader, ~, ~, Map] = openSeqData(RawFileName);
             if isempty(VDJdata); continue; end
     
 %CODING_NOTE: This will be added for future release due to HTS paired end reads with poor quality edge reads.
@@ -423,6 +451,13 @@ while true
 %2018-09-11
 %             showStatus('Cleaning 5'' and 3'' mismatched ends ...', StatusHandle);
 %             VDJdata = cleanSeqEnds(VDJdata, Map);
+%
+%CODING_NOTE: this will be added to group sequences that are similar (1 NT
+%off), and is not in the CDR3, and does not follow SHM pattern, to be
+%grouped as one under the consensus sequences if there are > 2 sequences.
+%If only 2 sequences, will use the one closes to germlnie. 
+%2018-09-27
+%           showStatus('Removing sequences that are too similar ...', StatusHandle); %
             
             showStatus('Clustering by lineage ...', StatusHandle)
             VDJdata = clusterByJunction(VDJdata, Map);

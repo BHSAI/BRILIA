@@ -1,7 +1,7 @@
 %compileBRILIA will compile BRILIA and generate binary files appropriate
 %for the OS (Windows or Linux) being used.
 
-function compileBRILIA()
+function compileBRILIA(varargin)
 RootDir = findRoot;
 if ispc
     OS = 'Win';
@@ -13,11 +13,15 @@ TargetDir = fullfile(RootDir, 'Bin', OS);
 [Success, Msg] = mkdir(TargetDir);
 assert(Success > 0, '%s: Could not create directory "%s".\n  %s', mfilename, TargetDir, Msg)
 
-fprintf('%s: %s\n', mfilename, 'Compiling MEX files.');
-compileMexBRILIA;
+if ~(nargin == 1 && strcmpi(varargin{1}, 'skip'))
 
-fprintf('%s: %s\n', mfilename, 'Generating help texts.');
-genHelpBRILIA;
+    fprintf('%s: %s\n', mfilename, 'Compiling MEX files.');
+    compileMexBRILIA;
+
+    fprintf('%s: %s\n', mfilename, 'Making help texts.');
+    makeHelpFile;
+    
+end
 
 fprintf('%s: %s\n', mfilename, 'Compiling BRILIA');
 mcc('-m', fullfile(RootDir, 'Src', 'BRILIA.m'), ...

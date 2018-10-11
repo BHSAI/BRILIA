@@ -428,7 +428,7 @@ end
 
 %This store the list of strain names
 function StrainList = getStrainList(SpeciesName)
-DB = getGeneDatabase(SpeciesName, 'suppress');
+DB = getGeneDatabase(SpeciesName);
 StrainList = getUnqStrain(DB, 4);
 if ~strcmpi(StrainList{1}, 'All')
     StrainList = cat(1, 'All', StrainList);

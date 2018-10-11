@@ -264,20 +264,6 @@ for j = 1:length(Gx)
     end
     
     savePlot(CurGx, 'DPI', 300, 'SaveAs', SaveName, 'SavePre', CurGrpStr);
-    
-    %Saving the image
-    %sprintf('%s%s.Grp%s%s', SavePath, SaveNamePre, CurGrpStr, SaveExt);
-%     DPI = 300;
-%     switch lower(SaveExt)
-%         case '.tif'
-%             print(CurGx, SaveName, '-dtiff', ['-r' num2str(DPI)]);
-%         case '.jpg'
-%             print(CurGx, SaveName, '-djpeg', ['-r' num2str(DPI)]);
-%         case '.png'
-%             print(CurGx, SaveName, '-dpng', ['-r' num2str(DPI)]);                
-%         case '.fig'
-%             saveas(CurGx, SaveName);
-%     end
 end
 
 function pushbutton_ClosePlots_Callback(hObject, eventdata, handles)

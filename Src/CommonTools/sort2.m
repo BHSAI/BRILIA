@@ -45,17 +45,16 @@ function [SortedList, SortIdx] = sort2(List, varargin)
 if isnumeric(List) %Sorting only numbers
     [SortedList, SortIdx] = sort(List, varargin{:});
     return
-end
-if ischar(List) %Sorting a single char line (do nothing)
+elseif ischar(List) %Sorting a single char line (do nothing)
     SortedList = List;
     SortIdx = 1;
     return
-end
-    
-if ~iscell(List)
+elseif ~iscell(List)
     error('%s: 1st input should be a matrix or cell of string and/or num.', mfilename);
 end
-if all(cellfun(@isnumeric, List)) %Soring a cell of only numbers
+
+%From here one, dealing with sorting cell arrays
+if all(cellfun('isclass', List, 'double')) %Soring a cell of only numbers
     [SortedList, SortIdx] = sort(cell2mat(List), varargin{:});
     SortedList = num2cell(SortedList);
     return
@@ -66,21 +65,21 @@ SplitCell = cell(numel(List), 1);
 for j = 1:numel(List)
     SplitCell{j} = splitTextNum(List{j});
 end
-MaxNum = max(cellfun(@length, SplitCell));
+MaxNum = max(cellfun('length', SplitCell));
 
 TempList = num2cell(zeros(numel(List), MaxNum));
 for j = 1:numel(List)
     TempList(j, 1:length(SplitCell{j})) = SplitCell{j};
 end
 
-NumLoc = cellfun(@isnumeric, TempList);
+NumLoc = cellfun('isclass', TempList, 'double');
 LeadZeros = max(ceil(log10(cell2mat(TempList(NumLoc)))));
 if LeadZeros <= 0
     NumForm = '%f';
 else
-    NumForm = ['%0' num2str(LeadZeros) 'f'];
+    NumForm = sprintf('%%0%dd', LeadZeros);
 end
-TempList(NumLoc) = cellfun(@(x) sprintf(NumForm, x), TempList(NumLoc), 'unif', false);
+TempList(NumLoc) = cellfun(@(x) sprintf(NumForm, round(x)), TempList(NumLoc), 'unif', false);
 SortList = cell(numel(List), 1);
 for k = 1:length(SortList)
     SortList{k} = [TempList{k, :}];
@@ -102,14 +101,14 @@ NumLoc(DecimalIdx) = 1;
 RegLoc = labelRegionMEX(NumLoc);
 S = cell(1, max(RegLoc));
 for k = 1:max(RegLoc)
-    Idx = RegLoc == k;
-    if any(NumLoc(Idx))
+    Loc = RegLoc == k;
+    if any(NumLoc(Loc))
         try
-            S{k} = convStr2NumMEX(TextNum(Idx));
+            S{k} = convStr2NumMEX(TextNum(Loc));
         catch
-            S{k} = TextNum(Idx);
+            S{k} = TextNum(Loc);
         end
     else
-        S{k} = TextNum(Idx);
+        S{k} = TextNum(Loc);
     end
 end
