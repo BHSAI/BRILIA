@@ -210,7 +210,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
             CurN = mxGetN(mxGetCell(prhs[1], j));
             if (CurN > MaxN) { MaxN = CurN; }
         }
-        bool pMatch[LenA + MaxN] = {false};
+        bool pMatch[LenA + MaxN];
         for (mwSize j = 0; j < Z; j++) {
             pSeqB = mxGetChars(mxGetCell(prhs[1], j));
             LenB = mxGetN(mxGetCell(prhs[1], j));
@@ -219,7 +219,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
     } else {
         pSeqB = mxGetChars(prhs[1]);
         LenB = mxGetN(prhs[1]);
-        bool pMatch[LenA + LenB] =  {false};
+        bool pMatch[LenA + LenB];
         alignSeq(pSeqA, pSeqB, LenA, LenB, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide, AI[0], pMatch); 
     }
 

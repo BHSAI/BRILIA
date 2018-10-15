@@ -39,7 +39,7 @@
 function [Ps, Pu, ReturnThis, ExpPs, ExpPu] = parseInput(P, varargin)
 P.CaseSensitive = 0;
 P.KeepUnmatched = 1;
-P.PartialMatching = 0;
+P.PartialMatching = 1;
 P.StructExpand = 1;
 
 varargin = cleanCommandLineInput(varargin{:});

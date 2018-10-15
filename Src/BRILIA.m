@@ -69,7 +69,7 @@
 %     SeqRange    * [1,Inf]                Process all sequences 
 %                   #                      Process only the #th sequence
 %                   [M,N]                  Process Mth to Nth seqeunce (include brackets "[]" , "," , and NO SPACE)
-%     MinQuality  * '2'                    
+%     MinQuality  * '2'                    Phred Score (ASCII Base = 33) for P_error = 0.01995. Only for fastq files. 
 %     CheckSeqDir * y                      Check both fowrad and rev-comp alignment for best annotation
 %                   n                      Skip rev-comp alignment (faster if data is pre-processed to + sense only)
 %     SkipLineage * n                      Do not skip lineage-based annotation clustering & correction
@@ -107,8 +107,7 @@ SpeciesList = getGeneDatabase('getlist');
 ChainList = {'H', 'L', 'HL', 'LH'};
 SubFuncNames = [];
 
-P = inputParser;
-P.PartialMatching = 1; %Needed for some backward compatibility "Input" and "InputFile" will both work. 
+P = inputParser; 
 addParameter(P, 'InputFile',     '',      @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'OutputDir',     '',      @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'Chain',         'h',     @(x) ismember({upper(x)}, ChainList));
@@ -197,7 +196,7 @@ while true
         CharLoc = cellfun('isclass', varargin, 'char');
         varargin(CharLoc) = regexprep(varargin(CharLoc), {'Vfunction', 'Ddirection'}, {'Vgene', 'Dgene'}, 'ignorecase');
         
-        [Ps, ~, ReturnThis] = parseInput(P, varargin{:});
+        [Ps, ~, ReturnThis] = parseInput(P, varargin{:}); %Default from parseInput: Partial Matching, Case-Insensitive, Keep Unmatched, Struct Expand
         if ReturnThis && ~RunInLocalEnv
             varargout{1} = Ps;
             return

@@ -23,6 +23,10 @@ else
     error('%s: Could not find BRILIA root dir relative to "%s".', mfilename, FilePath);
 end
 
+if ~ispc
+    RootDir = fullfile(filesep, RootDir); %need that initial "/" in linux to function correctly
+end
+
 if nargin == 1 && strcmpi(varargin{1}, 'print')
     fprintf('%s\n', RootDir);
 end

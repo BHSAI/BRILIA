@@ -27,7 +27,7 @@
 %     SeqRange    * [1,Inf]                Process all sequences 
 %                   #                      Process only the #th sequence
 %                   [M,N]                  Process Mth to Nth seqeunce (include brackets "[]" , "," , and NO SPACE)
-%     MinQuality  * '2'                    Pred Score (ASCII Base = 33) for P_error = 0.01995. Only for fastq files.
+%     MinQuality  * '2'                    Phred Score (ASCII Base = 33) for P_error = 0.01995. Only for fastq files.
 %                                          %https://www.drive5.com/usearch/manual/quality_score.html for info.
 %
 %  OUTPUT

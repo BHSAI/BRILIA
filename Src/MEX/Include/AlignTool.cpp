@@ -78,7 +78,7 @@ double calcAlignScore(bool *pMatch, mwSize Len, double AllowedMiss, mxChar Penal
 
 // Align SeqA and SeqB, returning an alignment information structure.
 void alignSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double MissRate, mxChar Alphabet, mxChar ExactMatch, mxChar TrimSide, mxChar PenaltySide, mxChar PreferSide, align_info &AI) {
-    bool pMatch[LenA + LenB - 1] = {false};
+    bool pMatch[LenA + LenB - 1];
     alignSeq(pSeqA, pSeqB, LenA, LenB, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide, AI, pMatch);
 }
 void alignSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double MissRate, mxChar Alphabet, mxChar ExactMatch, mxChar TrimSide, mxChar PenaltySide, mxChar PreferSide, align_info &AI, bool *pMatch) {
@@ -120,7 +120,7 @@ void alignSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double Mis
         int L = 0, S = 0;        // pos for SeqL and SeqS start
         int P = LenL + LenS - 2; // pos for pScore array
         mwSize Len = 0;          // overlapping length of SeqL & SeqS
-        double pScore[LenL + LenS - 1] = {0};
+        double pScore[LenL + LenS - 1];
         
         //SeqS 1st nt is over the right edge of SeqL
         L = LenL-1;
@@ -162,7 +162,7 @@ void alignSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double Mis
                 if (pScore[P] == AI.Score) { break; }
             }
         } else { //Find middle highest
-            int Loc[LenS+LenL] = {0};
+            int Loc[LenS+LenL];
             int q = 1;
             for (P = 0; P < LenS+LenL-1; P++) {
                 if (pScore[P] == AI.Score) { Loc[q++] = P; }

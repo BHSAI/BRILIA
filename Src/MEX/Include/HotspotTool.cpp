@@ -110,7 +110,7 @@ void calcSeqShmScore(mxChar *pSeqA, mxChar *pSeqB, mwSize Len, double *pScore) {
 //     Score[4] = 0; //B to A pairwise motif count, sum(SHM_TENDENCY(B to A))
 //     Score[5] = 0; //Penalty, sum(Mi^2) where Mi = length of ith consec. mismatch segment 
     double ConsecM = 0;
-    bool pMatch[Len] = {false};
+    bool pMatch[Len];
     cmprSeq(pSeqA, pSeqB, Len, 'n', pMatch);
     for (mwSize j = 0; j < Len; j++) {
         if (!pMatch[j]) {

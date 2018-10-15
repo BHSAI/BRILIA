@@ -19,24 +19,12 @@
 function ExeDir = findExeDir(varargin)
 if isdeployed
     ExeDir = fileparts(getExeLocationMEX);
-%     if isunix
-%         [Status, PsMsg] = system('ps -C BRILIA');
-%         assert(Status == 0, '%s: Error with using "pc -C BRILIA."', mfilename);
-%         ProcID = regexp(PsMsg, '\d+', 'match', 'once');
-%         [Status, LsMsg] = system(sprintf('ls -l /proc/%s/exe', ProcID));
-%         assert(Status == 0, '%s: Error with using "ls -l /proc/ID/exe."', mfilename);
-%         ExeDir = char(regexpi(LsMsg, '->\s*(.*)', 'tokens', 'once'));
-%     elseif ispc
-%         [Status, SetMsg] = system('set PATH');
-%         assert(Status == 0, '%s: Error with using "set PATH".', mfilename);
-%         ExeDir = char(regexpi(SetMsg, 'Path=(.*?);', 'tokens', 'once'));
-%     elseif ismac
-%         error('%s: Unsupported operating system - mac.', mfilename);
-%     else
-%         error('%s: Unknown or unsupported operating system.', mfilename);
-%     end
 else
     ExeDir = findRoot();
+end
+
+if ~ispc
+    ExeDir = fullfile(filesep, ExeDir); %Need the initial "/" for some file function
 end
 
 if nargin == 1 && strcmpi(varargin{1}, 'print')
