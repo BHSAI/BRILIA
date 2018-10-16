@@ -51,7 +51,7 @@
 %     Strain      * all                    For mouse only. Use all strains. 
 %                   c57bl                  C57BL strains, include C57BL6, C57BL/J
 %                   balb                   BALB strains, such as BALB/C
-%                   ExactName              NOTE: Some databases are incomplete for certain strains
+%                   "ExactName"            NOTE: Some databases are incomplete for certain strains
 %     Dgene       * all                    Foward and inverse are okay
 %                   fwd                    Foward only
 %                   inv                    Inverse only
@@ -75,13 +75,13 @@
 %     SkipLineage * n                      Do not skip lineage-based annotation clustering & correction
 %                   y                      Skip lineage-based correction, if all sequences are clonally unrelated
 %     Output      * ""                     Default output directory at "InputPath/InputName/"
-%                   OutDir                 Custom output directory
-%                                          Note: If the input is "InputName.fasta", then output is "InputName.BRILIAvN.csv"
+%                   "OutDir"               Custom output directory. 
+%                   "OutFile.csv"          Custom output CSV file. All temp files will placed in same folder.
 %     AutoExit    * n                      Will not BRILIA local environment when job completes
 %                   y                      Will exit BRILIA local environment when job completes
 
 function varargout = BRILIA(varargin)
-Version = '4.0.1';
+Version = '3.5.1'; %For server version, we want to keep it at the v3 level.
 varargout = cell(1, nargout);
 HasShownCredit = false;
 
@@ -110,6 +110,7 @@ SubFuncNames = [];
 P = inputParser; 
 addParameter(P, 'InputFile',     '',      @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'OutputDir',     '',      @(x) ischar(x) || iscell(x) || isempty(x));
+addParameter(P, 'OutputFile',    '',      @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'Chain',         'h',     @(x) ismember({upper(x)}, ChainList));
 addParameter(P, 'Species',       '',      @(x) ischar(x) && any(contains(SpeciesList, x, 'ignorecase', true)));
 addParameter(P, 'Strain',        'all',   @ischar);
@@ -218,6 +219,7 @@ while true
     
     InputFile = Ps.InputFile;
     OutputDir = Ps.OutputDir;
+    OutputFile = Ps.OutputFile;
     Chain = strrep(upper(Ps.Chain), 'LH', 'HL');
     Species = Ps.Species;
     Strain = Ps.Strain;
@@ -271,17 +273,44 @@ while true
         fprintf('The delimited file must have defined "H-Seq" and "L-Seq" columns.\n'); 
         if RunInLocalEnv; continue; else; return; end
     end
-            
-    OutputFile = cell(size(InputFile));
-    for f = 1:length(OutputFile)
-        [FilePath, ~, ~, FilePre] = parseFileName(InputFile{f});
+    
+    
+    %Make sure # of output files = # of input files
+    if ~isempty(OutputFile)
         if ~isempty(OutputDir)
-            OutputFile{f} = fullfile(OutputDir, FilePre, [FilePre '.BRILIAv' Version(1) '.csv']);
-        else
-            OutputFile{f} = fullfile(FilePath,  FilePre, [FilePre '.BRILIAv' Version(1) '.csv']);
+            if RunInLocalEnv
+                fprintf('%s: Cannot use inputs for OutputDir AND OuputFile. Pick one.\n', mfilename);
+                continue
+            else
+                error('%s: Cannot use inputs for OutputDir AND OuputFile. Pick one.', mfilename);
+            end            
+        end
+        if ischar(OutputFile)
+            OutputFile = {OutputFile};
+        end
+        if length(OutputFile) ~= length(InputFile)
+            if RunInLocalEnv
+                fprintf('%s: Mismatched number of input (%d) and output files (%d).\n', mfilename, length(InputFile), length(OutputFile));
+                continue
+            else
+                error('%s: Mismatched number of input (%d) and output files (%d).', mfilename, length(InputFile), length(OutputFile));
+            end            
         end
         if ~RunInLocalEnv && nargout >= 1
             varargout{1} = OutputFile;
+        end
+    else
+        OutputFile = cell(size(InputFile));
+        for f = 1:length(OutputFile)
+            [FilePath, ~, ~, FilePre] = parseFileName(InputFile{f});
+            if ~isempty(OutputDir)
+                OutputFile{f} = fullfile(OutputDir, FilePre, [FilePre '.BRILIAv' Version(1) '.csv']);
+            else
+                OutputFile{f} = fullfile(FilePath,  FilePre, [FilePre '.BRILIAv' Version(1) '.csv']);
+            end
+            if ~RunInLocalEnv && nargout >= 1
+                varargout{1} = OutputFile;
+            end
         end
     end
 
