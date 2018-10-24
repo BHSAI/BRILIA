@@ -26,22 +26,23 @@ FileName = '';
 FilePath = '';
 Map = [];
 
-if nargin > 0 && ischar(varargin{1}) && exist(varargin{1}, 'file')
-    FullFileName = varargin{1};
-    varargin(1) = [];
-elseif nargin == 0 || isempty(varargin{1})
+if nargin == 0
     FullFileName = getBriliaFiles('', 'single');
-    if isempty(FullFileName); return; end
-    if nargin >=1; varargin(1) = []; end
-    FullFileName = FullFileName{1};
 else
-    FullFileName = [];
+    if contains(varargin{1}, {'.', filesep})
+        FullFileName = dir2(varargin{1}, 'file');
+        varargin = varargin(2:end);
+    else
+        FullFileName = getBriliaFiles('', 'single');
+    end
 end
-
 if isempty(FullFileName)
     warning('%s: No valid file was choosen.', mfilename);
     return
+elseif numel(FullFileName) > 1
+    warning('%s: Cannot select multiple files. Choosing 1st one "%s".', mfilename, FullFileName{1});
 end
+FullFileName = FullFileName{1}; %Unwrap 1st one only
 
 [FilePath, FileName, FileExt] = parseFileName(FullFileName);
 if isempty(FileExt) || isempty(FilePath)
@@ -49,56 +50,38 @@ if isempty(FileExt) || isempty(FilePath)
     return
 end
 
-[VDJheader, Delimiter] = readDlmFile(FullFileName, 'LineRange', [1 1]);
-VDJinfo = readDlmFile(fullfile(findRoot, 'Tables', 'DataHeaderInfo.csv'));
-[~, Idx1, Idx2] = intersect(VDJheader, VDJinfo(:, 1), 'stable');
+[VDJheader, Delimiter] = readDlmFile(FullFileName, 'LineRange', 1);
 
-if length(Idx1) == length(VDJheader) %You have all the info!
-    IntLoc = find(startsWith(VDJinfo(Idx2, 2), 'int', 'ignorecase', true));
-    StrPat = repmat('%s', 1, length(VDJheader));
-    StrPat(IntLoc*2) = 'f';
-    
-    FID = fopen(FullFileName, 'r');
-    VDJdata = textscan(FID, StrPat, 'Headerlines', 1, 'Delimiter', Delimiter, 'EndOfLine', '\r\n', 'CollectOutput', false);
-    fclose(FID);
-    VDJdata(:, IntLoc) = cellfun(@num2cell, VDJdata(:, IntLoc), 'unif', false);
-    VDJdata = [VDJdata{:}];
-    
-    %Attempt to convert numeric matrix strings to numbers
-    MatLoc = startsWith(VDJinfo(Idx2, 2), 'mat', 'ignorecase', true);
-    VDJdata(:, MatLoc) = cellfun(@convStr2NumMEX, VDJdata(:, MatLoc), 'unif', false);
-else
-    StrPat = repmat('%s', 1, length(VDJheader));
-    
-    FID = fopen(FullFileName, 'r');
-    VDJdata = textscan(FID, StrPat, 'Headerlines', 1, 'Delimiter', Delimiter, 'EndOfLine', '\r\n', 'CollectOutput', true);
-    fclose(FID);
-    VDJdata = VDJdata{1};
-    
-    %Attempt to convert all numeric strings to numbers
-    [~, ~, ~, NumLoc, ~] = getAllHeaderVar(VDJheader);
-    NumLoc = vertcat(NumLoc, find(strcmpi(VDJheader, 'ParNum'))); %FIX THIS!
-    for j = 1:length(NumLoc)
-        for r = 1:size(VDJdata, 1)
-            if isnumeric(VDJdata{r, NumLoc(j)}); continue; end
-            try 
-                VDJdata{r, NumLoc(j)} = convStr2NumMEX(VDJdata{r, NumLoc(j)});
-            catch 
-            end
-        end
-    end
-end
+%Determine numeric, matrix, and string columns
+[Map, NumIdx] = getVDJmapper(VDJheader);
+MatIdx = find(endsWith(VDJheader, 'MapNum', 'ignorecase', true)); %Determine the 'MapNum' columns, as these require string to matrix conversion. Will be deprecated in future.
+NumIdx = setdiff(NumIdx, MatIdx);
+
+%Setup the pattern search
+StrPat = repelem({'%s'}, 1, length(VDJheader));
+StrPat(NumIdx) = {'%f'};
+StrPat = [StrPat{:}];
+
+%Read in the data and format the columns into a single cell array
+FID = fopen(FullFileName, 'r');
+VDJdata = textscan(FID, StrPat, 'Headerlines', 1, 'Delimiter', Delimiter, 'EndOfLine', '\r\n', 'CollectOutput', false);
+fclose(FID);
+VDJdata(:, NumIdx) = cellfun(@num2cell, VDJdata(:, NumIdx), 'unif', false);
+VDJdata(:, MatIdx) = cellfun(@convStr2NumMEX, VDJdata(:, MatIdx), 'unif', false);
+VDJdata = [VDJdata{:}];
 
 %Filter for relevant data
 if ~isempty(varargin)
-    CharLoc = cellfun(@ischar, varargin);
-    if any(CharLoc)
-        [~, GetIdx, ~] = intersect(lower(strrep(VDJheader, '-', '')), lower(strrep(varargin(CharLoc), '-', ''))); %Still debating with h-seq vs hSeq notation
+    HeaderStr = formatStrSame(VDJheader);
+    QueryStr = formatStrSame(varargin);
+    [~, GetIdx] = intersect(HeaderStr, QueryStr);
+    if ~isempty(GetIdx)
         VDJdata = VDJdata(:, GetIdx);
         VDJheader = VDJheader(:, GetIdx);
     end
 end
 
-if nargout >= 5 || ~isempty(varargin)
-    Map = getVDJmapper(VDJheader);
-end
+%Format string to be same for matching purposes. 
+%EDIT_NOTE: Edit this code if the string matching criteria changes
+function Str = formatStrSame(Str)
+Str = lower(regexprep(Str, '[^a-zA-Z0-9\|]', ''));

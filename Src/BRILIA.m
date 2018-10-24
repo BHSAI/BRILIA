@@ -15,16 +15,16 @@
 %           See below for Param-Value inputs for BRILIA
 %
 %  3) Analyze output file(s):
-%     runAnalysis: run basic repertoire statistics calculations, such as SHM freq, VDJ usage 
 %     plotTree: plot lineage trees for all or certain clusters
-%     cmprRep: compare repertoires from multiple files
+%     runAnalysis: run basic repertoire statistics calculations, such as SHM freq, VDJ usage 
+%     runGroupAnalysis: compares repertoires from multiple files
 %
 %     FMT Command          OutputFile(s)                     Param Value Param Value
 %         -----------      --------------------------------- ----- ----- ----- -----
 %       > plotTree         "C:\My Dir\**\Grp*_SeqFile*.csv"
 %       > runAnalysis      "C:\My Dir\**\Grp*_SeqFile*.csv"
 %       > runGroupAnalysis "C:\My Dir\**\Grp*_SeqFile*.csv"  G1    Grp1  G2    Grp2 
-%     NOTE: Type "help [Command]" to view details for each Command's Param-Value inputs.
+%     NOTE: Type "help [Command]" to view details
 %
 %  *GUIs for BRILIA and analysis tools are:
 %       > GUI_BRILIA             %for BRILIA
@@ -40,9 +40,9 @@
 %                   "Folder/File*.fa*"     Input sequence files (.fasta/q or .csv). Wildcard string '*' and folder '**'.
 %                                          NOTE: The 1st BRILIA input is assumed to be this, so you can omit "Input".
 %     Chain       * ""                     Ask user to select IgG chain
-%                   H                      Heavy chain
-%                   L                      Light chain
-%                   HL                     Heavy and Light chains
+%                   h                      Heavy chain
+%                   l                      Light chain
+%                   hl                     Heavy and Light chains
 %     Species     * ""                     Ask user to select database to use from IMGT
 %                   human                  human
 %                   mouse                  all mouse strain 
@@ -66,7 +66,7 @@
 %     Resume      * y                      Resume from an interrupted job 
 %                   n                      Do not resume from an interrupted job, ex server outage
 %                   ask                    Ask user to confirm to resume if temp files are found
-%     SeqRange    * [1,Inf]                Process all sequences 
+%     SeqRange    * [1,inf]                Process all sequences 
 %                   #                      Process only the #th sequence
 %                   [M,N]                  Process Mth to Nth seqeunce (include brackets "[]" , "," , and NO SPACE)
 %     MinQuality  * '2'                    Phred Score (ASCII Base = 33) for P_error = 0.01995. Only for fastq files. 
@@ -74,8 +74,9 @@
 %                   n                      Skip rev-comp alignment (faster if data is pre-processed to + sense only)
 %     SkipLineage * n                      Do not skip lineage-based annotation clustering & correction
 %                   y                      Skip lineage-based correction, if all sequences are clonally unrelated
-%     Output      * ""                     Default output directory at "InputPath/InputName/"
-%                   "OutDir"               Custom output directory. 
+%     OutputDir   * ""                     Default output directory at "InputPath/InputName/"
+%                   "OutDir"               Custom output directory. Note: Cannot specify OutputFile AND OutputDir.
+%     OuptutFile  * ""                     Default output file "InputPath/InputName/InputName.BRILIAvN.csv"    
 %                   "OutFile.csv"          Custom output CSV file. All temp files will placed in same folder.
 %     AutoExit    * n                      Will not BRILIA local environment when job completes
 %                   y                      Will exit BRILIA local environment when job completes

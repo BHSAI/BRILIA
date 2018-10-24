@@ -114,20 +114,22 @@ if Num < 3
     if strcmpi(C, 'H')
         VDJdata(KeepLoc, :) = findCDR_Calc(VDJdata(KeepLoc, :), Map, DB, C, 'V', Num);
     else 
-        KLoc = KeepLoc & contains(VDJdata(:, GeneIdx), 'IGKV', 'ignorecase', true);
+        if all(cellfun('isempty', VDJdata(:, GeneIdx(1)))); return; end %Did not annotate light chain yet
+        KLoc = KeepLoc & contains(VDJdata(:, GeneIdx(1)), 'IGKV', 'ignorecase', true);
         VDJdata(KLoc, :) = findCDR_Calc(VDJdata(KLoc, :), Map, DB, C, 'Vk', Num);
 
-        LLoc = KeepLoc & contains(VDJdata(:, GeneIdx), 'IGLV', 'ignorecase', true);
+        LLoc = KeepLoc & contains(VDJdata(:, GeneIdx(1)), 'IGLV', 'ignorecase', true);
         VDJdata(LLoc, :) = findCDR_Calc(VDJdata(LLoc, :), Map, DB, C, 'Vl', Num);
     end
 else
     if strcmpi(C, 'H')
         VDJdata(KeepLoc, :) = findCDR3_Calc(VDJdata(KeepLoc, :), Map, DB, C, 'V', UseIMGT);
     else 
-        KLoc = KeepLoc & contains(VDJdata(:, GeneIdx), 'IGKV', 'ignorecase', true);
+        if all(cellfun('isempty', VDJdata(:, GeneIdx(1)))); return; end %Did not annotate light chain yet
+        KLoc = KeepLoc & contains(VDJdata(:, GeneIdx(1)), 'IGKV', 'ignorecase', true);
         VDJdata(KLoc, :) = findCDR3_Calc(VDJdata(KLoc, :), Map, DB, C, 'Vk', UseIMGT);
 
-        LLoc = KeepLoc & contains(VDJdata(:, GeneIdx), 'IGLV', 'ignorecase', true);
+        LLoc = KeepLoc & contains(VDJdata(:, GeneIdx(1)), 'IGLV', 'ignorecase', true);
         VDJdata(LLoc, :) = findCDR3_Calc(VDJdata(LLoc, :), Map, DB, C, 'Vl', UseIMGT);
     end
 end

@@ -52,6 +52,9 @@ for j = 1:length(varargin)
         end
         if strcmpi(varargin{j}, 'LineRange')
             LineRange = varargin{j+1};
+            if numel(LineRange) == 1
+                LineRange = repelem(LineRange, 1, 2);
+            end
             if ~isnumeric(LineRange)
                 error('%s: LineRange not valid', mfilename);
             end

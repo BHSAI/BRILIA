@@ -52,7 +52,7 @@ TXT = TXT{1};
 fclose(FID);
 
 %Identify where the ">" are, which are the headers
-Idx = [find(contains(TXT, '>')); length(TXT)];  %header index. Added "length(TXT)" to simplify for loop later
+Idx = [find(contains(TXT, '>')); length(TXT)+1];  %header index. Added "length(TXT)" to simplify for loop later
 SeqRange(2) = min([SeqRange(2) length(Idx)-1]); %fix SeqRange(2)
 SeqCount = diff(SeqRange) + 1;
 

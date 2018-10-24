@@ -11,7 +11,7 @@ end
 
 for f = 1:length(FileNames)
     FileName = FileNames{f};
-    [VDJdata, VDJheader] = openSeqData([FilePath FileName]);    
+    [VDJdata, VDJheader] = openSeqData(fullfile(FilePath, FileName));    
     [H, L, Chain] = getAllHeaderVar(VDJheader);
     SeqNumLoc = H.SeqNumLoc;
     switch Chain

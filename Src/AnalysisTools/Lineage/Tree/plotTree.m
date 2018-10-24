@@ -168,6 +168,7 @@ PT = ProgressTracker(length(G), [], 'Trees drawn', StatusHandle);
 DQ = PT.DataQueue;
 showStatus(sprintf('Drawing %d trees.', length(G)), StatusHandle)
 
+%warning('%s: renable parfor', mfilename);
 parfor y = 1:length(G)
     ExpPuT = ExpPu;
     VDJdata{y} = padtrimSeqGroup(VDJdata{y}, Map, 'grpnum', 'trim', 'Seq'); 

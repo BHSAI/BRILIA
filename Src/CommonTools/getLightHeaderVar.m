@@ -37,6 +37,8 @@
 %
 %  See also getHeavyHeaderVar, getAllHeaderVar
 function [L, varargout] = getLightHeaderVar(VDJheader)
+warning('%s: This is deprecated. Use getVDJmapper.', mfilename);
+
 %Extract common fields
 L.SeqNameLoc    = findCell(VDJheader, 'SeqName', 'MatchCase', 'Any');
 L.SeqNumLoc     = findCell(VDJheader, 'SeqNum', 'MatchCase', 'Any');

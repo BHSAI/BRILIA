@@ -90,7 +90,7 @@ try
     GrpMaxSize = str2double(get(handles.edit_GetSizeRange2, 'String'));
     hCDR3 = get(handles.edit_GetCDR3seq, 'String');
     
-    VDJdata = filterVDJdata2(handles.VDJdata, handles.VDJheader, 'Logic', 'and', 'GetGrpNum', GetGrpNum, 'GetSeqNum', GetSeqNum, 'GrpMinSize', GrpMinSize, 'GrpMaxSize', GrpMaxSize, 'hCDR3', hCDR3);
+    VDJdata = filterVDJdata(handles.VDJdata, handles.VDJheader, 'Logic', 'and', 'GetGrpNum', GetGrpNum, 'GetSeqNum', GetSeqNum, 'GrpMinSize', GrpMinSize, 'GrpMaxSize', GrpMaxSize, 'hCDR3', hCDR3);
     if isempty(VDJdata); return; end
     plotTree(VDJdata, handles.VDJheader, 'ShowOnly', true, 'Visible', 'on');
 catch

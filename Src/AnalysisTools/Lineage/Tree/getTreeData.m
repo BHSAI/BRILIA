@@ -83,8 +83,8 @@ for j = 1:size(Tdata, 1)
         RIdx = SeqIdx;
     end
     for c = 1:length(SeqIdx)
-        MatchCt = MatchCt + sum(cmprSeqMEX(Tdata{j, SeqIdx(c)}, Tdata{RPos, RIdx}, 'n'));
-        SeqLen = SeqLen + length(Tdata{RPos, RIdx});
+        MatchCt = MatchCt + sum(cmprSeqMEX(Tdata{j, SeqIdx(c)}, Tdata{RPos, RIdx(c)}, 'n'));
+        SeqLen = SeqLen + length(Tdata{RPos, RIdx(c)});
     end
     AncMap(j, 3:4) = [(SeqLen-MatchCt) ((SeqLen-MatchCt)/SeqLen*100)]; %HamDist, HamPerc
 end

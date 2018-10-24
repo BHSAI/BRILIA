@@ -20,6 +20,8 @@
 %    (getLightHeaderVar.m)
 %    Chain: 'H', 'L', or 'HL', depending on VDJheader
 function [H, L, varargout] =  getAllHeaderVar(VDJheader)
+warning('%s: This is deprecated. Use getVDJmapper.', mfilename);
+
 if nargout <= 3
     H = getHeavyHeaderVar(VDJheader);
     L = getLightHeaderVar(VDJheader);
