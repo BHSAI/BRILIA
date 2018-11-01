@@ -1,4 +1,8 @@
 --------------------------------------------------------------------------
+## Patch notice for version 3.1.5
+ - Fixed a bug in plotGeneUsage.m 
+
+--------------------------------------------------------------------------
 ## Patch notice for version 3.1.4
  - Enabled inputs of file path or name with a space if encapsulated in quotes. EX: "C:\Temp Dir\"
  - BRILIA now removes sequences with 40% hamming distance error rate in V and J.
