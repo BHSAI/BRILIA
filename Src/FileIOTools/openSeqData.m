@@ -71,7 +71,7 @@ VDJdata(:, MatIdx) = cellfun(@convStr2NumMEX, VDJdata(:, MatIdx), 'unif', false)
 VDJdata = [VDJdata{:}];
 
 %Filter for relevant data
-if ~isempty(varargin)
+if ~(any(cellfun('isempty', varargin)))
     HeaderStr = formatStrSame(VDJheader);
     QueryStr = formatStrSame(varargin);
     [~, GetIdx] = intersect(HeaderStr, QueryStr);
@@ -84,4 +84,8 @@ end
 %Format string to be same for matching purposes. 
 %EDIT_NOTE: Edit this code if the string matching criteria changes
 function Str = formatStrSame(Str)
-Str = lower(regexprep(Str, '[^a-zA-Z0-9\|]', ''));
+try
+    Str = lower(regexprep(Str, '[^a-zA-Z0-9\|]', ''));
+catch
+    Str = Str;
+end

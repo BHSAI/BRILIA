@@ -5,13 +5,15 @@
 %  Instructions at https://github.com/BHSAI/BRILIA
 %
 %BASIC USAGE
-%  1) Start BRILIA.exe (Win) or BRILIA.sh (Linux) in the command prompt
+%  1) Start BRILIA.exe (Win) or run_BRILIA.sh (Linux) in the command prompt
 %
-%  2) Annotate input files(s):
-%     FMT InputFile(s)                    Param   Value Param  Value Param Value 
-%         ------------------------------- ------- ----- ------ ----- ----- ----- 
-%       > "C:\My Folder\Grp*_File*.fasta" Species Mouse Strain C57BL Chain H 
-%     NOTE: '*' = wildcard string, and '**' = wildcard folder+subfolders
+%  2) Annotate input file(s):
+%        InputFile(s)                    Param   Value Param  Value Param Value 
+%        ------------------------------- ------- ----- ------ ----- ----- -----
+%     >  "C:\My Folder\Grp*_File*.fasta" Species Mouse Strain C57BL Chain H 
+%     
+%     NOTE: '*'  = wildcard string
+%           '**' = wildcard folder + subfolders
 %           See below for Param-Value inputs for BRILIA
 %
 %  3) Analyze output file(s):
@@ -19,14 +21,15 @@
 %     runAnalysis: run basic repertoire statistics calculations, such as SHM freq, VDJ usage 
 %     runGroupAnalysis: compares repertoires from multiple files
 %
-%     FMT Command          OutputFile(s)                     Param Value Param Value
+%         Command          OutputFile(s)                     Param Value Param Value
 %         -----------      --------------------------------- ----- ----- ----- -----
 %       > plotTree         "C:\My Dir\**\Grp*_SeqFile*.csv"
 %       > runAnalysis      "C:\My Dir\**\Grp*_SeqFile*.csv"
 %       > runGroupAnalysis "C:\My Dir\**\Grp*_SeqFile*.csv"  G1    Grp1  G2    Grp2 
+%
 %     NOTE: Type "help [Command]" to view details
 %
-%  *GUIs for BRILIA and analysis tools are:
+%  4) Analyze output file(s) via GUI:
 %       > GUI_BRILIA             %for BRILIA
 %       > GUI_plotTree           %for plotting lineage trees
 %       > GUI_runAnalysis        %for individual repertoire analysis
@@ -36,22 +39,31 @@
 %
 %     Param       Value (* = default)      Details
 %     ----------- ------------------------ --------------------------------
-%     Input       * ""                     Ask user to select input file
-%                   "Folder/File*.fa*"     Input sequence files (.fasta/q or .csv). Wildcard string '*' and folder '**'.
+%     Input       * []                     Ask user to select input file
+%                   "Folder\File*.fa*"     Input sequence files (.fa* or .csv). * = any string, ** = any subfolder.
 %                                          NOTE: The 1st BRILIA input is assumed to be this, so you can omit "Input".
-%     Chain       * ""                     Ask user to select IgG chain
+%     OutputDir   * []                     Default output directory at "InputPath\InputName\"
+%                   "OutDir\"              Custom output directory. Note: Cannot specify OutputFile AND OutputDir.
+%     OuptutFile  * []                     Default output file "InputPath\InputName\InputName.BRILIAvN.csv"
+%                   "OutDir\OutFile.csv"   Custom output CSV file. All temp files will placed in same folder
+%     Chain       * []                     Ask user to select IgG chain
 %                   h                      Heavy chain
 %                   l                      Light chain
 %                   hl                     Heavy and Light chains
-%     Species     * ""                     Ask user to select database to use from IMGT
+%     Cutoff      * 0                      Do not merge similar sequences
+%                   F   (0 to 0.99)        Merge similar sequences that are fraction 0 < F < 1 of sequence length
+%                   N   (integer >= 1)     Merge similar sequences that are integer N >= 1 Hamming distance
+%     Species     * []                     Ask user to select database to use from IMGT
 %                   human                  human
 %                   mouse                  all mouse strain 
 %                   macaque                crab-eating macaque
 %                   zebrafish              zebrafish
+%                   "Species"              species name in the Database folder where BRILIA exec file is.
+%                                          NOTE: you can add custom database by adding a folder with IGXX.fa files
 %     Strain      * all                    For mouse only. Use all strains. 
 %                   c57bl                  C57BL strains, include C57BL6, C57BL/J
 %                   balb                   BALB strains, such as BALB/C
-%                   "ExactName"            NOTE: Some databases are incomplete for certain strains
+%                   "Strain"               The prefix of strains that match
 %     Dgene       * all                    Foward and inverse are okay
 %                   fwd                    Foward only
 %                   inv                    Inverse only
@@ -69,20 +81,18 @@
 %     SeqRange    * [1,inf]                Process all sequences 
 %                   #                      Process only the #th sequence
 %                   [M,N]                  Process Mth to Nth seqeunce (include brackets "[]" , "," , and NO SPACE)
-%     MinQuality  * '2'                    Phred Score (ASCII Base = 33) for P_error = 0.01995. Only for fastq files. 
+%     MinQuality  * 2                      Min Phred Score (ASCII 33). DNA bases w/ read error >= 2% will be "N". 
+%                   char                   Min Phred Score (ASCII 33). 
+%                                          NOTE: this is only for pre-processing fastq files.
 %     CheckSeqDir * y                      Check both fowrad and rev-comp alignment for best annotation
 %                   n                      Skip rev-comp alignment (faster if data is pre-processed to + sense only)
 %     SkipLineage * n                      Do not skip lineage-based annotation clustering & correction
 %                   y                      Skip lineage-based correction, if all sequences are clonally unrelated
-%     OutputDir   * ""                     Default output directory at "InputPath/InputName/"
-%                   "OutDir"               Custom output directory. Note: Cannot specify OutputFile AND OutputDir.
-%     OuptutFile  * ""                     Default output file "InputPath/InputName/InputName.BRILIAvN.csv"    
-%                   "OutFile.csv"          Custom output CSV file. All temp files will placed in same folder.
-%     AutoExit    * n                      Will not BRILIA local environment when job completes
-%                   y                      Will exit BRILIA local environment when job completes
+%     AutoExit    * n                      Do not exit BRILIA local environment when job completes
+%                   y                      Exit BRILIA local environment when job completes
 
 function varargout = BRILIA(varargin)
-Version = '3.5.1'; %For server version, we want to keep it at the v3 level.
+Version = '3.5.1'; 
 varargout = cell(1, nargout);
 HasShownCredit = false;
 
@@ -113,12 +123,13 @@ addParameter(P, 'InputFile',     '',      @(x) ischar(x) || iscell(x) || isempty
 addParameter(P, 'OutputDir',     '',      @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'OutputFile',    '',      @(x) ischar(x) || iscell(x) || isempty(x));
 addParameter(P, 'Chain',         'h',     @(x) ismember({upper(x)}, ChainList));
+addParameter(P, 'Cutoff',        0,       @(x) isnumeric(x) && x >= 0);
 addParameter(P, 'Species',       '',      @(x) ischar(x) && any(contains(SpeciesList, x, 'ignorecase', true)));
 addParameter(P, 'Strain',        'all',   @ischar);
 addParameter(P, 'Dgene',         'all',   @(x) ischar(x) && ismember(lower(x), {'all', 'fwd', 'rev'}));
 addParameter(P, 'Vgene',         'f',     @(x) ischar(x) && all(ismember(strsplit(lower(x), ','), {'all', 'f', 'p', 'orf'})));
-addParameter(P, 'Cores',         'max',   @(x) ischar(x) || isnumeric(x));
 addParameter(P, 'BatchSize',     30000,   @(x) isnumeric(x) && x >= 1);
+addParameter(P, 'Cores',         'max',   @(x) ischar(x) || isnumeric(x));
 addParameter(P, 'SeqRange',      [1,Inf], @(x) isnumeric(x) || ischar(x));
 addParameter(P, 'MinQuality',    '2',     @(x) ischar(x) || isnumeric(x)); %ASCII_BASE=33, '2' = P_error 0.01995
 addParameter(P, 'StatusHandle',  [],      @(x) ishandle(x) || isempty(x) || strcmpi(class(x), 'matlab.ui.control.UIControl'));
@@ -222,6 +233,7 @@ while true
     OutputDir = Ps.OutputDir;
     OutputFile = Ps.OutputFile;
     Chain = strrep(upper(Ps.Chain), 'LH', 'HL');
+    Cutoff = Ps.Cutoff;
     Species = Ps.Species;
     Strain = Ps.Strain;
     Vgene = Ps.Vgene;
@@ -475,13 +487,6 @@ while true
 %2018-09-11
 %             showStatus('Cleaning 5'' and 3'' mismatched ends ...', StatusHandle);
 %             VDJdata = cleanSeqEnds(VDJdata, Map);
-%
-%CODING_NOTE: this will be added to group sequences that are similar (1 NT
-%off), and is not in the CDR3, and does not follow SHM pattern, to be
-%grouped as one under the consensus sequences if there are > 2 sequences.
-%If only 2 sequences, will use the one closes to germlnie. 
-%2018-09-27
-%           showStatus('Removing sequences that are too similar ...', StatusHandle); %
             
             showStatus('Clustering by lineage ...', StatusHandle)
             VDJdata = clusterByJunction(VDJdata, Map);
@@ -489,16 +494,20 @@ while true
             VDJdata = clusterByLineage(VDJdata, Map, 'shmham');
 
             showStatus('Correcting annotations by lineage ...', StatusHandle)
-            VDJdata = conformGeneGroup(VDJdata, Map, DB);
-
+            VDJdata = conformGeneGroup(VDJdata, Map, DB);     
+            
             showStatus('Refining D annotations ...', StatusHandle)
             VDJdata = findBetterD(VDJdata, Map, DB);
 
             showStatus('Trimming N regions ...', StatusHandle)
             VDJdata = trimGeneEdge(VDJdata, Map, DB);
                 
+            showStatus('Removing sequences that are too similar ...', StatusHandle);
+            VDJdata = mergeSimilarSeq(VDJdata, Map, Cutoff);
+
             VDJdata = joinData(VDJdata, Map);
 
+            showStatus('Finalizing annotations ...', StatusHandle);
             VDJdata = padtrimSeqGroup(VDJdata, Map, 'grpnum', 'trim', 'Seq'); 
             VDJdata = findCDR(VDJdata, Map, DB, 1:3, 'imgt');
             VDJdata = buildVDJalignment(VDJdata, Map, DB);

@@ -1,5 +1,0 @@
-Title,Description,FileName
-VDJ Gene Usage Plots,VDJ gene usage frequency chart per clonotype.,GeneUsage.png
-Trinucleotide Mutability Data,Table of 3-nt motifs' mutation frequencies from nt X to nt Y.,Mutability.csv
-Normalized Trinucleotide Mutability Data,Table of 3-nt motifs' normalized mutation frequencies from nt X to nt Y.,NormMutability.csv
-Hotspot Mutation Frequencies Plot,Bar charts of hotspot motifs' normalized mutation frequencies from nt X to nt Y.,HotMotifBarGraph.png.png

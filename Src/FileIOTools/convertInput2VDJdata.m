@@ -151,6 +151,7 @@ Map = getVDJmapper(VDJheader);
 
 VDJdata(:, Map.SeqName) = SeqName;
 VDJdata(:, Map.Template) = Template;
+VDJdata(:, Map.SeqNum) = num2cell(1:size(SeqData, 1));
 VDJdata(:, Map.GrpNum) = num2cell(1:size(SeqData, 1));
 for c = 1:numel(Map.Chain)
     C = lower(Map.Chain(c));

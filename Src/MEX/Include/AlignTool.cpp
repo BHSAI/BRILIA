@@ -13,8 +13,10 @@
 
 #include "AlignTool.hpp"
 #include <ctype.h>
+#include <math.h>
+#include <limits>
 
-// find the first occurence of a 1 (0-based index)
+// Find the first occurence of a 1 (0-based index)
 int findFirstMatch(bool *pMatch, mwSize Len) {
     for (int s = 0; s < Len; s++) {
         if (pMatch[s]) { return s; }
@@ -22,22 +24,20 @@ int findFirstMatch(bool *pMatch, mwSize Len) {
     return -1; // no match
 }
 
-// find the last occurence of a 1 (0-based index)
+// Find the last occurence of a 1 (0-based index)
 int findLastMatch(bool *pMatch, mwSize Len) {
-    for (int e = Len; e >= 1; e--) {
-        if (pMatch[e-1]) { return e-1; }
+    for (int e = Len-1; e >= 0; e--) {  
+        if (pMatch[e]) { return e; }
     }
     return -1; // no match
 }
 
 // Compute the alignment score from a bool[] alignment result. 
-//   Score = sum(ConsecHits^2)-sum(ConsecMiss)^2-LeftMiss^2-RightMiss^2
+// Score = sum(ConsecHits^2)-sum(ConsecMiss)^2-LeftMiss^2-RightMiss^2
 double calcAlignScore(bool *pMatch, mwSize Len, double AllowedMiss, mxChar PenaltySide) {
-    double Score = 0, Hits = 0, Miss = 0, PenaltyLHS = 0, PenaltyRHS = 0;   
+    double Score = 0, Hits = 0, Miss = 0, PenaltyLHS = 0, PenaltyRHS = 0; // MUST initialize 0, or bugs occur (compiler bug)   
     int s = findFirstMatch(pMatch, Len);
-    if (s < 0) { //no need to check e<0, since s<0 implies this.
-        return -(double) (Len * Len); 
-    }
+    if (s < 0) { return - (double) (Len*Len); } //no need to check e<0 if s<0.
     int e = findLastMatch(pMatch, Len);
     
     for (int i = s; i <= e; i++) {
@@ -72,35 +72,37 @@ double calcAlignScore(bool *pMatch, mwSize Len, double AllowedMiss, mxChar Penal
             PenaltyRHS = (Len-e)*(Len-e);            
             break;
     }
-    
-    return Score + Hits*Hits - Miss*Miss - PenaltyLHS - PenaltyRHS;
+    return (Score + Hits*Hits - Miss*Miss - PenaltyLHS - PenaltyRHS);
 }
 
 // Align SeqA and SeqB, returning an alignment information structure.
 void alignSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double MissRate, mxChar Alphabet, mxChar ExactMatch, mxChar TrimSide, mxChar PenaltySide, mxChar PreferSide, align_info &AI) {
-    bool pMatch[LenA + LenB - 1];
+    bool pMatch[LenB > LenA ? LenB : LenA]; // only has to be greater of 2 sequence length. recycle array for match tracking.
     alignSeq(pSeqA, pSeqB, LenA, LenB, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide, AI, pMatch);
 }
 void alignSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double MissRate, mxChar Alphabet, mxChar ExactMatch, mxChar TrimSide, mxChar PenaltySide, mxChar PreferSide, align_info &AI, bool *pMatch) {
-    if (LenA == 0 || LenB == 0) { return; }
+    if (LenA < 1 || LenB < 1) { return; } //Nothing to align 
     double AllowedMiss = 0;
-            
     if (ExactMatch == 'y' || ExactMatch == 'Y') {
         mwSize Len = LenB > LenA ? LenA : LenB;
         cmprSeq(pSeqA, pSeqB, Len, 'n', pMatch);
         trimMatchResults(pMatch, Len, TrimSide);
         AllowedMiss = round(MissRate * Len);
-        AI.Score = calcAlignScore(pMatch, Len, AllowedMiss, PenaltySide);
+
+        AI.Score  = calcAlignScore(pMatch, Len, AllowedMiss, PenaltySide);
+        AI.BShift = 0;  //Reset in case some other function is recycling align_info
+        AI.Match  = 0;  
         AI.MatchS = findFirstMatch(pMatch, Len);
-        AI.MatchE = findLastMatch(pMatch, Len);
-        if (AI.MatchS >= 0) { 
-            for (int z = 0; z < Len; z++) { 
-                if (pMatch[z]) { AI.Match++; };
+        if (AI.MatchS > -1) { 
+            AI.MatchE = findLastMatch(pMatch, Len);
+            for (int z = AI.MatchS; z <= AI.MatchE; z++) { 
+                if ( pMatch[z] ) { AI.Match++; };
             }
         } else {
-            AI.BShift = 0;
-            AI.Score = (double) Len * (double) Len;
+            AI.MatchE = -1; //No match default
+            AI.Score = - (double) Len*Len; //Maximum penalty allowed
         }
+
     } else { //ExactMatch == 'n';
         mxChar *pSeqL, *pSeqS; //L for longer seq, S for shorter seq
         mwSize LenL = 0, LenS = 0;
@@ -115,17 +117,32 @@ void alignSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double Mis
             LenL = LenA;
             LenS = LenB;
         }
-            
-        double AllowedMiss = 0;
-        int L = 0, S = 0;        // pos for SeqL and SeqS start
-        int P = LenL + LenS - 2; // pos for pScore array
+        
+        double AllowedMiss = 0;  // for determing allowed nt misses in alignment
         mwSize Len = 0;          // overlapping length of SeqL & SeqS
+        int P = LenL + LenS - 2; // pos for pScore array
         double pScore[LenL + LenS - 1];
         
+        //Reset align_info in case another program is recylcing AI 
+        AI.Score = -1; //start at -1 because the first, worst you can do is Len = 1, all miss, so Score = - Len^2 = -1. 
+        AI.Match =  0;
+        AI.BShift = 0;
+        AI.MatchS = 0;
+        AI.MatchE = 0;
+        
         //SeqS 1st nt is over the right edge of SeqL
-        L = LenL-1;
-        S = 0;
+        int L = LenL-1; //pos for SeqL
+        int S = 0;      //pos for SeqS
         for (Len = 1; Len < LenS; Len++, L--, P--) {
+            AllowedMiss = round(MissRate * Len);
+            cmprSeq(&pSeqL[L], &pSeqS[S], Len, 'n', pMatch);
+            trimMatchResults(pMatch, Len, TrimSide);
+            pScore[P] = calcAlignScore(pMatch, Len, AllowedMiss, PenaltySide);
+            if (pScore[P] > AI.Score) { AI.Score = pScore[P]; } //only AI.Score needs to be update to get highest score
+        }
+
+        //SeqS is over SeqL. Len should be same as LenS.
+        for (L; L >= 0; L--, P--) {
             AllowedMiss = round(MissRate * Len);
             cmprSeq(&pSeqL[L], &pSeqS[S], Len, 'n', pMatch);
             trimMatchResults(pMatch, Len, TrimSide);
@@ -133,14 +150,6 @@ void alignSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double Mis
             if (pScore[P] > AI.Score) { AI.Score = pScore[P]; }
         }
         
-        //SeqS is over SeqL
-        for (L; L+1 >= 1; L--, P--) {
-            cmprSeq(&pSeqL[L], &pSeqS[S], LenS, 'n', pMatch);
-            trimMatchResults(pMatch, Len, TrimSide);
-            pScore[P] = calcAlignScore(pMatch, LenS, AllowedMiss, PenaltySide);
-            if (pScore[P] > AI.Score) { AI.Score = pScore[P]; }
-        }
-
         //SeqS lst nt is over the left edge of SeqL
         L = 0;
         S = 1;
@@ -154,24 +163,27 @@ void alignSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double Mis
 
         //Find max score location
         if (PreferSide == 'l' || PreferSide == 'L') { //Find left highest
-            for (P = 0; P < LenS+LenL-1; P++) {
-                if (pScore[P] == AI.Score) { break; }
+            for (P = 0; P <= LenS+LenL-2; P++) {
+                if (fabs(pScore[P] - AI.Score) < std::numeric_limits<double>::epsilon()) { break; }
             }
         } else if (PreferSide == 'r' || PreferSide == 'R') { //Find right highest
-            for (P = LenS+LenL-1; P-- > 0;) {
-                if (pScore[P] == AI.Score) { break; }
+            for (P = LenS+LenL-2; P >= 0; P--) {
+                if (fabs(pScore[P] - AI.Score) < std::numeric_limits<double>::epsilon()) { break; }
             }
         } else { //Find middle highest
-            int Loc[LenS+LenL];
-            int q = 1;
-            for (P = 0; P < LenS+LenL-1; P++) {
-                if (pScore[P] == AI.Score) { Loc[q++] = P; }
+            int Loc[LenS+LenL-1];
+            int q = 0;
+            for (P = 0; P <= LenS+LenL-2; P++) {
+                if (fabs(pScore[P] - AI.Score) < std::numeric_limits<double>::epsilon()) { 
+                    Loc[q++] = P; 
+                }
             }
-            P = Loc[(int) floor((double)q/2)];
+            P = Loc[(int) round(q/2)];
         }
-
+   
         //Determine the AI parameters
-        AI.BShift = LenB > LenA ? -(P - (int) LenS + 1) : P - (int) LenS + 1;
+        int BShift = (P - (int) LenS + 1);
+        AI.BShift = LenB > LenA ? -BShift : BShift;
 
         if (AI.BShift >= 0) {
             Len = LenA - AI.BShift < LenB ? LenA - AI.BShift : LenB;
@@ -181,20 +193,25 @@ void alignSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, double Mis
             cmprSeq(&pSeqA[0], &pSeqB[-AI.BShift], Len, Alphabet, pMatch);
         }
         trimMatchResults(pMatch, Len, TrimSide);
-        AI.MatchS = findFirstMatch(pMatch, Len) + abs(AI.BShift);
-        AI.MatchE = findLastMatch(pMatch, Len) + abs(AI.BShift);
-        if (AI.MatchS >= 0) { 
-            for (int z = 0; z < Len; z++) { 
-                if (pMatch[z]) { AI.Match++; };
+
+        AI.Match  = 0;
+        AI.MatchS = findFirstMatch(pMatch, Len);
+        if (AI.MatchS > -1) { 
+            AI.MatchE = findLastMatch(pMatch, Len);
+            for (int z = AI.MatchS; z <= AI.MatchE; z++) { 
+                if ( pMatch[z] ) { AI.Match++; };
             }
+            AI.MatchS += fabs(AI.BShift);
+            AI.MatchE += fabs(AI.BShift);
         } else {
-            AI.BShift = 0;
-            AI.Score = (double) Len * (double) Len;
+            AI.Score = - (double) Len*Len; //Maximum penalty allowed
+            AI.MatchS += fabs(AI.BShift);
+            AI.MatchE = -1; //No match default
         }
     }
 } 
 
-// Compares SeqA and SeqB and creates a boolean vector of match/miss.
+// Compares SeqA and SeqB and updates a boolean vector of match/miss.
 void cmprSeq(mxChar *pSeqA, mxChar *pSeqB, mwSize Len, mxChar Alphabet, bool *pMatch) { // overloaded: compare SeqA and SeqB WITHOUT creating a bool *palignment result
     switch (tolower(Alphabet)) {
         case 'n':
@@ -222,10 +239,10 @@ void trimMatchResults(bool *pMatch, mwSize Len, mxChar TrimSide) {
     
     if (TrimSide == 'l' || TrimSide == 'b') {
         int Sum = 0, i = 0;
-        for (i; i < 4; i++) {//Initial 1st 4 sum
+        for (i; i < 4; i++) { //get initial 1st 4 sum
             if (pMatch[i]) { Sum++; } 
         }
-        for (i; i < Len; i++) {
+        for (i; i < Len; i++) { //i is 4 and going up
             if (Sum >= 3) { break; }
             if (pMatch[i]) { Sum++; }
             if (pMatch[i-4]) { 
@@ -233,12 +250,17 @@ void trimMatchResults(bool *pMatch, mwSize Len, mxChar TrimSide) {
                 pMatch[i-4] = false;
             }
         }
+        if (i == Len && Sum < 3) { //set all to 0, nothing is good
+            for (i = i-4; i < Len; i++) {
+                pMatch[i] = false;
+            }
+        }
     }
 
     if (TrimSide == 'r' || TrimSide == 'b') {
         int Sum = 0, i = Len;
         for (i; i > Len-4; i--) {//Initial 1st 4 sum 
-            if (pMatch[i-1]) Sum++;
+            if (pMatch[i-1]) { Sum++; }
         }
         for (i; i >= 1; i--) {
             if (Sum >= 3) { break; }
@@ -246,6 +268,11 @@ void trimMatchResults(bool *pMatch, mwSize Len, mxChar TrimSide) {
             if (pMatch[i+3]) { 
                 Sum--; 
                 pMatch[i+3] = false; 
+            }
+        }
+        if (i == 0 && Sum < 3) { //set all to 0, nothing is good
+            for (i = 3; i >= 0; i--) {
+                pMatch[i] = false;
             }
         }
     }
@@ -264,7 +291,6 @@ mxArray *buildAlignment(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, 
 
     mxArray *pAlign = mxCreateCharArray(2, Dims);   
     mxChar *pAlignStr = mxGetChars(pAlign);
-    bool pMatch[Dims[1]];
     mwSize Len = AI.MatchS < 0 ? 0 : AI.MatchE - AI.MatchS + 1;
 
     for (mwSize a = 0; a < LenA; a++) {
@@ -275,8 +301,9 @@ mxArray *buildAlignment(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, 
     }
     
     if (AI.Match > 0) {
+        bool pMatch[Len];
         cmprSeq(&pSeqA[AI.MatchS - a0], &pSeqB[AI.MatchS - b0], Len, 'n', pMatch);
-        int t = 0;
+        int t = findFirstMatch(pMatch, Len);
         for (int m = AI.MatchS; m <= AI.MatchE; m++, t++) {
             pAlignStr[1 + 3*m] = pMatch[t] ? '|' : ' ';
         }
@@ -285,7 +312,7 @@ mxArray *buildAlignment(mxChar *pSeqA, mxChar *pSeqB, mwSize LenA, mwSize LenB, 
 }
 
 int countMatch(bool *pMatch, mwSize Len) {
-    int Ct = 0;
+    int Ct;
     for (int k = 0; k < Len; k++) {
         if (pMatch[k]) { Ct++; }
     }

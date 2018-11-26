@@ -11,7 +11,7 @@ if Option == 0 || Option == 1
     runAnalysis([FilePath 'MouseH_Fasta' filesep 'MouseH_Fasta.BRILIAv3.csv']);
 end
 if Option == 0 || Option == 2
-    BRILIA([FilePath 'MouseH_Comma.csv'], 'Species', 'Mouse', 'Strain', 'C57BL', 'Chain', 'H', 'resume', 'n');
+    BRILIA([FilePath 'MouseH_Comma.csv'], 'Species', 'Mouse', 'Strain', 'C57BL', 'Chain', 'H', 'resume', 'n', 'Cutoff', 0);
     runAnalysis([FilePath 'MouseH_Comma' filesep 'MouseH_Comma.BRILIAv3.csv']);
 end
 if Option == 0 || Option == 3

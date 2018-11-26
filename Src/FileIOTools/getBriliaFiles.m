@@ -41,7 +41,15 @@ for f = 1:length(FileNames)
     if isdir(FileNames{f})
         FileNames{f} = dir2(fullfile(FileNames{f}, '*BRILIAv*.csv'), 'file');
         GoodLoc = ~endsWith(FileNames{f}, {'Raw.csv', 'Err.csv'}, 'ignorecase', true);
-        FileNames{f} = FileNames{f}(GoodLoc);
+        if sum(GoodLoc) > 1 %Perhaps there is a modification
+            GoodIdx = find(GoodLoc);
+            fprintf('%s: Found multiple BRILIAv*.csv files. Picking the longest-name file.\n', mfilename);
+            FileLen = cellfun('length', FileNames{f}(GoodIdx));
+            [~, KeepIdx] = max(FileLen);
+            FileNames{f} = FileNames{f}(GoodIdx(KeepIdx(1)));
+        else
+            FileNames{f} = FileNames{f}(GoodLoc);
+        end
     else 
         FileNames{f} = dir2(FileNames{f}); %Wrap it up for simply vertcat at end
     end

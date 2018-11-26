@@ -71,7 +71,7 @@ for j = 1:NumClones
         if strcmpi(DetailLevel, 'family')
             GeneName = unique(parseGeneName(GeneName));
         end
-        GeneIdx{n} = find(ismember(UnqGeneNames{n}, GeneName));
+        GeneIdx{n} = find(ismember(UnqGeneNames{n}, GeneName), 1);
     end
     GeneCombVec = combvec2(GeneIdx{:});
     GeneCombCell = cell(NumGenes, 1);

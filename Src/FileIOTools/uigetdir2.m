@@ -46,7 +46,7 @@ CmdOn = any(CmdLoc);
 varargin = varargin(~CmdLoc);
 
 %Establish first search folder 
-if numel(varargin) >= 1 &&  isdir(varargin{1})
+if numel(varargin) >= 1 && isdir(varargin{1})
     StartPath = varargin{1};
 end
 
@@ -55,9 +55,9 @@ if numel(varargin) >= 2
     DialogTitle = varargin{2};
 else
     if MultiOn
-        DialogTitle = 'Choose directories';
+        DialogTitle = 'Choose directories to open';
     else
-        DialogTitle = 'Choose directory';
+        DialogTitle = 'Choose directory to open';
     end
 end
 
@@ -127,9 +127,12 @@ else %Ask user to type the directory path
             continue
 
         else %User has specified a string for folders
-            if ~startsWith(PathInput, '.')
-                PathInput = fullfile(['.' filesep], PathInput);
+            if ispc && ~contains(PathInput, ':') && PathInput(1) ~= '.' %User did not specify HDD name
+                PathInput = fullfile(['.' filesep], PathInput);         %Append "./" current dir to beginning
+            elseif ~startsWith(PathInput, {'.', filesep})
+                PathInput = fullfile(['.' filesep], PathInput);         %Append "./" current dir to beginning
             end
+            
             PathInput = regexprep(PathInput, {'''|"', ['\.\.' filesep], ['\.' filesep]}, strrep({'', [fileparts(StartPath) filesep], [StartPath filesep]}, '\', '\\')); %relative pathing ../ and ./
             PathNames = strsplit(PathInput, pathsep)';
             for f = 1:numel(PathNames)

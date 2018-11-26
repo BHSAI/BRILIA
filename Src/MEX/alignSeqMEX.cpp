@@ -112,7 +112,7 @@ reference for BRILIA.
          CAAAATTAAAATTAAAAC
 
     Case3) Wildcard matching and exact matching
-      SeqA = 'CGAAXCAA'
+      SeqA = 'CGAANCAA'
       SeqB = 'ACGAACGA'
       [~, ~, ~, Alignment] = alignSeqMEX(SeqA, SeqB, 0, 'n', 'n')
        Alignment =
@@ -142,11 +142,7 @@ reference for BRILIA.
         Score =
             6
            19
- 
-      [Score, ~, ~, Alignment] = alignSeqMEX(SeqA, SeqB, 1/8, 'n', 'y')
-        Score =
-            6
-           19
+
 */
 
 #include "AlignTool.hpp"
@@ -161,7 +157,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
         mexErrMsgIdAndTxt("alignSeqMEX:nlhs", "Too many outputs. Max is 4.");
     }
     
-    double MissRate    = 0;
+    double MissRate = 0;
     mxChar Alphabet    = 'n';
     mxChar ExactMatch  = 'n';
     mxChar TrimSide    = 'n';
@@ -193,7 +189,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
     }
     
     mxChar *pSeqA, *pSeqB;
-    mwSize LenA, LenB;
+    mwSize LenA = 0, LenB = 0;
     
     if (!mxIsChar(prhs[0]) || mxGetM(prhs[0]) > 1) {
         mexErrMsgIdAndTxt("alignSeqMEX:prhs", "Input1: SeqA must be a 1xN char array.");
@@ -210,7 +206,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
             CurN = mxGetN(mxGetCell(prhs[1], j));
             if (CurN > MaxN) { MaxN = CurN; }
         }
-        bool pMatch[LenA + MaxN];
+        bool pMatch[MaxN > LenA ? MaxN : LenA];
         for (mwSize j = 0; j < Z; j++) {
             pSeqB = mxGetChars(mxGetCell(prhs[1], j));
             LenB = mxGetN(mxGetCell(prhs[1], j));
@@ -219,7 +215,7 @@ void mexFunction(int nlhs,        mxArray *plhs[],
     } else {
         pSeqB = mxGetChars(prhs[1]);
         LenB = mxGetN(prhs[1]);
-        bool pMatch[LenA + LenB];
+        bool pMatch[LenB > LenA ? LenB : LenA];
         alignSeq(pSeqA, pSeqB, LenA, LenB, MissRate, Alphabet, ExactMatch, TrimSide, PenaltySide, PreferSide, AI[0], pMatch); 
     }
 

@@ -53,7 +53,13 @@ for a = 1:length(Axs)
     FieldNames = fieldnames(Axs(a));
     for j = 1:2:length(varargin)
         try
-            if any(strcmpi(FieldNames, varargin{j})) %Oddly, isfield does NOT work for axes handles like isfield(gca, 'Units') will fail.
+            if startsWith(varargin{j}, {'XLabel', 'YLabel', 'ZLabel'}) %For relabeling the text of axis, ex: XLabel-String, XLabel-FontName, etc
+                SpecialOpt = strsplit(varargin{j}, '-');
+                if numel(SpecialOpt) == 1
+                    SpecialOpt{2} = 'String';
+                end
+                set(get(Axs(a), SpecialOpt{1}), SpecialOpt{2}, varargin{j+1});                
+            elseif any(strcmpi(FieldNames, varargin{j})) %Oddly, isfield does NOT work for axes handles like isfield(gca, 'Units') will fail.
                 set(Axs(a), varargin{j}, varargin{j+1});
             end
         catch ME

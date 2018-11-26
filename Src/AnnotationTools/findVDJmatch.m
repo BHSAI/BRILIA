@@ -73,7 +73,7 @@ Vmap = DB.Vmap;
 Dmap = DB.Dmap;
 Jmap = DB.Jmap;
 
-%Begin finding the VDJ genes   
+%Begin finding the VDJ genes  
 parfor j = 1:size(VDJdata, 1)
     MissRate = 0.15; %Start with 15% allowed mismatch rate. Place inside parfor to reset! 
 

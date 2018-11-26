@@ -4,19 +4,13 @@
 #include "mex.h"
 #include <math.h>
 
-/* align_info will store information of the sequence alignment
- *   Match: # of nts matched
- *   Score: alignment score
- *   BShift: how many letters to shift SeqB right or left of SeqA for alignnment
- *   MatchS: 1st  position where SeqA-to-SeqB alignment position matches (1-based index)
- *   MatchE: last position where SeqA-to-SeqB alignment position matches (1-based index)
- */
+// align_info will store information of the sequence alignment
 struct align_info {
-    double Match  = 0;
-    double Score  = 0;
-    int BShift = 0;
-    int MatchS = -1;
-    int MatchE = -1;
+    double Match = 0; //Match: # of nts matched
+    double Score = 0; //Score: alignment score
+    int BShift = 0;   //BShift: how many letters to shift SeqB right or left of SeqA for alignnment
+    int MatchS = -1;  //MatchS: 1st  position where SeqA-to-SeqB alignment position matches (1-based index)
+    int MatchE = -1;  //MatchE: last position where SeqA-to-SeqB alignment position matches (1-based index)
 }; 
 
 int findFirstMatch(bool*, mwSize);
