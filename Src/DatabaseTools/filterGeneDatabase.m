@@ -101,10 +101,12 @@ end
 if min(VgeneNum) > 1 %You have to filter
     Idx = find(startsWith(Fields, 'V', 'ignorecase', true));
     for j = 1:length(Idx)
-        Funct = regexpi(DB.(Fields{Idx(j)})(:, M.Funct), '\w+', 'match');
-        Funct = cellfun(@(x) lower(x{1}), Funct, 'un', 0);
-        DelLoc = ~ismember(Funct, VgeneList(VgeneNum));
-        DB.(Fields{Idx(j)})(DelLoc, M.Seq) = {''};
+        if ~isempty(DB.(Fields{Idx(j)}))
+            Funct = regexpi(DB.(Fields{Idx(j)})(:, M.Funct), '\w+', 'match');
+            Funct = cellfun(@(x) lower(x{1}), Funct, 'un', 0);
+            DelLoc = ~ismember(Funct, VgeneList(VgeneNum));
+            DB.(Fields{Idx(j)})(DelLoc, M.Seq) = {''};
+        end
     end
 end
 FiltOption.Vgene = makeStrPattern(VgeneList(VgeneNum), ',');
