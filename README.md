@@ -1,5 +1,5 @@
-# BRILIA  v3.5.1 (beta)
-## (B-cell Repertoire Inductive Lineage and Immunosequence Annotator)
+# BRILIA  v3.1.5
+## (B-cell repertoire inductive lineage and immunosequence annotator)
 
 ## REFERENCE:
 [Lee, D.W., I. Khavrutskii, A. Wallqvist, S. Bavari, C. Cooper, and S. Chaudhury. BRILIA: Integrated Tool for High-Throughput Annotation and Lineage Tree Assembly of B-Cell Repertoires. Frontiers in Immunology, 2017. 7(681).](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full)
@@ -81,11 +81,11 @@ Linux
 ```
   \BRILIA>  BRILIA.exe [input_file] Species [species_name] Chain H
 ```
-8. To plot lineage trees, type:
+8. To plot lineage trees and other plots, type:
 ```
-  \BRILIA>  BRILIA.exe plotTree [BRILIA_output_file]
+  \BRILIA>  BRILIA.exe runAnalysis [BRILIA_output_file]
 ```
-  Trees will be saved in a folder called "Tree" in the same folder where the output file is.
+  In the same folder where the output file is, There will be a "Trees" and "Analysis" folders.
 
 ### For LINUX
 5. Open up the linux terminal.
@@ -107,12 +107,11 @@ Linux
 ```
   BRILIA]$  ./run_BRILIA.sh [mcr_library_path] [input_file] Species [species_name] Chain H
 ```
-8. To plot lineage trees, type:
+8. To plot lineage trees and other plots, type:
 ```
-  BRILIA]$  ./run_BRILIA.sh [mcr_library_path] plotTree [BRILIA_output_file]
+  BRILIA]$  ./run_BRILIA.sh [mcr_library_path] runAnalysis [BRILIA_output_file]
 ```
-  Trees will be saved in a folder called "Tree" in the same folder where the output file is.
-
+  In the same folder where the output file is, There will be a "Trees" and "Analysis" folders.
 
 ## Running BRILIA in MATLAB 
 
