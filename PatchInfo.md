@@ -1,5 +1,5 @@
-## Patch notice for version 4.0.0 MAJOR CHANGES
- - Reworked the algorithm for lineage assembly 
+## Patch notice for version 3.5.1 (MAJOR CHANGES)
+ - Reworked the B-cell phylogeny algorithm 
     - no "cutoff" required anymore
     - uses bias in SHMs and Hotspot Motifs to determine clonotypes
  - Added the following data columns to the output files
@@ -10,25 +10,27 @@
     - No 'DevPerc' option anymore (see Lineage Algorithm note above)
     - 'Vfunction' option is now 'Vgene' 
     - 'Ddirection' option is now 'Dgene'
-    
- - Added repertoire comparison tools, runGroupAnalysis
- - Invalid annotations include alignments with >40% Hamming distance 20nts left and right of CDR3.
- - Added fastq file alignment quality filters (MinQuality), which will
-
- LINEAGE: and up to FR3 and FR4? to determine lineages. Will NOT use more than that, as this dilutes out HAM %. 
- ANALYSIS: runGroupAnalysis
- DATABASE: Custom database
- DATAIO: added NCBI's SRA toolkit to download SRA files directly from the web.
-
- - Will process custom database FASTA files. For executable, will create a Database folder and use fasta files there to do annotations.
- -
+ - Added more command-line features to search and process files
+    - Example: BRILIA /home/user/MyFiles/*.fa speices Mouse Chain H Cutoff 0.2  
+ - Added fastq file alignment quality filters (MinQuality), which will set low-quality base read as wildcard "N". 
+ - Added customizable VDJ gene databases
+    - Executable now creates a Databases folder, which can be modified to add/remove VDJ databases for different species.
+    - The folder naming and inner fasta files must follow the same format as that from IMGT.org
+    - User can select th
+ - Added post-processing feature (mergeSimilarSeq) to remove sequences that diff less than a Cutoff hamming distance (integer >= 1) or fraction 
+    - The removal of similar sequences is done in a way to preserve the overal lineage-relationships
+    - NOTE: more work will be done to perfect this, but it's good to use this for 1-2 nt differences.
+    - mergeSimilarSeq ./* 0.3      % will condense sequences that differ <= 30% hamming distance between parent-child relations
+ - Added BRILIA test funciton
+    - BRILIA test all 
 
  PERFORMANCE IMPROVEMENTS
  - Moved more function to C++ for speed enhancement
  - Made annotation and plotting codes multi-threaded
  - Added parallel computing progress tracker (ProgressTracker.m)
  - Added spliceData and joinData to enable parallel computing
- - 
+ - Added parallel plotTree function, and to other clonotype-level functions
+
 --------------------------------------------------------------------------
 ## Patch notice for version 3.1.4
  - Enabled inputs of file path or name with a space if encapsulated in quotes. EX: "C:\Temp Dir\"
