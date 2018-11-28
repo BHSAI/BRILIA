@@ -1,53 +1,75 @@
-# BRILIA  v3.1.4
-## (B-cell repertoire inductive lineage and immunosequence annotator)
+# BRILIA  v3.5.1 (beta)
+## (B-cell Repertoire Inductive Lineage and Immunosequence Annotator)
 
 ## REFERENCE:
 [Lee, D.W., I. Khavrutskii, A. Wallqvist, S. Bavari, C. Cooper, and S. Chaudhury. BRILIA: Integrated Tool for High-Throughput Annotation and Lineage Tree Assembly of B-Cell Repertoires. Frontiers in Immunology, 2017. 7(681).](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full)
 
 ## CONTACT:
-  *  Donald for questions about BRILIA software, bugs, etc: dlee@bhsai.org  
-  *  Sid for questions about the immunosequencing research: schaudhury@bhsai.org
+  *  brilia@bhsai.org (M-F, 9am-5pm EST, off on federal holidays)
 
 ## PURPOSE:
 
-BRILIA annotates VDJ and/or VJ junctions from a repertoire of B-cells, returning information about CDR regions, phylogeny relationships, and somatic hypermutations. More information about BRILIA can be found in the [reference article](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full).
+BRILIA is an all-in-one software to process sequencing data of B-cell receptors. It annotates V(D)J junctions, assigns B-cell lineages/clonotypes, and characerizes B-cell repertoires. [reference article](http://journal.frontiersin.org/article/10.3389/fimmu.2016.00681/full).
   
-## INPUT FILES (See [example input files](https://github.com/BHSAI/BRILIA/tree/master/Examples/MouseH)): 
+## INPUT FILES (See [example input files](https://github.com/BHSAI/BRILIA/tree/master/Examples/)): 
  
   * Accepted sequence file formats: 
-    * fasta (.fa or .fasta)
-    * fastq (.fastq)
-    * comma-delimited (.csv)
-    * semicolon-delimited (.ssv)
-    * tab-delimited (.tsv)
+    * .fasta or .fa
+    * .fastq (See MinQuality input parameter to treat low-quality base reads as "N" bases)
+    * .csv (comma-delimited)
+    * .ssv (semicolon-delimited)
+    * .tsv (tab-delimited)
   * Does not accept paired-end reads, so please assemble them using a 3rd party software.
-  * Non-nucleotide letters are treated as wildcard "X" or "N" nucleotides.
+  * Non-nucleotide letters are treated as wildcard "N" bases. Special letters are not used yet (Ex: R = A/G is unused)
   * For delimited files, make sure that:
-    * first row is the data header: "SeqName,H-Seq,L-Seq,TemplateCount"
-    * data is stored in subsequent rows in the order of the data header. 
-      * SeqName: the name of the sequence. Required.
-      * H-Seq: heavy chain sequence. Optional IF doing Light chain only.
-      * L-Seq: light chain sequence. Optional IF doing Heavy chain only.
-      * TemplateCount: the number of sequence copies. Optional.
     * delimiter symbols are not used in places where they are not delimiters.
-    
-    NOTE: BRILIA will auto-detect the delimiter and heavy/light chain if formatted properly.
+    * first row is the data header. Ex: "SeqName, H-Seq, L-Seq, TemplateCount"
+      * SeqName: the name of the sequence
+      * H-Seq: heavy chain sequence
+      * L-Seq: light chain sequence
+      * TemplateCount: the number of sequence copies (Optional)
 
 ## OUTPUT FILES (See [example output files](https://github.com/BHSAI/BRILIA/tree/master/Examples/MouseH/MouseH_Fasta)): 
 
   * Returns 3 delimited csv file:
     * [output_file_name].BRILIAv3.csv : stores final annotation and phylogeny data of productive V(D)J sequences
-    * [output_file_name].BRILIAv3.Raw.csv : stores initial annotation of V(D)J sequences without lineage-base annotation correction. This is used as a save point for reclustering sequences. 
+    * [output_file_name].BRILIAv3.Raw.csv : stores initial annotation of V(D)J sequences without lineage-base annotation correction.
     * [output_file_name].BRILIAv3.Err.csv : stores non-productive VDJ sequences and any sequences that could not be annotated fully.
   * If the output file is not specified, results will be stored in a subfolder with the same name as the input file. 
   * See [output file header info](https://github.com/BHSAI/BRILIA/blob/master/Tables/DataHeaderInfo.csv).
 
-## Running BRILIA without MATLAB
+## Running BRILIA without MATLAB license
 ### General preparations and downloads
 1. Download the MATLAB Runtime Version R2017a (9.2) from the [MathWorks website](https://www.mathworks.com/products/compiler/mcr.html).
 2. Install the MRC library on your computer.
 3. Download the appropriate [BRILIA binary files](https://github.com/BHSAI/BRILIA/releases/).
 4. Unzip the executable files into a folder called BRILIA.
+
+
+## Running BRILIA 
+### Brilia can be run either through the OS terminal or via BRILIA's own terminal. Whatever command that can be run via the BRILIA's terminal can also be run in the OS terminal by stating the BRILIA executable first before the inputs. All instructions are for within the BRILIA terminal.
+1. Open the BRILIA terminal 
+Windows
+```BRILIA.exe```
+Linux
+```run_BRILIA.sh [path_to_matlabMCR]```
+2. Run the commands within the BRILIA terminal 
+```BRILIA> [commands]
+3. To run WITHOUT opening the BRILIA terimnal, simply retype the commands above WITH the inputs you want BRILIA to process right away.
+```BRILIA.exe [commands]...```
+```run_BRILIA.sh [path_to_matlabMCR] [commands]...```
+
+## Standard Usage Example
+### Assuming fastq files are in the folder "/home/user/My Files", perform the following:
+1. Annotate the VDJ junctions:
+```BRILIA> "/home/user/My Files/*.fa*" species mouse chain h cutoff 1```
+2. Do basic data analysis
+### Process files as such:
+```BRILIA> runAnalysis 
+
+
+
+
 
 ### For WINDOWS
 5. Open windows' command prompt.
