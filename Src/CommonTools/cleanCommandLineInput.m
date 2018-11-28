@@ -40,6 +40,8 @@ if length(varargin) == 1 && ischar(varargin{1}) %input was a unparsed string
     CellStr = strrep(strrep(regexp(StrInput, '\s+', 'split'), '^', ' '), '"', ''); %split by space, restore ^ to space, remove quotes
 else
     CellStr = varargin;
+    CharLoc = cellfun('isclass', CellStr, 'char');
+    CellStr(CharLoc) = strrep(CellStr(CharLoc), '"', '');
 end
 
 %Determine if this is a matlab-style input, like 'function_name(a, b, c)'

@@ -6,7 +6,7 @@
 %  VDJdata = mergeSimilarSeq(VDJdata, Map, DiffCutoff)
 %
 %  INPUT
-%    VDJdata: main BRILIA data cell array
+%    VDJdata: main BRILIA data cell
 %    Map: struct of indices of VDJdata columns
 %    DiffCutoff: integer number of nts or fraction length of sequences for 
 %      use in determining cutoff distance at which two sequences will not 
@@ -14,40 +14,58 @@
 %      considered the same ONLY IF the lineage relations remains unchanged.
 %
 %  OUTPUT
-%    O1:
+%    VDJdata: main BRILIA data cell
 %
 function VDJdata = mergeSimilarSeq(varargin)
+VDJdata = [];
 %To enable post-processing capabilities
-if nargin >= 3
-    varargin = cleanCommandLineInput(varargin{:});
+varargin = cleanCommandLineInput(varargin{:});
+if numel(varargin) >= 3
     [VDJdata, Map, Cutoff] = deal(varargin{1:3});
-    if isempty(VDJdata) || Cutoff <= 0; return; end %quick return
-    Map = getVDJmapper(Map); %In case user uses VDJheader instead of Map
     VDJdata = mergeSimilarSeq_Calc(VDJdata, Map, Cutoff);
 else
-    FileNames = getBriliaFiles();
+    if numel(varargin) == 0 
+        FileNames = getBriliaFiles('', true, true);
+    elseif numel(varargin) >= 1
+        FileNames = getBriliaFiles(varargin{1}, true, true);
+    elseif strcmpi(varargin{1}, 'gui')
+        FileNames = getBriliaFiles('', true, false);
+    else
+        FileNames = getBriliaFiles(varargin{1}, true, false);
+    end
     if isempty(FileNames); return; end
-    Cutoff = input('Merge sequences with differences greater than:\n 0 to 0.99 for seq length, or integer >= 1 for hamming distance: ');
+    if numel(varargin) == 2
+        Cutoff = varargin{2};
+    else
+        Cutoff = input('Merge sequences with differences greater than:\n 0 to 0.99 for seq length, or integer >= 1 for hamming distance: ');
+    end
     for f = 1:length(FileNames)
         [VDJdata, VDJheader, ~, ~, Map] = openSeqData(FileNames{f});
         CurNum = size(VDJdata, 1);
         VDJdata = mergeSimilarSeq_Calc(VDJdata, Map, Cutoff);
-        [Path, ~, Ext, Pre] = parseFileName(FileNames{f});
-        SaveName = fullfile(Path, sprintf('%s.Merge%0.2f%s', Pre, Cutoff, Ext));
-        saveSeqData(SaveName, VDJdata, VDJheader);
-        NewNum = size(VDJdata, 2);
-        fprintf('%s: Finished with "%s".\n  Reduced %d similar sequences.\n', mfilename, FileNames{f}, CurNum - NewNum);
+        NewNum = size(VDJdata, 1);
+        if CurNum ~= NewNum
+            [Path, ~, Ext, Pre] = parseFileName(FileNames{f});
+            SaveName = fullfile(Path, sprintf('%s.Merge%0.2f%s', Pre, Cutoff, Ext));
+            saveSeqData(SaveName, VDJdata, VDJheader);
+            fprintf('%s: Finished with "%s".\n  Reduced %d similar sequences.\n', mfilename, FileNames{f}, CurNum - NewNum);
+        else
+            fprintf('%s: No sequences to merge in "%s".\n', mfilename, FileNames{f});
+        end
     end
+    VDJdata = []; %Nothing to return;
 end
 
 function VDJdata = mergeSimilarSeq_Calc(VDJdata, Map, Cutoff)
+if isempty(VDJdata) || Cutoff <= 0; return; end %quick return
+Map = getVDJmapper(Map); %In case user uses VDJheader instead of Map
+
 IsSpliced = iscell(VDJdata{1});
 if ~IsSpliced
     VDJdata = spliceData(VDJdata, Map); %Has to be done to ensure proper group numbers
 end
 
-warning('%s:', mfilename)
-for y = 1:length(VDJdata)
+parfor y = 1:length(VDJdata)
     VDJdata{y} = mergeSimilarSeqPerGroup(VDJdata{y}, Map, Cutoff);
 end
 VDJdata = joinData(VDJdata, Map); %Have to join to ensure cluster-based splicing w/ correct GrpNum
@@ -60,7 +78,7 @@ if size(VDJdata, 1) <= 1; return; end
 
 AncMap = zeros(size(VDJdata, 1), 4);
 AncMap(:, [1:2, 4]) = cell2mat(VDJdata(:, [Map.SeqNum, Map.ParNum, Map.Template]));
-TC0 = sum(AncMap(:, 4));
+
 %CODING_NOTE: instead of redoing this comparison, consider saving info in VDJdata after lineage inference
 SeqIdx = nonzeros([Map.hSeq; Map.lSeq]);
 Seq1 = ''; %Keep this to prevent an unassigned Seq1 length later
@@ -89,8 +107,6 @@ for j = 1:length(Idx)
     AncMap(MainParIdx, 4) = AncMap(MainParIdx, 4) + AncMap(Idx(j), 4); %Added up the templates
 end
 
-AncMap(Idx, :) = [];
-TC1 = sum(AncMap(:, 4));
-if ~isequal(TC0, TC1); error('erer'); end
+AncMap(Idx, :)  = [];
 VDJdata(Idx, :) = [];
 VDJdata(:, [Map.SeqNum; Map.ParNum; Map.Template]) = num2cell(AncMap(:, [1:2 4]));

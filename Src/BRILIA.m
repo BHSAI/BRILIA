@@ -182,18 +182,22 @@ while true
         %if user has inputed "help list", show ALL available functions
 
         if isempty(SubFuncNames)
-            BasicFuncNames = {'system'; 'ls'; 'cd'; 'dir'};
+            BasicFuncNames = {'system'; 'ls'; 'cd'; 'dir'; 'pwd'};
             SubFuncNames = [BasicFuncNames; arrayfun(@(x) x.name(1:end-2), dir(fullfile(findRoot, '**', '*.m')), 'un', 0)];
         end
         if ismember(varargin{1}, SubFuncNames)
-            try
-                FH = str2func(varargin{1});
-                FH(varargin{2:end});
-            catch ME
-                disp(ME)
-                disp(varargin)
-                for j = 1:length(ME.stack)
-                    disp(ME.stack(j))
+            if strcmpi(varargin{1}, 'pwd')
+                disp(pwd);
+            else
+                try
+                    FH = str2func(varargin{1});
+                    FH(varargin{2:end});
+                catch ME
+                    disp(ME)
+                    disp(varargin)
+                    for j = 1:length(ME.stack)
+                        disp(ME.stack(j))
+                    end
                 end
             end
             if RunInLocalEnv; continue; else; return; end
@@ -502,9 +506,6 @@ while true
             showStatus('Trimming N regions ...', StatusHandle)
             VDJdata = trimGeneEdge(VDJdata, Map, DB);
                 
-            showStatus('Removing sequences that are too similar ...', StatusHandle);
-            VDJdata = mergeSimilarSeq(VDJdata, Map, Cutoff);
-
             VDJdata = joinData(VDJdata, Map);
 
             showStatus('Finalizing annotations ...', StatusHandle);
@@ -513,6 +514,12 @@ while true
             VDJdata = buildVDJalignment(VDJdata, Map, DB);
                 
             saveSeqData(OutputFile{f}, VDJdata, VDJheader);
+            
+            %Post processing step
+            if Cutoff > 0
+                showStatus('Removing sequences that are too similar ...', StatusHandle);
+                mergeSimilarSeq(OutputFile{f}, Cutoff);
+            end
         end
         showStatus(sprintf('Finished in %0.1f sec.', toc(TicInputFile)), StatusHandle);
     end

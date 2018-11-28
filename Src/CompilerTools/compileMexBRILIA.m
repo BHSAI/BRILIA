@@ -8,7 +8,7 @@ function compileMexBRILIA
 RootDir = findRoot;
 MexFiles = dir(fullfile(RootDir, '**', '*MEX.cpp'));
 MexFiles = fullfile({MexFiles.folder}, {MexFiles.name});
-
+clear mex;  %#ok<CLMEX>  %Just include as otherwise could lead to write permission on compile
 for f = 1:length(MexFiles)
     compileMex(MexFiles{f}, 'makeMFile', '-outdir', fileparts(MexFiles{f}));
 end

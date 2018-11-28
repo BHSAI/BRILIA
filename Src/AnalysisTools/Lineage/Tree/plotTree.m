@@ -168,31 +168,35 @@ PT = ProgressTracker(length(G), [], 'Trees drawn', StatusHandle);
 DQ = PT.DataQueue;
 showStatus(sprintf('Drawing %d trees.', length(G)), StatusHandle)
 
-%warning('%s: renable parfor', mfilename);
-parfor y = 1:length(G)
-    try
-        ExpPuT = ExpPu;
-        VDJdata{y} = padtrimSeqGroup(VDJdata{y}, Map, 'grpnum', 'trim', 'Seq'); 
-        Gx = plotSingleTree(VDJdata{y}, VDJheader, ExpPuT, DistanceUnit, DotMaxSize, DotMinSize, DotScalor, DotColorMap, Legend, LegendFontSize, Xmax, Yincr, FigMaxHeight, FigWidth, FigSpacer, Visible)
+if ShowOnly %Do not use parfor to preserve figure handles
+    for y = 1:length(G)
+        try
+            ExpPuT = ExpPu;
+            VDJdata{y} = padtrimSeqGroup(VDJdata{y}, Map, 'grpnum', 'trim', 'Seq'); 
+            plotSingleTree(VDJdata{y}, VDJheader, ExpPuT, DistanceUnit, DotMaxSize, DotMinSize, DotScalor, DotColorMap, Legend, LegendFontSize, Xmax, Yincr, FigMaxHeight, FigWidth, FigSpacer, Visible);
+        catch ME
+            throw(ME)
+        end
+    end
+    return
+else
+    parfor y = 1:length(G)
+        try
+            ExpPuT = ExpPu;
+            VDJdata{y} = padtrimSeqGroup(VDJdata{y}, Map, 'grpnum', 'trim', 'Seq'); 
+            Gx = plotSingleTree(VDJdata{y}, VDJheader, ExpPuT, DistanceUnit, DotMaxSize, DotMinSize, DotScalor, DotColorMap, Legend, LegendFontSize, Xmax, Yincr, FigMaxHeight, FigWidth, FigSpacer, Visible)
 
-        if ~ShowOnly 
             SavePre = sprintf('.Grp%d', G(y).GrpNum);
             SuggestedSaveName = prepSaveTarget('SaveAs', SaveAs, 'SavePrefix', SavePre);
             ImgNames{y} = savePlot(Gx, 'SaveAs', SuggestedSaveName, ExpPuT{:});
             ImgGrpNums(y) = G(y).GrpNum;
             close(Gx);
+        catch ME
+            throw(ME)
         end
-    catch ME
-        if exist(Gx, 'var') && isvalid(Gx)
-            close(Gx)
-        end
-        disp(ME)
+        send(DQ, y); %To show progress
     end
-    
-    send(DQ, y); %To show progress
 end
-
-if ShowOnly; return; end
 
 %Create the tree search table
 VDJdata = joinData(VDJdata, VDJheader, 'stable');
