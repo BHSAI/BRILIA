@@ -101,4 +101,4 @@ BRILIA is designed to be a single-platform software capable of processing B-cell
 
   * The program is distributed under the [GNU General Public License](http://www.gnu.org/licenses/gpl.html).  
   * [BRILIA patch info](https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md). 
-  * [Development plans and open issues](https://github.com/BHSAI/BRILIA/blob/master/OpenIssues.md).
+  * [Feature requests and open issues](https://github.com/BHSAI/BRILIA/issues).
