@@ -11,7 +11,7 @@ RootDir = findRoot;
 if ispc || DoAll
     WinDir = fullfile(RootDir, 'Bin', 'Win');
     try
-        zip(fullfile(WinDir, 'BRILIA_Win'), 'BRILIA.exe', WinDir);
+        zip(fullfile(WinDir, sprintf('BRILIAv%s_Win', BRILIA('version'))), 'BRILIA.exe', WinDir);
     catch
         warning('%s: Could not zip Windows files', mfilename);
     end
@@ -19,7 +19,7 @@ if ispc || DoAll
 elseif isunix || DoAll
     LinuxDir = fullfile(RootDir, 'Bin', 'Linux');
     try
-        zip(fullfile(LinuxDir, 'BRILIA_Linux'), {'BRILIA', 'run_BRILIA.sh'}, LinuxDir);
+        zip(fullfile(LinuxDir, sprintf('BRILIAv%s_Linux', BRILIA('version'))), {'BRILIA', 'run_BRILIA.sh'}, LinuxDir);
     catch
         warning('%s: Could not zip Linux files', mfilename);
     end
