@@ -11,7 +11,7 @@ BRILIA is designed to be a single-platform software capable of processing B-cell
   E-mail: brilia@bhsai.org (address to Donald Lee for BRILIA help, or Sid Chuadhury for all other questions)  
   Hours: M-F, 9am-5pm EST, off on federal holidays  
   
-## INPUT FILES
+## Inputs
  
   * Accepts DNA/RNA sequence files with the following extensions:
     * .fasta or .fa
@@ -28,7 +28,7 @@ BRILIA is designed to be a single-platform software capable of processing B-cell
       * TemplateCount: the number of sequence copies (Optional)
   * See [example input files](https://github.com/BHSAI/BRILIA/tree/master/GitDocs/ExampleIO)
 
-## OUTPUT FILES 
+## Outputs
 
   * Returns 3 delimited csv file:
     * [output_file_name].BRILIAv3.csv : final annotation and phylogeny data of productive V(D)J sequences
@@ -95,7 +95,7 @@ BRILIA is designed to be a single-platform software capable of processing B-cell
       BRILIA_FOLDER$ chmod +rx run_BRILIA.sh
       ```  
 
-# License, Patches, and Ongoing Developements
+## License, Patches, and Ongoing Developements
 
   * The program is distributed under the [GNU General Public License](http://www.gnu.org/licenses/gpl.html).  
   * [BRILIA patch info](https://github.com/BHSAI/BRILIA/blob/master/PatchInfo.md). 
