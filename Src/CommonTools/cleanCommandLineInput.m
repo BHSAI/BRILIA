@@ -29,7 +29,7 @@ function CellStr = cleanCommandLineInput(varargin)
 if length(varargin) == 1 && ischar(varargin{1}) %input was a unparsed string
     StrInput = varargin{1};
     QuoteIdx = find(StrInput == '"');
-    if mod(QuoteIdx, 2) > 0
+    if mod(length(QuoteIdx), 2) > 0
         CellStr = {};
         warning('%s: Unequal number of quotes.', mfilename);
         return
