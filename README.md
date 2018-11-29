@@ -72,6 +72,8 @@ BRILIA is designed to be a single-platform software capable of processing B-cell
    Status: ...
    Status: Finished in 3.3 sec.
 
+  BRILIA> mergeSimilarSeq "./*" 0.01  (optional: parent-child sequences with < 1% Hamming distance will be merged under the parent)
+  
   BRILIA> runAnalysis "./*"   (run analysis on all output files in subfolder of this current folder)
 
     Status: Drawing 46 trees.
