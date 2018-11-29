@@ -2,7 +2,6 @@
 
 **B-cell Repertoire Inductive Lineage and Immunosequence Annotator**
 
-**Purpose**  
 BRILIA is designed to be a single-platform software capable of processing B-cell receptor sequences, annotating VDJ junctions, assigning B-cell lineages/clonotypes, and characerizing B-cell repertoires. 
 
 **REFERENCE**  
@@ -27,7 +26,7 @@ BRILIA is designed to be a single-platform software capable of processing B-cell
       * H-Seq: heavy chain sequence
       * L-Seq: light chain sequence
       * TemplateCount: the number of sequence copies (Optional)
-  * See [example input files](https://github.com/BHSAI/BRILIA/tree/master/Examples/)
+  * See [example input files](https://github.com/BHSAI/BRILIA/tree/master/GitDocs/ExampleIO)
 
 ## OUTPUT FILES 
 
@@ -37,11 +36,11 @@ BRILIA is designed to be a single-platform software capable of processing B-cell
     * [output_file_name].BRILIAv3.Err.csv : non-productive VDJ sequences and any sequences that could not be annotated fully.
   * If the output file is not specified, files will be stored in a subfolder with the same name as the input file.
   * See [output file header info](https://github.com/BHSAI/BRILIA/blob/master/Tables/DataHeaderInfo.csv)
-  * See [example output files](https://github.com/BHSAI/BRILIA/tree/master/Examples/MouseH/MouseH_Fasta)  
+  * See [example output files](https://github.com/BHSAI/BRILIA/tree/master/GitDocs/ExampleIO/MouseH)  
 
 ## Installing BRILIA 
 
-  1. Dowload & install the MATLAB Runtime R2017a(9.2) from [MathWorks](https://www.mathworks.com/products/compiler/matlab-runtime.html) into a folder, referred to as `RUNTIME_FOLDER`.
+  1. Dowload & install the [MATLAB Runtime R2017a(9.2) from MathWorks](https://www.mathworks.com/products/compiler/matlab-runtime.html) into a folder, referred to as `RUNTIME_FOLDER`.
   2. Download & unzip the [BRILIA exe files](https://github.com/BHSAI/BRILIA/releases/) into a folder, referred to as `BRILIA_FOLDER`.
   3. Open the OS terminal and navigate to `BRILIA_FOLDER`.
   4. Run BRILIA.  
