@@ -32,20 +32,16 @@ end
 MyVersion = BRILIA('version');
 MyVersion = cell2mat(convStr2NumMEX(strsplit(MyVersion, '.')));
 
-if ~isequal(MyVersion, WebVersion)
-    for j = 1:3
-        if  MyVersion(j) > WebVersion(j) %Good
-            break
-        end
-        IsLatest = false;
-    end
-end
-
-if ~IsLatest
-    Msg{1} = sprintf('Latest web version is %d.%d.%d, but you have version %d.%d.%d.', WebVersion, MyVersion);
-    Msg{2} = sprintf('Download the newest version at https://github.com/BHSAI/BRILIA.');
+if isequal(MyVersion, WebVersion)
+    IsLatest = true;
+    Msg{1} = sprintf('You have the latest version (%d.%d.%d).', MyVersion);
+elseif all(MyVersion >= WebVersion)
+    IsLatest = true;
+    Msg{1} = sprintf('Your version (%d.%d.%d) is newer than the latest web version (%d.%d.%d).', MyVersion, WebVersion);
 else
-    Msg{1} = sprintf('You have the latest version: %s', BRILIA('version'));
+    IsLatest = false;
+    Msg{1} = sprintf('Your version (%d.%d.%d) is older than the latest web version (%d.%d.%d).', MyVersion, WebVersion);
+    Msg{2} = sprintf('Download the newest version at https://github.com/BHSAI/BRILIA.');
 end
 
 fprintf('%s\n', Msg{:});
