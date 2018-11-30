@@ -43,7 +43,7 @@ BRILIA is designed to be a single-platform software capable of processing B-cell
   1. Dowload & install the [MATLAB Runtime R2017a(9.2) from MathWorks](https://www.mathworks.com/products/compiler/matlab-runtime.html) into a folder, referred to as `RUNTIME_FOLDER`.
   2. Download & unzip the [BRILIA exe files](https://github.com/BHSAI/BRILIA/releases/) into a folder, referred to as `BRILIA_FOLDER`.
   3. Open the OS terminal and navigate to `BRILIA_FOLDER`.
-  4. Run BRILIA.  
+  4. Run BRILIA. If the OS asks for permission to modify files, "cancel" should work. See [here for more details](https://github.com/BHSAI/BRILIA/edit/master/GitDocs/FileMermission.md).
      ``` Windows> BRILIA.exe ```  
      ``` Linux$ run_BRILIA.sh RUNTIME_FOLDER  ```  
      You should end up with a prompt like this:  
