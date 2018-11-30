@@ -92,7 +92,7 @@
 %                   y                      Exit BRILIA local environment when job completes
 
 function varargout = BRILIA(varargin)
-Version = '3.5.1'; 
+Version = '3.5.2'; 
 varargout = cell(1, nargout);
 HasShownCredit = false;
 
@@ -244,6 +244,9 @@ while true
     Dgene = Ps.Dgene;
     Cores = Ps.Cores;
     BatchSize = round(Ps.BatchSize);
+    if ischar(Ps.SeqRange)
+        Ps.SeqRange = convStr2NumMEX(Ps.SeqRange);
+    end
     SeqRangeT = round(Ps.SeqRange);
     StatusHandle = Ps.StatusHandle;
     Resume = Ps.Resume;
@@ -360,7 +363,7 @@ while true
         RawFileName = fullfile(OutPath, [OutFilePre '.Raw.csv']);
         TmpExist = ~isempty(dir(TmpFileName));
         ErrExist = ~isempty(dir(ErrFileName));
-        RawExist = ~isempty(dir(ErrFileName));
+        RawExist = ~isempty(dir(RawFileName));
         
         %Resume from the highest sequence number
         if strcmpi(Resume, 'n')

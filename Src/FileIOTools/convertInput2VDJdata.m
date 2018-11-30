@@ -85,6 +85,7 @@ Template = {1};
 switch lower(FileType)
     case 'fasta'
         [SeqName, SeqData] = readFasta(FileName, 'SeqRange', SeqRange);
+        SeqCount = numel(SeqName);
 
     case 'fastq'
         [SeqName, SeqData, Quality] = fastqread(FileName, 'blockread', SeqRange);
@@ -92,8 +93,9 @@ switch lower(FileType)
         if ischar(SeqData) %In case the fastq file has only 1 sequence, output would be char.
             SeqName = {SeqName};
             SeqData = {SeqData};
-            Quality = {Quality};            
+            Quality = {Quality};
         end
+        SeqCount = numel(SeqName);
         
         %Convert low-quality nt reads as 'N'
         MinQuality = uint8(MinQuality);
@@ -143,16 +145,17 @@ switch lower(FileType)
         end
         SeqName = InData(:, InSeqNameIdx);
         SeqData = InData(:, InSeqIdx);
+        SeqCount = size(SeqName, 1);
 end
         
 %Create the VDJdata default matrix
-[VDJdata, VDJheader] = getBlankDataTable(size(SeqData, 1), Chain);
+[VDJdata, VDJheader] = getBlankDataTable(SeqCount, Chain);
 Map = getVDJmapper(VDJheader);
 
 VDJdata(:, Map.SeqName) = SeqName;
 VDJdata(:, Map.Template) = Template;
-VDJdata(:, Map.SeqNum) = num2cell(1:size(SeqData, 1));
-VDJdata(:, Map.GrpNum) = num2cell(1:size(SeqData, 1));
+VDJdata(:, Map.SeqNum) = num2cell(1:SeqCount);
+VDJdata(:, Map.GrpNum) = num2cell(1:SeqCount);
 for c = 1:numel(Map.Chain)
     C = lower(Map.Chain(c));
     VDJdata(:, Map.([C 'Seq'])) = SeqData(:, c);    

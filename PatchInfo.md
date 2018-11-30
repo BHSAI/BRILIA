@@ -1,3 +1,7 @@
+## Patch notice for version 3.5.2
+ - Fixed fastq reading error in convertInput2VDJdata.m
+ - Fixed checkLatestVersion.m in comparing versions
+
 ## Patch notice for version 3.5.1 (MAJOR CHANGES)
  - Reworked the B-cell phylogeny algorithm 
     - no "cutoff" required anymore
