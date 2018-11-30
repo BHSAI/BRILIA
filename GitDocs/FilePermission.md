@@ -18,7 +18,7 @@ When using BRILIA, you make be prompted to accept permission for BRILIA.exe to a
 
 ## Website that may be accessed:  
 
-  * BRILIA can check https:/github.com/BHSAI/BRILIA/README.md to see what version is the latest, but only if invoking the following command:  
+  * BRILIA can check https://github.com/BHSAI/BRILIA/blob/master/README.md to see what version is the latest, but only if invoking the following command:  
     ```  
     BRILIA> checkLatestVersion  
     ```  
