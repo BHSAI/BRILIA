@@ -164,8 +164,6 @@ ImgNames = cell(length(G), 1);
 ImgGrpNums = zeros(length(G), 1);
 
 %For tracking progress
-PT = ProgressTracker(length(G), [], 'Trees drawn', StatusHandle);
-DQ = PT.DataQueue;
 showStatus(sprintf('Drawing %d trees.', length(G)), StatusHandle)
 
 if ShowOnly %Do not use parfor to preserve figure handles
@@ -180,7 +178,9 @@ if ShowOnly %Do not use parfor to preserve figure handles
     end
     return
 else
-    parfor y = 1:length(G)
+    PT = ProgressTracker(length(G), [], '  ', StatusHandle);
+    DQ = PT.DataQueue;
+    for y = 1:length(G)
         try
             ExpPuT = ExpPu;
             VDJdata{y} = padtrimSeqGroup(VDJdata{y}, Map, 'grpnum', 'trim', 'Seq'); 
@@ -192,7 +192,7 @@ else
             ImgGrpNums(y) = G(y).GrpNum;
             close(Gx);
         catch ME
-            throw(ME)
+            disp(ME)
         end
         send(DQ, y); %To show progress
     end

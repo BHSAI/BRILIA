@@ -46,7 +46,7 @@ if isempty(Tdata); return; end
 %STEP 1: remove duplicate sequences
 SeqIdx = nonzeros([Map.hSeq Map.lSeq]);
 if numel(SeqIdx) > 1
-    [~, ~, ~, UnqCellIdx] = unique2(cellfun(@(x, y) [x y], Tdata(:, SeqIdx(1)), Tdata(:, SeqIdx(2))));
+    [~, ~, ~, UnqCellIdx] = unique2(cellfun(@(x, y) [x y], Tdata(:, SeqIdx(1)), Tdata(:, SeqIdx(2)), 'un', 0));
 else
     [~, ~, ~, UnqCellIdx] = unique2(Tdata(:, SeqIdx));
 end
