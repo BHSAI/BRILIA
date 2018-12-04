@@ -180,7 +180,7 @@ if ShowOnly %Do not use parfor to preserve figure handles
 else
     PT = ProgressTracker(length(G), [], '  ', StatusHandle);
     DQ = PT.DataQueue;
-    for y = 1:length(G)
+    parfor y = 1:length(G)
         try
             ExpPuT = ExpPu;
             VDJdata{y} = padtrimSeqGroup(VDJdata{y}, Map, 'grpnum', 'trim', 'Seq'); 

@@ -5,6 +5,7 @@ classdef ProgressTracker <  handle
         Mod
         Str
         DataQueue
+        AfterEach 
         StatusHandle
     end
     
@@ -27,7 +28,7 @@ classdef ProgressTracker <  handle
 
             O.Iter = 0;
             O.DataQueue = parallel.pool.DataQueue;
-            O.DataQueue.afterEach(@(~) O.incr);
+            O.AfterEach = O.DataQueue.afterEach(@(~) O.incr);
         end
         
         function O = incr(O)
@@ -38,7 +39,8 @@ classdef ProgressTracker <  handle
         end
         
         function delete(O)
-            delete(O.DataQueue);
+            delete(O.AfterEach); %Delete the listener object
+            delete(O.DataQueue); %Delete the data queue object
         end
     end
 end      
