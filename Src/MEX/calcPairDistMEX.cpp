@@ -85,27 +85,27 @@ void mexFunction(int nlhs,        mxArray *plhs[],
     double *pHamDist, *pValidMotif, *pValidMut, *pPenalty, *pShmDist;
     
     if (nlhs >= 0) { //Hamming Distance matrix
-        plhs[0] = mxCreateDoubleMatrix(NumSeq, NumSeq, mxREAL);
+        plhs[0] = mxCreateNumericMatrix(NumSeq, NumSeq, mxDOUBLE_CLASS, mxREAL);
         pHamDist = mxGetPr(plhs[0]);
     }
 
     if (nlhs >= 2) { //Row-to-Col Valid hotspot motif count
-        plhs[1] = mxCreateDoubleMatrix(NumSeq, NumSeq, mxREAL);
+        plhs[1] = mxCreateNumericMatrix(NumSeq, NumSeq, mxDOUBLE_CLASS, mxREAL);
         pValidMotif = mxGetPr(plhs[1]);
     }
     
     if (nlhs >= 3) { //Row-to-Col Valid pairwise mutation count
-        plhs[2] = mxCreateDoubleMatrix(NumSeq, NumSeq, mxREAL);
+        plhs[2] = mxCreateNumericMatrix(NumSeq, NumSeq, mxDOUBLE_CLASS, mxREAL);
         pValidMut = mxGetPr(plhs[2]);
     }
 
     if (nlhs >= 4) { //Penalty from consec mismatch)
-        plhs[3] = mxCreateDoubleMatrix(NumSeq, NumSeq, mxREAL);
+        plhs[3] = mxCreateNumericMatrix(NumSeq, NumSeq, mxDOUBLE_CLASS, mxREAL);
         pPenalty = mxGetPr(plhs[3]);
     }
 
     if (nlhs >= 5) { //Compute the SHM distance
-        plhs[4] = mxCreateDoubleMatrix(NumSeq, NumSeq, mxREAL);
+        plhs[4] = mxCreateNumericMatrix(NumSeq, NumSeq, mxDOUBLE_CLASS, mxREAL);
         pShmDist = mxGetPr(plhs[4]);
     }
 

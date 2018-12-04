@@ -75,6 +75,8 @@ Jkmap = DB.Jkmap;
 Jlmap = DB.Jlmap;
 
 %Begin finding the VJ genes   
+PT = ProgressTracker(size(VDJdata, 1), [], '  ', []);
+DQ = PT.DataQueue;
 parfor j = 1:size(VDJdata,1)
     %Extract info from sliced VDJdata variable
     Tdata = VDJdata(j,:);
@@ -192,6 +194,8 @@ parfor j = 1:size(VDJdata,1)
     Tdata(1,GeneNameLoc) = [Vmatch(1,2) Jmatch(1,2)];
 
     VDJdata(j,:) = Tdata;
+    
+    send(DQ, j);
 end
 
 %If there are errors, show them now.

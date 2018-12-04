@@ -1,17 +1,17 @@
 %testBRILIA is used to test different function of BRILIA.
 %
-%  testMouseH
-%  testMouseL
-%  testMouseHL
-%  testHumanH
-%  testMacaqueH
-%  testAll
+%  test MouseH
+%  test MouseL
+%  test MouseHL
+%  test HumanH
+%  test MacaqueH
+%  test All
 
 function test(varargin)
 
 ExampleDir = fullfile(findExeDir, 'Examples');
 if isdeployed && ~isdir(ExampleDir)
-    [Success, Msg] = copyfile(fullfile(findRoot, 'Examples'), ExampleDir);
+    [Success, Msg] = copyfile(fullfile(findRoot, 'Examples'), ExampleDir, 'f');
     assert(Success, '%s: Error copying file - %s', mfilename, Msg);
 end
 

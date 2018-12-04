@@ -46,7 +46,11 @@ else
         NewNum = size(VDJdata, 1);
         if CurNum ~= NewNum
             [Path, ~, Ext, Pre] = parseFileName(FileNames{f});
-            SaveName = fullfile(Path, sprintf('%s.Merge%0.2f%s', Pre, Cutoff, Ext));
+            if Cutoff >= 1
+                SaveName = fullfile(Path, sprintf('%s.Merge%d%s', Pre, Cutoff, Ext));
+            else
+                SaveName = fullfile(Path, sprintf('%s.Merge%0.2f%s', Pre, Cutoff, Ext));
+            end
             saveSeqData(SaveName, VDJdata, VDJheader);
             fprintf('%s: Finished with "%s".\n  Reduced %d similar sequences.\n', mfilename, FileNames{f}, CurNum - NewNum);
         else

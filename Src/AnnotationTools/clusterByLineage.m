@@ -26,8 +26,11 @@ IsSpliced = iscell(VDJdata{1});
 if ~IsSpliced
     VDJdata = spliceData(VDJdata, Map); %Has to be done to ensure proper group numbers
 end
+PT = ProgressTracker(numel(VDJdata), [], '  ', []);
+DQ = PT.DataQueue;
 parfor y = 1:length(VDJdata)
     VDJdata{y} = clusterByLineagePerGroup(VDJdata{y}, Map, UseSHMHAM, KeepCyclic);
+    send(DQ, y);
 end
 VDJdata = joinData(VDJdata, Map); %Have to join to ensure cluster-based splicing w/ correct GrpNum
 if IsSpliced
@@ -39,6 +42,24 @@ if isempty(Tdata) || size(Tdata, 1) == 1; return; end
 LongDist = 1E5; %Distance to use to prevent linking. Can't be Inf to other reasons.
 Tdata = padtrimSeqGroup(Tdata, Map, 'cdr3length', 'max', 'Seq');
 if isempty(Tdata); return; end
+
+%STEP 1: remove duplicate sequences
+SeqIdx = nonzeros([Map.hSeq Map.lSeq]);
+if numel(SeqIdx) > 1
+    [~, ~, ~, UnqCellIdx] = unique2(cellfun(@(x, y) [x y], Tdata(:, SeqIdx(1)), Tdata(:, SeqIdx(2))));
+else
+    [~, ~, ~, UnqCellIdx] = unique2(Tdata(:, SeqIdx));
+end
+if numel(UnqCellIdx) ~= size(Tdata, 1) %There is duplicates. condense.
+    DupIdx = find(cellfun('length', UnqCellIdx) > 1);
+    KeepLoc = ones(size(Tdata, 1), 1, 'logical');
+    for j = 1:length(DupIdx)
+        Idx = UnqCellIdx{DupIdx(j)};
+        Tdata{Idx(1), Map.Template} = sum(cell2mat(Tdata(Idx, Map.Template)));
+        KeepLoc(Idx(2:end)) = 0;
+    end
+    Tdata = Tdata(KeepLoc, :);
+end
 
 InvalidLoc = zeros(size(Tdata, 1), 'logical');
 PairDist = zeros(size(Tdata, 1));

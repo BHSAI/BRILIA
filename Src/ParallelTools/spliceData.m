@@ -20,6 +20,10 @@
 %    VDJdata = joinData(VDJdata); 
 %    
 function VDJdataS = spliceData(VDJdata, Map)
+if isempty(VDJdata)
+    VDJdataS = VDJdata; 
+    return 
+end
 Map = getVDJmapper(Map);
 if iscell(VDJdata{1}) %Already spliced
     VDJdataS = VDJdata;

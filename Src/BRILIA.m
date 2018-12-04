@@ -92,7 +92,7 @@
 %                   y                      Exit BRILIA local environment when job completes
 
 function varargout = BRILIA(varargin)
-Version = '3.5.2'; 
+Version = '3.5.4'; 
 varargout = cell(1, nargout);
 HasShownCredit = false;
 
@@ -429,10 +429,13 @@ while true
                 [VDJdata, BadLoc] = fixInputSeq(VDJdata, Map);
                 KeepLoc(BadLoc) = 0;
 
-                showStatus('Determining sequence direction and CDR3 areas ...', StatusHandle)
+                showStatus('Determining V gene CDR3 start ...', StatusHandle)
                 VDJdata(KeepLoc, :) = seedCDR3position(VDJdata(KeepLoc, :), Map, DB, 'V',     40,  2, CheckSeqDir);
+                showStatus('Determining J gene CDR3 end ...', StatusHandle)
                 VDJdata(KeepLoc, :) = seedCDR3position(VDJdata(KeepLoc, :), Map, DB, 'J',      3, 14, 'n');
+                showStatus('Determining Vk/Vl gene CDR3 start ...', StatusHandle)
                 VDJdata(KeepLoc, :) = seedCDR3position(VDJdata(KeepLoc, :), Map, DB, 'Vk,Vl', 40,  2, CheckSeqDir);
+                showStatus('Determining Jk/jl gene CDR3 end ...', StatusHandle)
                 VDJdata(KeepLoc, :) = seedCDR3position(VDJdata(KeepLoc, :), Map, DB, 'Jk,Jl',  3, 14, 'n');
 
                 showStatus('Finding heavy chain VDJ annotations ...', StatusHandle)

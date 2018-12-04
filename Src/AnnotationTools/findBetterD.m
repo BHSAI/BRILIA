@@ -37,8 +37,11 @@ if ~iscell(VDJdata{1}) %VDJdata is not spliced
         VDJdata(IdxLoc, :) = findBetterDPerGroup(VDJdata(IdxLoc, :), Map, DB);
     end
 else %VDJdata is spliced for parfor
+    PT = ProgressTracker(size(VDJdata, 1), [], '  ', []);
+    DQ = PT.DataQueue;
     parfor y = 1:length(VDJdata)
         VDJdata{y} = findBetterDPerGroup(VDJdata{y}, Map, DB);
+        send(DQ, y);
     end
 end
 

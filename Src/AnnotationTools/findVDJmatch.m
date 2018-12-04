@@ -74,6 +74,8 @@ Dmap = DB.Dmap;
 Jmap = DB.Jmap;
 
 %Begin finding the VDJ genes  
+PT = ProgressTracker(size(VDJdata, 1), [], '  ', []);
+DQ = PT.DataQueue;
 parfor j = 1:size(VDJdata, 1)
     MissRate = 0.15; %Start with 15% allowed mismatch rate. Place inside parfor to reset! 
 
@@ -203,6 +205,8 @@ parfor j = 1:size(VDJdata, 1)
     Tdata(1, GeneNameIdx) = [Vmatch(1, 2) Dmatch(1, 2) Jmatch(1, 2)];
 
     VDJdata(j, :) = Tdata;
+    
+    send(DQ, j);
 end
 
 if any(BadLoc)

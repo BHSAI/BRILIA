@@ -49,11 +49,15 @@ PathName = {};
 if usejava('jvm') && ~CmdOn   %For using the GUI
     import javax.swing.JFileChooser;
     import javax.swing.filechooser.FileNameExtensionFilter;
+    import java.io.File;
 
+    JFile = javaObjectEDT('java.io.File', StartPath);
     JFileChooser = javaObjectEDT('javax.swing.JFileChooser', StartPath);
     JFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
     JFileChooser.setMultiSelectionEnabled(false);
     JFileChooser.setDialogTitle(DialogTitle);
+    JFileChooser.setSelectedFile(JFile);
+    JFileChooser.setCurrentDirectory(JFile);
 
     Status = JFileChooser.showOpenDialog([]);
     if Status == JFileChooser.APPROVE_OPTION

@@ -85,7 +85,9 @@ else
     PreferSide  = 'n'; %none
 end
 
-%Find the CDR3start or CDR3end locations. 
+%Find the CDR3start or CDR3end locations.
+PT = ProgressTracker(size(VDJdata, 1), [], '  ', []);
+DQ = PT.DataQueue;
 parfor j = 1:size(VDJdata, 1)
     Tdata = VDJdata(j, :);  
     if length(Tdata{SeqIdx}) <= (Nleft + Nright); continue; end
@@ -113,4 +115,6 @@ parfor j = 1:size(VDJdata, 1)
         Tdata{CDR3Idx} = CDR3Pos;
         VDJdata(j, :) = Tdata; %Add Tdata to sliced variable VDJdata
     end
+    
+    send(DQ, j);
 end

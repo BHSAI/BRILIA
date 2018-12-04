@@ -82,14 +82,22 @@ DBPath = fullfile(RootPath, 'Databases');
 if isdeployed
     TempDBPath = fullfile(findRoot(), 'Databases'); %findRoot will find the temporary code root dir
     if ~exist(DBPath, 'dir')
-        [Success, Msg] = copyfile(TempDBPath, DBPath);
-        assert(Success, '%s: Could not copy file "%s" to "%s".\n %s', mfilename, TempDBPath, DBPath, Msg);
-    else %Need to figure out what is NOT there
+        [Success, Msg] = copyfile(TempDBPath, DBPath, 'f');
+        if ~Success
+            warning('%s: Could not copy file "%s" to "%s".\nCheck write permission.\n%s', mfilename, TempDBPath, DBPath, Msg);
+            DBPath = fullfile(findRoot, 'Databases');
+        end
+    else %Need to figure out what is NOT there, and selectively add
         [DirToAdd, DirNameToAdd] = dir2(TempDBPath, 'dir');
         [~, DirNameExist] = dir2(DBPath, 'dir');
         Idx = find(~ismember(DirNameToAdd, DirNameExist));
         for q = 1:length(Idx)
-            copyfile(DirToAdd{Idx(q)}, fullfile(DBPath, DirNameToAdd{Idx(q)}));
+            [Success, Msg] = copyfile(DirToAdd{Idx(q)}, fullfile(DBPath, DirNameToAdd{Idx(q)}), 'f');
+            if ~Success
+                warning('%s: Could not copy file "%s" to "%s".\n%s', mfilename, DirToAdd{Idx(q)}, fullfile(DBPath, DirNameToAdd{Idx(q)}), Msg);
+                DBPath = fullfile(findRoot, 'Databases');
+                break
+            end
         end
     end
 end
@@ -104,7 +112,12 @@ if ~isempty(varargin) && ischar(varargin{1}) && any(strcmpi(varargin{1}, {'getli
 end
 
 %Select the species
-if isempty(varargin) || isempty(varargin{1})
+if isempty(varargin) || isempty(varargin{1}) 
+    if nargout == 0
+        fprintf('Databases located in "%s".\n', DBPath);
+        fprintf('  %s\n', SpeciesList{:});
+        return
+    end
     SpeciesIdx = chooseFromList(SpeciesList, 'Attempt', 5, 'Default', [], 'Message', 'What species is it?');
 else
     SpeciesLoc = strcmpi(SpeciesList, varargin{1});

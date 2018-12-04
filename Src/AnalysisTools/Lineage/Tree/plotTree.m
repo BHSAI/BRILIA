@@ -184,7 +184,7 @@ else
         try
             ExpPuT = ExpPu;
             VDJdata{y} = padtrimSeqGroup(VDJdata{y}, Map, 'grpnum', 'trim', 'Seq'); 
-            Gx = plotSingleTree(VDJdata{y}, VDJheader, ExpPuT, DistanceUnit, DotMaxSize, DotMinSize, DotScalor, DotColorMap, Legend, LegendFontSize, Xmax, Yincr, FigMaxHeight, FigWidth, FigSpacer, Visible)
+            Gx = plotSingleTree(VDJdata{y}, VDJheader, ExpPuT, DistanceUnit, DotMaxSize, DotMinSize, DotScalor, DotColorMap, Legend, LegendFontSize, Xmax, Yincr, FigMaxHeight, FigWidth, FigSpacer, Visible);
 
             SavePre = sprintf('.Grp%d', G(y).GrpNum);
             SuggestedSaveName = prepSaveTarget('SaveAs', SaveAs, 'SavePrefix', SavePre);
