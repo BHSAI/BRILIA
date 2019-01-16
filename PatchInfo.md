@@ -1,6 +1,6 @@
 ## Patch notice for version 3.5.5
  - Added Rainbow Trout database to BRILIA
- - Fixed 
+ - General code fixes 
 
 ## Patch notice for version 3.5.2
  - Fixed fastq reading error in convertInput2VDJdata.m
