@@ -29,9 +29,11 @@ if ~isempty(varargin)
         varargin = varargin(~AppendLoc);
     end
 
-    DelimLoc = strcmpi(varargin, {',', ';', '\t'});
-    if any(DelimLoc)
-        Delimiter = varargin{find(DelimLoc, 1)};
+    if ~isempty(varargin)
+        DelimLoc = strcmpi(varargin, {',', ';', '\t'});
+        if any(DelimLoc)
+            Delimiter = varargin{find(DelimLoc, 1)};
+        end
     end
 end
 

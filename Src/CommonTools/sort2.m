@@ -19,11 +19,22 @@
 %         'ABB-4'
 %         'ABB-12'
 %         'ABC-1'
-% 
-%     SortIdx =
+%    SortIdx =
 %          2
 %          4
 %          3
+%          1
+%
+%    [SortedList, SortIdx] = sort2(List, 'rows')
+%    SortedList =
+%          'ABB-1'
+%          'ABB-12'
+%          'ABB-4'
+%          'ABC-1'
+%    SortIdx =
+%          2
+%          3
+%          4
 %          1
 %
 %    List = {'1-ABC'; '1-ABB-1'; '1-ABB-11';'12-ABB'; '4-ABB'};
@@ -54,41 +65,51 @@ elseif ~iscell(List)
 end
 
 %From here one, dealing with sorting cell arrays
-if all(cellfun('isclass', List, 'double')) %Soring a cell of only numbers
-    [SortedList, SortIdx] = sort(cell2mat(List), varargin{:});
+RowOptLoc = contains(varargin, {'rows', 'row'}, 'ignorecase', true);
+DoRowSort = any(RowOptLoc);
+varargin = varargin(~RowOptLoc);
+if all(cellfun('isclass', List(:), 'double')) %Sorting a cell of only numbers
+    if DoRowSort
+        [SortedList, SortIdx] = sortrows(cell2mat(List), varargin{:});
+    else
+        [SortedList, SortIdx] = sort(cell2mat(List), varargin{:});
+    end
     SortedList = num2cell(SortedList);
     return
+elseif DoRowSort && all(cellfun('isclass', List(:), 'char')) %Sorting cells of only chars
+    [SortedList, SortIdx] = sortrows(List, varargin{:});
+    return
+else %Sorting char and numbers in a cell array
+    SplitCell = cell(numel(List), 1);
+    for j = 1:numel(List)
+        SplitCell{j} = splitTextNum(List{j});
+    end
+    MaxNum = max(cellfun('length', SplitCell));
+    
+    TempList = num2cell(zeros(numel(List), MaxNum));
+    for j = 1:numel(List)
+        TempList(j, 1:length(SplitCell{j})) = SplitCell{j};
+    end
+    
+    NumLoc = cellfun('isclass', TempList, 'double');
+    LeadZeros = max(ceil(log10(cell2mat(TempList(NumLoc)))));
+    if LeadZeros <= 0
+        NumForm = '%f';
+    else
+        NumForm = sprintf('%%0%dd', LeadZeros);
+    end
+    TempList(NumLoc) = cellfun(@(x) sprintf(NumForm, round(x)), TempList(NumLoc), 'unif', false);
+    SortList = cell(numel(List), 1);
+    for k = 1:length(SortList)
+        SortList{k} = [TempList{k, :}];
+    end
+    if ~isempty(varargin)
+        warning('%s: DIM and MODE not supported for cell of mixed str and num content.', mfilename);
+    end
+    [~, SortIdx] = sort(SortList);
+    SortedList = List(SortIdx);
+    return
 end
-
-%Sorting char and/or numbers in a cell of char and/or numbers
-SplitCell = cell(numel(List), 1);
-for j = 1:numel(List)
-    SplitCell{j} = splitTextNum(List{j});
-end
-MaxNum = max(cellfun('length', SplitCell));
-
-TempList = num2cell(zeros(numel(List), MaxNum));
-for j = 1:numel(List)
-    TempList(j, 1:length(SplitCell{j})) = SplitCell{j};
-end
-
-NumLoc = cellfun('isclass', TempList, 'double');
-LeadZeros = max(ceil(log10(cell2mat(TempList(NumLoc)))));
-if LeadZeros <= 0
-    NumForm = '%f';
-else
-    NumForm = sprintf('%%0%dd', LeadZeros);
-end
-TempList(NumLoc) = cellfun(@(x) sprintf(NumForm, round(x)), TempList(NumLoc), 'unif', false);
-SortList = cell(numel(List), 1);
-for k = 1:length(SortList)
-    SortList{k} = [TempList{k, :}];
-end
-if ~isempty(varargin)
-    warning('%s: DIM and MODE not supported for cell of mixed str and num content.', mfilename);
-end
-[~, SortIdx] = sort(SortList);
-SortedList = List(SortIdx);
 
 function S = splitTextNum(TextNum)
 if isnumeric(TextNum)

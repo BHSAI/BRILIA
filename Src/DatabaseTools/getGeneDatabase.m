@@ -120,7 +120,7 @@ if isempty(varargin) || isempty(varargin{1})
     end
     SpeciesIdx = chooseFromList(SpeciesList, 'Attempt', 5, 'Default', [], 'Message', 'What species is it?');
 else
-    SpeciesLoc = strcmpi(SpeciesList, varargin{1});
+    SpeciesLoc = strcmpi(strrep(SpeciesList, '_', ''), varargin{1});
     if ~any(SpeciesLoc) %Maybe try contains instead for nearest match
         SpeciesLoc = contains(SpeciesList, varargin{1}, 'ignorecase', true);
     end

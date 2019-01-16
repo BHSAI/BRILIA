@@ -27,7 +27,7 @@ FilePath = '';
 Map = [];
 
 if nargin == 0
-    FullFileName = getBriliaFiles('', 0);
+    FullFileName = getBriliaFiles('', 0, 0);
 else
     if contains(varargin{1}, {'.', filesep})
         FullFileName = dir2(varargin{1}, 'file');

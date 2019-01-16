@@ -125,8 +125,10 @@ end
 NumCol = max(GridCoord(:, 2));
 RescaleW = ((1 - 2*FigSpacer) - HorzSpacer*(NumCol - 1)) / (1 - 2*FigSpacer);
 AllOuterPos(:, 3) = AllOuterPos(:, 3)*RescaleW; %RescaleW for HorzSpacer
-AdjIdx = GridCoord(:, 2) > 1;
-AllOuterPos(AdjIdx, 1) = AllOuterPos(AdjIdx, 1) + HorzSpacer/2;
+% AdjIdx = GridCoord(:, 2) > 1;
+for q = 1:size(GridCoord, 1)
+    AllOuterPos(q, 1) = AllOuterPos(q, 1) + HorzSpacer/2*(GridCoord(q, 2)-1);
+end
 
 %Rescale H to account for VertSpacer
 for c = 1:max(GridCoord(:, 2))
@@ -184,4 +186,6 @@ end
 for j = 1:length(Axs)
     set(Axs(j), 'Units', PriorUnits{j}, 'XLim', PriorXLims{j}, 'YLim', PriorYLims{j});
 end
+
+drawnow
 

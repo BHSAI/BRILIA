@@ -27,14 +27,18 @@
 %             1
 %  
 %
-function Value = ternary(Equality, Value, FalseVal, varargin)
+function Value = ternary(Equality, TrueValue, FalseVal, varargin)
 if isa(Equality, 'function_handle')
-    Test = Equality(varargin{:});
+    IsTrue = Equality(varargin{:});
 elseif islogical(Equality)
-    Test = Equality;
+    IsTrue = Equality;
+elseif isnumeric(Equality)
+    IsTrue = all(Equality > 0); %All must be true to be true;
 else
     error('%s: Input must be a logical value or function handle that returns a logical value.', mfilename);
 end
-if ~Test
+if IsTrue
+    Value = TrueValue;
+else
     Value = FalseVal;
 end

@@ -68,8 +68,7 @@ AncMap = zeros(size(Tdata, 1), 5); %[Child Par HAMdist HAMperc TemplateCount];
 AncMap(:, [1:2 5]) = cell2mat(Tdata(:, [SeqNumIdx; ParNumIdx; TemplateIdx]));
 AncMap = renumberAncMap(AncMap);
 if any(findTreeCycle(AncMap))
-    error('%s: something is wrong');
-    warning('%s: Found a cyclic dependency in group number %d.', mfilename, UnqGrpNum);
+    error('%s: Found a cyclic dependency in group number %d.', mfilename, UnqGrpNum);
 end
 
 for j = 1:size(Tdata, 1)

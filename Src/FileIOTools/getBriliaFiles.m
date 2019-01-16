@@ -45,19 +45,27 @@ for f = 1:length(FileNames)
         if isempty(TmpFiles)
             TmpFiles = dir2(fullfile(FileNames{f}, '*/*BRILIAv*.csv'), 'file');
         end
-        GoodLoc = ~endsWith(TmpFiles, {'Raw.csv', 'Err.csv'}, 'ignorecase', true);
+        GoodLoc = ~endsWith(TmpFiles, {'Raw.csv', 'Err.csv', 'append.csv'}, 'ignorecase', true);
     else 
         TmpFiles = dir2(FileNames{f}); %Wrap it up for simply vertcat at end. Use dir2 to check for file existence, which returns empty for non-existing file.
-        GoodLoc = ~cellfun('isempty', regexp(TmpFiles, 'BRILIAv\w+.csv'));
+        GoodLoc = ~cellfun('isempty', regexp(TmpFiles, 'BRILIAv[\w\.]+.csv'));
+        BadLoc = endsWith(TmpFiles, {'Raw.csv', 'Err.csv', 'append.csv'}, 'ignorecase', true);
+        GoodLoc = GoodLoc & ~BadLoc;
     end
-    if sum(GoodLoc) > 1 %Perhaps there is a modification
-        GoodIdx = find(GoodLoc);
-        fprintf('%s: Found multiple BRILIAv*.csv files. Picking the longest-name file.\n', mfilename);
-        FileLen = cellfun('length', TmpFiles(GoodIdx));
-        [~, KeepIdx] = max(FileLen);
-        FileNames{f} = TmpFiles(GoodIdx(KeepIdx(1)));
-    else
-        FileNames{f} = TmpFiles(GoodLoc);
+    TmpFiles = TmpFiles(GoodLoc);
+    if numel(TmpFiles) > 1 %Perhaps there is a modification
+        UnqDir = unique(cellfun(@(x) fileparts(x), TmpFiles, 'un', 0));
+        for j = 1:numel(UnqDir)
+            Idx = find(startsWith(TmpFiles, UnqDir{j}));
+            if numel(Idx) > 1 %Need to pick 1
+                fprintf('%s: Found multiple BRILIAv*.csv files. Picking the longest-name file.\n', mfilename);
+                Len = cellfun('length', TmpFiles(Idx));
+                KeepIdx = find(Len == max(Len));
+                TmpFiles(Idx(KeepIdx(2:end))) = {''};
+            end
+        end
+        TmpFiles = TmpFiles(~cellfun('isempty', TmpFiles));
     end
+    FileNames{f} = TmpFiles;
 end
 FileNames = vertcat(FileNames{:});

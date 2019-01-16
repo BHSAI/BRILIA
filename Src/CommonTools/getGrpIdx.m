@@ -24,19 +24,37 @@
 %      .Template - clonotype total template count
 %      .Size - # of unique sequence per group (same as length(G(n).Idx))
 
-function G = getGrpIdx(VDJdata, VDJheader, SizeFilter)
-Map = getVDJmapper(VDJheader);
+function G = getGrpIdx(varargin)
+if iscell(varargin{1}) && isstruct(varargin{2}) || iscell(varargin{2})
+    Map = getVDJmapper(varargin{2});
+    VDJdata = varargin{1};
+    GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
+    Template = cell2mat(VDJdata(:, Map.Template));
+elseif isnumeric(varargin{1}) && isnumeric(varargin{2}) && numel(varargin{1}) == numel(varargin{2})
+    GrpNum = varargin{1};
+    Template = varargin{2};
+else
+    error('%s: Inputs are wrong. Must either be VDJdata and VDJheader or Map, or GrpNum and Template in Nx1 vectors.', mfilename);
+end
+%function G = getGrpIdx(VDJdata, VDJheader, SizeFilter)
+%Map = getVDJmapper(VDJheader);
 
-if nargin < 3 || isempty(SizeFilter)
+if nargin < 3 || isempty(varargin{3})
     SizeFilter = 'AC';
+else
+    SizeFilter = varargin{3};
 end
 
-GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
+%GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 if isnumeric(SizeFilter)
     UnqGrpNum = SizeFilter; %It's not really SizeFilter, but the Group # you want to get
+    Idx = cell(numel(UnqGrpNum), 1);
+    for j = 1:numel(Idx)
+        Idx{j} = find(GrpNum == UnqGrpNum(j));
+    end
 else
     [UnqGrpNum, ~, ~, Idx] = unique2(GrpNum);
-    TransLoc = cellfun('size', Idx, 1) > 1;
+    TransLoc = cellfun('size', Idx, 1) > 1; %transpot `1xM to Mx1 index, just in case
     Idx(TransLoc) = cellfun(@(x) x.', Idx(TransLoc), 'un', 0); %make sure it's 1xN vector to be able to do [G(1:N).Idx];
 end
 
@@ -49,7 +67,7 @@ G(1:length(UnqGrpNum)) = struct('GrpNum', [], 'Idx', [], 'Template', [], 'Size',
 for y = 1:length(UnqGrpNum)
     G(y).GrpNum = UnqGrpNum(y);
     G(y).Idx = Idx{y}; 
-    G(y).Template = sum(cell2mat(VDJdata(G(y).Idx, Map.Template)));
+    G(y).Template = sum(Template(G(y).Idx)); %sum(cell2mat(VDJdata(G(y).Idx, Map.Template)));
     G(y).Size = length(G(y).Idx);
 end
 if isnumeric(SizeFilter); return; end
@@ -57,8 +75,9 @@ if isnumeric(SizeFilter); return; end
 SizeFilterStr = regexpi(SizeFilter, '[a-z]+', 'match', 'once');
 N = convStr2NumMEX(SizeFilter);
 switch upper(SizeFilterStr)
-    case 'IND'
-        G = cell2struct([VDJdata(:, Map.GrpNum) num2cell([1:size(VDJdata, 1)]') VDJdata(:, Map.Template) num2cell(ones(size(VDJdata, 1), 1))], {'GrpNum', 'Idx', 'Template', 'Size'}, 2); %#ok<NBRAK>
+    case {'IND', 'CLONE'}
+        G = cell2struct([num2cell(GrpNum), num2cell([1:numel(GrpNum)]'), num2cell(Template), num2cell(ones(numel(GrpNum), 1))], {'GrpNum', 'Idx', 'Template', 'Size'}, 2); %#ok<NBRAK>
+        %G = cell2struct([VDJdata(:, Map.GrpNum) num2cell([1:size(VDJdata, 1)]') VDJdata(:, Map.Template) num2cell(ones(size(VDJdata, 1), 1))], {'GrpNum', 'Idx', 'Template', 'Size'}, 2); %#ok<NBRAK>
         return
     case 'AC'
         return

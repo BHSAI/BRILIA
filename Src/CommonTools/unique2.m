@@ -63,7 +63,7 @@ if UseSortRows
     if isnumeric(C)
         [U, SortIdx] = sortrows(C, varargin{~RowOptLoc});
     elseif iscell(C)
-        [U, SortIdx] = sort2(C, varargin{~RowOptLoc});
+        [U, SortIdx] = sort2(C, varargin{~RowOptLoc}, 'rows');
     else
         error('%s: Cannot find unique rows of this class of array', mfilename);
     end

@@ -357,7 +357,8 @@ Msg = 'Starting BRILIA';
 set(handles.text_Status, 'String', Msg, 'ForegroundColor', [0 0.8 0]);
 drawnow;
 
-SaveFileNames = BRILIA(FullFileName, 'SuppressIntro', 'y', P);
+tic
+SaveFileNames = BRILIA(FullFileName, P);
 RunTime = toc;
 
 Msg = sprintf('Job completed in %1.2f min.\n', RunTime/60);

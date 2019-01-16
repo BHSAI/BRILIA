@@ -79,22 +79,9 @@ end
 function resetDecimal(Axs, Direction, Decimal)
 D = upper(Direction(1));
 if Decimal >= 0
-    for j = 1:length(Axs)
-        TickLabel = get(Axs(j), [D 'TickLabel']);
-        if ~iscell(TickLabel)
-            TickLabelTmp = TickLabel;
-            TickLabel = cell(size(TickLabelTmp, 1), 1);
-            for k = 1:size(TickLabel, 1)
-                TickLabel{k} = TickLabelTmp(k, :);
-            end
-        end
-        Val = cellfun(@convStr2Num, TickLabel, 'unif', false);
-        if any(cellfun(@(x) isempty(x) || isnan(x) || isinf(x), Val)) %Use Tick value
-            Val = num2cell(get(Axs(j), [D 'Tick']));
-        end
-        
+    for j = 1:length(Axs)      
         StrFmt = ['%0.' num2str(Decimal) 'f'];
-        StrLabel = cellfun(@(x)sprintf(StrFmt, x), Val, 'un', 0);
-        set(Axs(j), [D 'TickLabel'], StrLabel);
+        StrFunc = str2func([lower(D) 'tickformat']);
+        StrFunc(Axs(1), StrFmt);
     end
 end

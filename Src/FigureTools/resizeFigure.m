@@ -103,4 +103,6 @@ if strcmpi(Recenter, 'y')
     centerFigureOnMonitor(Gx);
 end
 
+drawnow
+
 varargout{1} = Gx;

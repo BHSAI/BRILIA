@@ -36,7 +36,7 @@ else
         catch %Specified file name did not work or is not a file name.
             [VDJdata, VDJheader, FileName, FilePath] = openSeqData; %Don't delete from varargin.
         end
-    elseif nargin >= 2 && iscell(varargin{1}) && iscell(varargin{2}) && size(varargin{1}, 2) == size(varargin{2}, 2) %User specified VDJdata nd VDJheader
+    elseif nargin >= 2 && iscell(varargin{1}) && (isstruct(varargin{2}) || (iscell(varargin{2}) && size(varargin{1}, 2) == size(varargin{2}, 2))) %User specified VDJdata nd VDJheader
         VDJdata = varargin{1};
         VDJheader = varargin{2};
         varargin(1:2) = [];

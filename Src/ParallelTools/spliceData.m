@@ -19,7 +19,7 @@
 %    end
 %    VDJdata = joinData(VDJdata); 
 %    
-function VDJdataS = spliceData(VDJdata, Map)
+function VDJdataS = spliceData(VDJdata, Map, IdxC)
 if isempty(VDJdata)
     VDJdataS = VDJdata; 
     return 
@@ -29,9 +29,10 @@ if iscell(VDJdata{1}) %Already spliced
     VDJdataS = VDJdata;
     return
 end
-GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
-UnqGrpNum = unique(GrpNum);
-VDJdataS = cell(length(UnqGrpNum), 1);
-for k = 1:length(UnqGrpNum)
-    VDJdataS{k} = VDJdata(UnqGrpNum(k) == GrpNum, :);
+if nargin == 2
+    [~, ~, ~, IdxC] = unique2(VDJdata(:, Map.GrpNum));
+end
+VDJdataS = cell(numel(IdxC), 1);
+for k = 1:numel(IdxC)
+    VDJdataS{k} = VDJdata(IdxC{k}, :);
 end
