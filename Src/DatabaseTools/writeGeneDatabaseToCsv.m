@@ -54,4 +54,4 @@ if ~strcmpi(FileExt, '.csv')
     FileName = [FileName '.csv'];
     FileName = strrep(FileName, '..', '.');
 end
-writeDlmFile(AllData, [FilePath FileName], ',');
+writeDlmFile(AllData, fullfile(FilePath, FileName), ',');
