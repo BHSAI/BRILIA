@@ -28,6 +28,9 @@
 %
 function setAxes(varargin)
 [Axs, varargin] = getOpenGCA(varargin{:});
+if numel(varargin) == 1 && isstruct(varargin{1})
+    varargin = struct2array(varargin{1}, 'input');
+end
 
 for a = 1:length(Axs)
     %Modify the Axes handle

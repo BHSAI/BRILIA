@@ -4,7 +4,7 @@
 %
 %  INPUT
 %    S: nonscalor structure
-%    RowOrCol ['row' 'col']: specify if the put each row as a field and 
+%    RowOrCol ['row' 'col' 'input']: specify if the put each row as a field and 
 %      data, or each col as a field and data. Default is 'col'. 
 %
 %  EXAMPLE
@@ -32,6 +32,9 @@ switch lower(RowOrCol)
         C = horzcat(F, C);
     case 'col'
         C = vertcat(F', C');
+    case 'input'
+        C = vertcat(F', C');
+        C = C(:)';
     otherwise
         error('%s: Unrecognized option "%s". Use ''row'' or ''col''.', mfilename, RowOrCol);
 end

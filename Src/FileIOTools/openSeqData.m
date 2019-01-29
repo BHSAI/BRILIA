@@ -29,6 +29,7 @@ Map = [];
 if nargin == 0
     FullFileName = getBriliaFiles('', 0, 0);
 else
+    varargin = cleanCommandLineInput(varargin{:});
     if contains(varargin{1}, {'.', filesep})
         FullFileName = dir2(varargin{1}, 'file');
         varargin = varargin(2:end);
