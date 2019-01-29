@@ -200,20 +200,18 @@ end
 
 %Create the tree search table
 VDJdata = joinData(VDJdata, VDJheader, 'stable');
-if nargout >= 1 
-    TreeSearchTable = getTreeSearchTable(VDJdata, VDJheader);
-    [~, ~, TableIdx] = intersect(ImgGrpNums, cell2mat(TreeSearchTable(2:end, 1)));
-    TreeSearchTable = TreeSearchTable([1; TableIdx+1], :);
-    for j = 1:length(ImgNames) %Remove the NewFilePath from the TreeFiles
-        [FilePath, FileName, ~] = parseFileName(ImgNames{j});
-        ImgNames{j} = FileName;
-    end
-    TreeSearchTable(2:end, end) = ImgNames;
-    writeDlmFile(TreeSearchTable, fullfile(FilePath, 'TreeSearchTable.csv'));
-    varargout{1} = ImgGrpNums;
-    varargout{2} = ImgNames;
-    varargout{3} = TreeSearchTable;
+TreeSearchTable = getTreeSearchTable(VDJdata, VDJheader);
+[~, ~, TableIdx] = intersect(ImgGrpNums, cell2mat(TreeSearchTable(2:end, 1)));
+TreeSearchTable = TreeSearchTable([1; TableIdx+1], :);
+for j = 1:length(ImgNames) %Remove the NewFilePath from the TreeFiles
+    [FilePath, FileName, ~] = parseFileName(ImgNames{j});
+    ImgNames{j} = FileName;
 end
+TreeSearchTable(2:end, end) = ImgNames;
+writeDlmFile(TreeSearchTable, fullfile(FilePath, 'TreeSearchTable.csv'));
+varargout{1} = ImgGrpNums;
+varargout{2} = ImgNames;
+varargout{3} = TreeSearchTable;
 
 function Gx = plotSingleTree(VDJdata, VDJheader, ExpPu, DistanceUnit, DotMaxSize, DotMinSize, DotScalor, DotColorMap, Legend, LegendFontSize, Xmax, Yincr, FigMaxHeight, FigWidth, FigSpacer, Visible)
 

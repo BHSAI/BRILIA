@@ -1,3 +1,8 @@
+## Patch notice for version 3.5.7
+ - Adjusted the filter for non-functional VDJ so that <5 AA and > 30 AA CDR3s are excluded, and any V 3', D 5', D 3', J 5' nt deletion > 15 are suspected as improper annotations.
+ - Fixed the tree cutting algorithm to preserve the child-parent relation when merging sequence <= Cutoff hamming distances. 
+ - Add flippedLegend for future plotting functions
+
 ## Patch notice for version 3.5.5
  - Added Rainbow Trout database to BRILIA
  - General code fixes 

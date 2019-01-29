@@ -92,7 +92,7 @@
 %                   y                      Exit BRILIA local environment when job completes
 
 function varargout = BRILIA(varargin)
-Version = '3.5.5'; 
+Version = '3.5.7'; 
 varargout = cell(1, nargout);
 HasShownCredit = false;
 
