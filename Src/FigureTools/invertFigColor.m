@@ -11,6 +11,7 @@
 %    invertFigColor(Gx);
 %
 function invertFigColor(Gx)
+Gx = getOpenGCF(Gx);
 if ~strcmpi(class(Gx), 'matlab.ui.Figure')
     error('%s: Input must be a figure handle.', mfilename);
 end

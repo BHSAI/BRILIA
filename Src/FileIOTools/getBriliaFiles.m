@@ -28,7 +28,7 @@ if nargin < 2
     MultiOn = 1;
 end
 if nargin < 3
-    CmdOn = 1;
+    CmdOn = 0;
 end
 
 if isempty(dir2(FileNames))

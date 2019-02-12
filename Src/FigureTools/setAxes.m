@@ -28,9 +28,9 @@
 %
 function setAxes(varargin)
 [Axs, varargin] = getOpenGCA(varargin{:});
-if numel(varargin) == 1 && isstruct(varargin{1})
-    varargin = struct2array(varargin{1}, 'input');
-end
+StructLoc = cellfun(@isstruct, varargin);
+StructVar = cellfun(@(x) struct2array(x, 'input'), varargin(StructLoc), 'un', 0);
+varargin = horzcat(varargin(~StructLoc), StructVar{:});
 
 for a = 1:length(Axs)
     %Modify the Axes handle
@@ -53,7 +53,7 @@ for a = 1:length(Axs)
                 set(Axs(a), varargin{j}, varargin{j+1});
             end
         catch ME
-            warning('%s: Could not set axes properties.\n%s', mfilename, ME.message);
+            error('%s: Could not set axes properties.\n%s', mfilename, ME.message);
         end
     end
 end
