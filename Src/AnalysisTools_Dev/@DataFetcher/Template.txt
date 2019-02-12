@@ -1,0 +1,33 @@
+% CODING_NOTE: Modify this for the data being collected
+DI = DataFetcher('Poll',       'Chain, GrpNum, hCDR3, lCDR3', ...
+                 'GroupSteps', 'rescale', ...
+                 'DataType',   'freq', ...
+                 'Level',      'clonotype');
+
+% CODING_NOTE: Do NOT modify this input parsing
+[TF, varargout{1}] = DI.isAskingForInfo(varargin{:});
+if TF; return; end
+if nargin == 2
+    [VDJdata, Map] = deal(varargin{1:2});
+    IdxC = getGrpIdx(VDJdata, Map, 'AC');
+elseif nargin == 3
+    [VDJdata, Map, IdxC] = deal(varargin{1:3});
+else
+    error('%s: Incorrect number of inputs.', mfilename);
+end
+
+% CODING_NOTE: Modify below for data collection
+
+
+
+GetData stores all the get(DataData)Data.m files that extracts data from the VDJdata cell array and then returns either:
+
+1) MxN+1 cell array, where column 1 is the labels, and Columns 2:N+1 are the frequency count
+2) 1xN cell array, where each cell stores a Mx1 matrix of values that must be counted
+3) NxN matrix, where each row is how it relate to each col
+4) Mx3 matrix, where col1 = sequence #, col2 = parent of sequence #, and col3 = distance?
+
+
+%each function has two input types - 'poll', varargin
+%if it is 'poll', it returns what indices are needed.
+%if it is VDJdata, Map, then it computes the states that are needed.

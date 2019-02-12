@@ -1,0 +1,1 @@
+%countMotif will count 

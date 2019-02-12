@@ -1,0 +1,406 @@
+>X81508|IGHV10S1*01|Oncorhynchus mykiss|(F)|V-REGION|52..339|288 nt|1| | | | |288+36=324| | |
+gatattgaactcatccag......tctggtcca...gtggttatagaaccaggagtgtct
+ttcagcatctcctgcaaattctctgggttttctata............tcttcttattgt
+cttggatggatacgacaagctgaagggaaagctttggagcatgttggtgttacatgcagt
+............agtagtacttacactgtagactcactaaag...agcaagatcacttct
+agatatgacagttccagcagtacagtgtttctacaagggaacaacttccagactgaagac
+acagctgtgtattattgtgctagg
+>X81511|IGHV11S1*01|Oncorhynchus mykiss|(F)|V-REGION|49..336|288 nt|1| | | | |288+36=324| | |
+agcattagtttgacctcc......tcccctgct...caactcaaaccccctggagagtca
+gtgaaactatcttgccaagtctctggctatgccctg............acaagccaaggt
+acaggttggatacgacagcagccagggaaaacactggagtggattgggatcatctggagt
+ggt.........ggatcaattgaatctggagcctcttttaag...aggagattcaccatc
+tccagagac...agtagtaatgtactgtacttagacatcaccagtctgcaggctgaggac
+acagctgtgtattattgtgctcgg
+>DQ453150|IGHV12S1*01|Oncorhynchus mykiss|(F)|V-REGION|102..404|303 nt|1| | | | |303+21=324| | |
+ggtcttgagctcacccaa......ccaagctca...ttggatgtaaagcctggagagtct
+ttgagcatcacctgtaaggtctctggttattctctgactgatagcagcaacgtccatgga
+ataggctggatccgtcagcctgtaggaaaagcacttgaatggatttggaccatctattat
+gat.........ggaagctcatactctcaaagttccctaaaa...gacaggttcagtgtc
+acaagagacacttccagcaacacagtgtttttaaaaggacagaatctgcagactgaagac
+acagctgtgtattattgtgctcgg
+>DQ453153|IGHV13S1*01|Oncorhynchus mykiss|(F)|V-REGION|110..400|291 nt|1| | | | |291+33=324| | |
+gatatcacattaacccaa......cctggttct...atggttgtaagtccaggagagtct
+gtcaccatcccctgtaaggttgctggttattctgtt............gctagcacttgc
+accaactggattcgccattctgaaggaaaagctatggagtggattggatacctgtgtagt
+agt.........agtagcagtggcacaacagactcattaaag...agcaaaatcagcttc
+actgttgactcctccagcagcacagtgtttctacaagggaagaatttccagactgaagac
+acagctgtgtattactgtgctcgc
+>M57442|IGHV1S1*01|Oncorhynchus mykiss|F|V-REGION|300..595|296 nt|1| | | | |296+30=326| | |
+ggtcagacactgacggag......tctgaatca...gtggttaaaaagcctggagaatcc
+cacaaactgacctgtacatattctgggtttggtggc...............aacaattgg
+aatgcttggatcagacaggctcctgggaaaggactggagtgggtttcagctattaccagc
+agtgat...ggtggcagcacttactactcccagtctgttcag...ggtcagttcaccatc
+tccagagacaacagcaagcagcaggtgtatctccagatgaacagcttgaagactgaagac
+tctgctgtttattattgtgccagaga
+>X92501|IGHV1S2*01|Oncorhynchus mykiss|F|V-REGION|282..574|293 nt|1| | | | |293+33=326| | |
+agtcagatgctgactgaa......tctgaatca...gtggttaaaacgtttgaagaatcc
+cacaaactgacttgcacatattctgggtttggtggc...............aactattgg
+aatgcttggatcaggcaggctccagggaaagggctagaatgggttgcaacaattagtgat
+tca......agcagttatatctactactcccagtctattcag...ggtcggttcaccatc
+tccagagacaacagcaagcagcaggtgtatgtccagatgaacagcctgaagactgaagac
+tctgctgtttattattgtgccagaga
+>S63348|IGHV1S3*01|Oncorhynchus mykiss|(F)|V-REGION|55..345|291 nt|1| | || |291+33=324| | |
+agtcaaacactgactgag......tctggacca...gtggttaaaaagcctttagaagcc
+cacaaactgacctgtacagcctctaatttagacata............aatggctattgg
+attgcatggatcaaacaggctcctggtaaaggactagaatttgtggcagcgcattatgac
+att.........agaaatattgtctactctcagtctgttcag...ggtcggttcaccatc
+tccagagacaacagcatgaagcaggtgtatctccagatgaacagcctgaagactgaagac
+tctgctgtgtattattgtgccaga
+>X81490|IGHV1S4*01|Oncorhynchus mykiss|(F)|V-REGION|55..348|294 nt|1| | | | |294+30=324| | |
+ggtcagacactaactgag......tctggacca...gttgtaaaaataactggagaacca
+cacaaagtgacctgtacagcttctggcttcacattc............agtaactactgg
+atggcttggatcagacaggctcctgggaaaggacttgaatggattgctcattataaatat
+gat......agtgctgaaatctactactcccagtcagtccag...ggtcggttcaccatc
+tccagagacaacagcaagcagcaggtgtatctccagatgaacagcctgaagactgaagac
+tctgctgtttattattgtgccaga
+>L28741|IGHV1S5*01|Oncorhynchus mykiss|(F)|V-REGION|106..402|297 nt|1| | | | |297+27=324| | |
+agtcagacattgaccgag......tctggacca...gtagttaaaaatcctggggaacca
+cacaaactgacctgtacttatgatggaatgtcaaac............aataatgctgat
+attagctggataagacaggctcctggtaaagggctggagtgggtttgtcatatttctgca
+ccaagt...ggagctgacaaatactactccaagtcagtccaa...ggtcggttcaccatc
+tccagagacaacagcaagcagcaggtgtatctccagatgaataacctgaagactgaagac
+tctgctgtgtattattgtgccgga
+>X81484|IGHV1S6*01|Oncorhynchus mykiss|(F)|V-REGION|1..270|270 nt|1| | | | |270+54=324|partial in 5'| |
+..............................cca...gttgtaaaaataactggagaacca
+cacaaagtgacctgtacagcttctggcttcacattc............agtaactactgg
+atggcttggatcagacaggctcctgggaaaggacttgaatggattgccattataaaatat
+gat......agtgctgaaatctactactcccaatcagtccag...ggtcggttcaccatc
+tccagagacaacagcaagcagcaggtgtatctccagatgaacagcctgaagactgaagac
+tctgctgtttattattgtgccaga
+>Y08597|IGHV1S7*01|Oncorhynchus mykiss|(F)|V-REGION|61..354|294 nt|1| | | | |294+30=324| | |
+ggtcagacactaactgag......tctggacca...gttgtaaaaataactggagaacca
+cacaaagtgacctgtacagcttctggcttcacattc............agtaactactgg
+atggcttggatcagacaggctcctgggaaaggacttgaatggattgccattataaaatat
+gat......agtgctgaaatgtactactcccagtcagtccag...ggtcggttcaccatc
+tccagagacaacagcaagcagaaggtgtatctccagatgaacagcctgaagactgaagac
+tctgctgtttattattgtgccggc
+>X81509|IGHV2S1*01|Oncorhynchus mykiss|(F)|V-REGION|55..348|294 nt|1| | | | |294+30=324| | |
+ggtcagagtctggagtccattccctccaattca...gtcatgaaaaagcctggagaaact
+ctcagtctctcctgtaagggatctgggtataccttt............agtagctacaac
+acacattggattagacaacctgctgggaaagcattggaatggatgggttattctggatta
+............ggcctaggctaccatgctaaaagctttgca...ggacgtatggaaacg
+actaaagataattccaacagcatgatgactctgaagctgtctggtctgagagcagaggac
+tctgctgtgtattactgtgcacga
+>AY872256|IGHV2S2*01|Oncorhynchus mykiss|F|V-REGION|4875..5170|296 nt|1| | | | |296+30=326| | |
+ggtcagagtctggagtccattccctctagtcca...gtccagaaaaatcccggagaaact
+ctcagtctgtcctgtaagatatctggatataccgtt............tccagccaccac
+acacactggatacgacagccagcaggaaaatctctggagtggatgggtttttctggatta
+............ggcctaggttaccatgctaaaaagtttgaa...ggacgtatggaaacc
+actaaagatactagtaacagcatgttgactttgatgctgtctggtctgagaacagaggac
+tctgctgtgtattactgtgcaagaga
+>X65262|IGHV2S2*02|Oncorhynchus mykiss|(F)|V-REGION|22..315|294 nt|1| | | | |294+30=324| | |
+ggtcagagtctggagtccattccctctagtcca...gtccagaaaaatcccggagaaact
+ctcagtctgtcctgtaagatatctggattcaccttt............gacagccacaac
+acacactggatacgacagccagcaggaaaatccctggagtggttgggtttttctggatta
+............ggcctaggttaccatgctaaaaggtttgaa...ggacgtatggaaacc
+actaaagatactagtaacagcatgttgactttgatgctgtctggtctgagaacagaggac
+tctgctgtgtattactgtgcaaga
+>X81512|IGHV2S3*01|Oncorhynchus mykiss|(F)|V-REGION|1..276|276 nt|1| | | | |276+48=324|partial in 5'| |
+..................attccctccagtcca...gtcctgaaaaagcctggagaaact
+ctcagtctgtcctgtaagatatctggatacactgtt............gacagccacagc
+acacactggatacgacaaccagcaggaaaatctctggagtggatgggttattctggatta
+............ggcctaggttaccatgctaaaacttttgaa...ggacgtatggaaacc
+actaaagataactccaacagcatgttgactctgaagctgtctggtctgagagcagaggac
+tctgcagcgtattactgtgcaaga
+>X81510|IGHV3S1*01|Oncorhynchus mykiss|(F)|V-REGION|52..348|297 nt|1| | | | |297+27=324| | |
+cagactgagctcacacag......ccaggcttt...ttgaccctgcagcctggacagcct
+ctgaccctctcctgtaaggtctctgggtattctttaacc......agtaccagctactgt
+acaggttgggtacgacagcctgcaggaaaagcactggagtgggttggaaacatgtgtggc
+agt.........ggtaacatatacatcagtgataagctgaaa...aacaaattcagtatg
+tccagagacacttccagcagcacagtgactttaacaggacagagtctgcagactgaagac
+acagctgtatattattgtgctcga
+>L28742|IGHV3S2*01|Oncorhynchus mykiss|(F)|V-REGION|103..399|297 nt|1| | | | |297+27=324| | |
+cagactgagctcacacag......ccaggctct...ttgaccctgcagcctggacagcct
+ctgaccctctcctgtaaggtctctgggtattctttaacc......agtaccagctactgt
+acaggttgggtacgacagcctgcaggaaaagcactggagtgggttggatacatgtgtggc
+agt.........ggtaacatatactacagtgataagctgaaa...aacaaattcagtatc
+tccagagacacttccagcaccacagtgactttaacaggacagagtctgcagactgaagac
+acagttgtgtattattgtgctcga
+>L28805|IGHV3S3*01|Oncorhynchus mykiss|(F)|V-REGION|106..402|297 nt|1| | | | |297+27=324| | |
+cagactgagctcacacag......ccaggctct...ttgaccctgcagcctggacagcct
+ctgaccctctcctgtaaggtctctgggtattctttaacc......agtaccagctactgt
+acaggttgggtacgacagcctgcaggaaaagcactggagtgggttggatacatgtgtggc
+agt.........ggtaacatatactacagtgataagctgaaa...aacaaattcagtatc
+tccagagacacttccagcagcacagtgactttaacaggacagagtctgcagactgaagac
+acagctgtgtattattgtgctcga
+>Y08595|IGHV3S4*01|Oncorhynchus mykiss|(F)|V-REGION|52..348|297 nt|1| | | | |297+27=324| | |
+cagactgagctcacacag......ccaggcttt...ttgaccctgcagcctggacagcct
+ctgaccctctcctgtaaggtctctgggtattctttaacc......agtaccagctactgt
+acaggttgggtacgacagcctgcaggaaaagcactggactgggttggaaacatgtgtggc
+agt.........ggtaacatatactacagtgataatctgaaa...aacaaattcagtatc
+tccagagacacttccagcagcacagtgactttaacaggacagagtctgcagactgaagac
+acagctgtatattattgtgctcga
+>L28744|IGHV4S1*01|Oncorhynchus mykiss|(F)|V-REGION|118..411|294 nt|1| | | | |294+30=324|partial in 5'| |
+...gatgagatggatcag......tctccttct...caggtgaaaagacctggagacaag
+tttaaattgtcatgtaaaatctctgggtttgatatg............acaaactattac
+atgcactggataagacagaaaccaggcaaagctctggagtggattggggttattaactct
+ggttca...acagatgctccagtctactcagactccctgaaa...ggccagttcaccctg
+accgaggacgtctctacaagcacacagttcttagaggccaagagtctgagttcagaggac
+tctgctgtttattattgtgctcgc
+>X81513|IGHV5S1*01|Oncorhynchus mykiss|(F)|V-REGION|55..348|294 nt|1| | | | |294+30=324| | |
+ggtcagacactgactgag......tctggacca...gtagttaaaaagcctggagaatcc
+cacaaactgacctgtacagcctctggcttcacattc............agtagctatagg
+atgggttggatcagacaggctcctgggaaaggactggagtggattgcttatattagcaca
+cag......agtaatccaatctcttattcccagtcagaccag...ggtagattcactatc
+tccagagatgactccagcagtaagctgtacctacagatgaacagtctgaggatggagaac
+acagcagtgtattactgtgctaga
+>AY872256|IGHV5S10*01|Oncorhynchus mykiss|F|V-REGION|60781..61075|295 nt|1| | | | |295+33=328| | |
+cagggtcagacattgact......gagtctggaccagtaattaaaacgcctggagaatcc
+cacacactgatctgtacaggttctgggttcacgttc............aagaactattgg
+atgagttggataagacaggctcctgggaaagaactggaatggattggttatatacatggt
+............actactacttactactcccagtcaatgcag...ggtagattcaccctc
+tccagagatgactccagcagtaagctgtacctacagatgaacagcctgaagagtgaggac
+acagcagtgtattactgtgcccggtaca
+>L28745|IGHV5S2*01|Oncorhynchus mykiss|(F)|V-REGION|97..390|294 nt|1| | | | |294+30=324| | |
+ggtcagacactgactgag......tctggacca...gggattaaaacgcctggagaatcc
+aacacactgagttgtaccacctctgggttcacattc............agtagctaccat
+atggcttggatgaaacaggctcctgggaaaggacttgagtttgttgcctttatacacact
+ggt......ggatcgagtccattctattctcagtcaatacag...ggtagattcaccatc
+tccagagatgactccagcagtaagctgtacctacagatgaacagtctgaagagtgaggac
+acagcattgtattactgtgcccgg
+>U04616|IGHV5S3*01|Oncorhynchus mykiss|(F)|V-REGION|55..348|294 nt|1| | | | |294+30=324| | |
+ggtcagacactgactgag......tctggacca...gtggttaaaaagcctggtgaatca
+cacaaactgacctgtacagcctctgggttcacattc............agtagctatgcg
+atgaactgggtcagacaggctcctgggaaaggattagagtggattgcttatatcagcaca
+gct......agtacacccatatattactcccagtcagtccag...ggtagattcaccatc
+tctagagatgactccagcagtaagctgtacctacagatgaacagtctgaagagtgaagac
+acagcggtgtattactgtgcccgg
+>U04615|IGHV5S4*01|Oncorhynchus mykiss|(F)|V-REGION|55..342|288 nt|1| | | | |288+36=324| | |
+ggtcagacattgactgag......tctggacca...gtggttaaaaatcctggagaatca
+cacaaactgacctgtacaggctctgggttcacattc............agtagctatggg
+atgaactggatcagacaggctcctgggaaaggattggagtggattgcctatagttatagt
+............actactacatattactcccagtcatttcag...ggtagattcaccatc
+tccagagatgactccagcagtaagctatacctacagatgaacagtctgaggagtgaggac
+acagcagtgtattactgtgctaga
+>X81493|IGHV5S5*01|Oncorhynchus mykiss|(F)|V-REGION|55..348|294 nt|1| | | | |294+30=324| | |
+ggtcagacactgactgag......tctggacca...gggattaaaacgcctggagaatcc
+aacacactgagttgtaccacctctgggttcacattc............agtagttaccat
+atggcttggatgaaacaggctcctgggaaaggacttgagtttgttgcctttatacacact
+ggt......ggatcgagtccatctattctcagtcgaatacag...ggtagattcaccatc
+tccagagatgactccagcagtaagctgtacctacagatgaacagtctgaagagtgaggac
+acagcattgtattactgtgcccgg
+>X81492|IGHV5S6*01|Oncorhynchus mykiss|(F)|V-REGION|55..348|294 nt|1| | | | |294+30=324| | |
+ggtcagacactgactgag......tctggacca...gggattaaaacgcctggagaatcc
+aacacactgagttgtaccacctctgggttcacattc............agtagctaccac
+atggcttggatgaaacaggctcctgggaaaggacttgagtttgttgcctttatacacact
+ggt......ggatcgagtccattctattctcagtcaatacag...ggtagattgaccatc
+tccagagatgactccagcagtaagctgtacctacagatgaacagtctgaagagtgaggac
+acagcactgtattactgtgcccgg
+>X81491|IGHV5S7*01|Oncorhynchus mykiss|(F)|V-REGION|55..348|294 nt|1| | | | |294+30=324| | |
+ggtcagacactgactgag......tctggacca...ggggttaaaacgcctggagaatcc
+aacacactgagttgtaccacctctgggttcacattc............agtagctaccac
+atggcttggatgaaacaggctcctgggaaaggacttgagtttgttgcctttatacacact
+ggt......ggatcgagtccattctattctcagtcaatacag...ggtagattcaccatc
+tccagagatgactccagcagtaagctgtacctacagatgaacagtctgaagagtgaggac
+acagcattgtattactgtgcccgg
+>Y08596|IGHV5S8*01|Oncorhynchus mykiss|(F)|V-REGION|55..348|294 nt|1| | | | |294+30=324| | |
+ggtcagacactgactgag......tctggacca...gggattaaaacgcctggagaatcc
+aacacactgagttgtaccacctctgggttcacattc............agtagctaccat
+atggcttggatgaaacaggctcctgggaaaggacttgagtttcttgccctttatacacac
+tgg......tggatcgagtccattctatctcagtcaatacag...ggtagattcaccatc
+tccagagatgactccagcagtaagctgtacctacagatgaacagtctgaagagtgaggac
+acagcattgtattactgtgcccgg
+>Y08599|IGHV5S9*01|Oncorhynchus mykiss|(F)|V-REGION|55..345|291 nt|1| | | | |291+33=324| | |
+ggtcagacactgactgag......tctggacca...gggattaaaacgcctggagaatcc
+aacacactgagttgtaccacctctgggttcacattc............agtagctaccat
+atggcttggatgaaacaggctcctgggaaaggacttgagtttgttgcctttatacacact
+ggt.........ggatcgagtccatctatctcagtcaatcag...ggtagattcaccatc
+tccagagatgactccagcagtaagctgtacctacagatgaacagtctgaagagtgaggac
+acagcattgtattactgtgcacac
+>AY872256|IGHV6S1*01|Oncorhynchus mykiss|F|V-REGION|52551..52838|288 nt|1| | | | |288+39=327| | |
+tgtgaagaactcactcag......ccagcctct...atgactgtccagtcaggtcaacca
+ctgaccatctcttgtaaggtttcatattctgtaggt...............agctattac
+acagcttggatccggcagcctgcagggaaaacactggagtggattggaatgaaatatact
+............ggaggaacgcaccacaaagactccctgaaa...aataagttcagcctc
+acagtagactcctccagcaatactgtgactttaacaggacagagtctgcagactgaggac
+acagctgtgtattattgtgctcgcctc
+>L28746|IGHV6S2*01|Oncorhynchus mykiss|(F)|V-REGION|112..393|282 nt|1| | | | |282+42=324|partial in 5'| |
+...tatgaactctcccag......ccagcatct...atgactgtcctgccaggtcaacca
+ctgaccatctcctgtaaggtctcatattcagttact...............aacgcttgg
+acagcttggatccgaaagcctgcagggaaaacactggagtggattggaaatgtatattct
+............ggagtcacacaatacaaggattcgctgaag...aacaagttcagcctc
+tcagtagactctagcagtaatactgtgtttttaaaagggcagaaccttcagactgaaggc
+tcaactgtgtattattgtgcccta
+>X81496|IGHV6S3*01|Oncorhynchus mykiss|(F)|V-REGION|55..336|282 nt|1| | | | |282+42=324|partial in 5'| |
+...gaagaactcactcag......ccagcctct...atgactgtccagtcaggtcaacca
+ctgaccatctcttgtaaggtttcatattctgtaggt...............acgtattac
+acagcttggatccggcagcctgcacccaaaacactggagtggattggaatgaaatatact
+............ggaggaacgcaccacaaagactccctgaaa...aataagttcagcctc
+acagtagactcctccagcaatactgtgactttaacaggacagagtctgcagactgaggac
+acagctgtgtattattgtgctcgc
+>X81494|IGHV6S4*01|Oncorhynchus mykiss|(F)|V-REGION|52..336|285 nt|1| | | | |285+39=324|partial in 5'| |
+...tatgaactcactcag......ccagcctct...ttgactgtccagccaggtcaacca
+ctgaccatctcctgtaaggtctcatattcagttagt...............agctactac
+acggcttggattcgacagcctgcagggaaaacactggagtggattggatatattagtagt
+ggt.........ggaggcacagcttataaagattcactgaaa...aacaagttcagcatc
+accagagacacgtccagcaacacattgtttttaaaaggacagagtctgcagactgaagac
+acagctgtgtattattgtgctcgc
+>X81497|IGHV6S5*01|Oncorhynchus mykiss|(F)|V-REGION|55..336|282 nt|1| | | | |282+42=324|partial in 5'| |
+...gaagaactcactcag......ccagcctct...atggctgtccagccaggtcaacca
+ctgaccatctcctgtaaggtctcatattctgttgct...............agctattgg
+acagcttggatccgacaacctgcagggaaaggactggagtggattgggcaaatatatact
+............ggaaacacaatctacaaggattcactgaaa...aacaagttcagcctc
+actttagactccactaacaagatagtgactttaacaggacagaacctgcagactgaagac
+acagctgtgtattattgtgcccga
+>X81487|IGHV6S6*01|Oncorhynchus mykiss|(F)|V-REGION|1..267|267 nt|1| | | | |267+57=324|partial in 5'| |
+........................ccagcctct...atgactgtccagccaggtcaacca
+ctgaccatgtcctgtaaggtctcatattctgttgct...............agctattgg
+acagcttggatccgacaacctgcagggaaaggactggagtggattgggcaaatatatact
+............ggaaacacaatctacaaggattcactgaaa...aacaagttcagcctc
+actttagactcctctaacaagatagtgactttaacaggacagaacctgcagactgaaaac
+acagctgtgtattattgtgcccga
+>X81495|IGHV6S7*01|Oncorhynchus mykiss|(F)|V-REGION|55..336|282 nt|1| | | | |282+42=324|partial in 5'| |
+...gaagaactcactcag......ccagcctct...atgactgtccagtcaggtcaacca
+ctgaccatctcttgtaaggtttcatattctgtaggt...............agctattac
+acagcttggatccggcagcctgcacccaaaacactggagtggattggaatgaaatatact
+............ggaggaacgcaccacaaagactccctgaaa...aataagttcagcctc
+acagtagactcctccagcaatactgtgactttaacaggaacgagtctgcagactgaggac
+acagctgtgtattattgtgctcgc
+>Y08600|IGHV6S8*01|Oncorhynchus mykiss|(F)|V-REGION|55..336|282 nt|1| | | | |282+42=324|partial in 5'| |
+...gaagaactcactcag......ccagcctct...atgactgtccagccaggtcaacca
+ctgaccatatcctgtaaggtctcatatcctgttact...............agttattgg
+acagcttggatccgacaacctgcagggaaaggactggagtggattgggcagatatatact
+............ggaaacacaatctacaaggattcactgaaa...aacaagttcagcctc
+actttagactcctctaacaagatagtgactttaacaggacagaacctgcagactgaagac
+acagctgtgtattattgtgcccga
+>Y08602|IGHV6S9*01|Oncorhynchus mykiss|(F)|V-REGION|55..336|282 nt|1| | | | |282+42=324|partial in 5'| |
+...gaagaactcactcag......ccagcctct...atgactgtccagtcaggtcaacca
+ctgaccatctcttgtaaggtttcatattctgtaggt...............agctattac
+acagcttggatccggcagcctgcagggaaaacactggagtggattggaatgaaatatact
+............ggaggaacgcaccacaaagactccctgaaa...aataagttcagcctc
+acagtagactcctccagcaatactgtgactttaacaccacagagtctgcagactgaggac
+acagctgtttattattgtgctcgc
+>L28747|IGHV7S1*01|Oncorhynchus mykiss|(F)|V-REGION|103..405|303 nt|1| | | | |303+21=324| | |
+ggtcttgaactcagccag......ccaaatgta...atggttgtaaagcctggagagtct
+ctgagcatcacctgtaaggtctctgggtattctgttagtgatagcagcataagctttgcc
+acaggttgggttcgaaagcctgcagggaaagcaatggagtggatttcccatatatgggat
+aat.........ggagacatatacaaaaatgatgcattgaaa...aacaagttcagcatt
+tcaacacatgcctccagcaactctgtgtctttacaagggaagagcctgcaacctgaagac
+acagctgtgtattactgtgctcgg
+>X81482|IGHV8S1*01|Oncorhynchus mykiss|(F)|V-REGION|55..342|288 nt|1| | | | |288+36=324| | |
+caggtcgtactcacacag......gctgaacagtcagtccaggggacccctgcaggatcc
+ctcaaactcacatgtgcctgtagtggattcactcta............agcagcagttac
+atgcactggatccgccaggcacctggaaaaggacttgaatggataatttactattactct
+gat.........agtaacaagagcaatgcccctgtagtacag...ggtagattcacagcg
+ttgaaggac......agcactaatttctatctgcacatgaacctgttgaagccagaggac
+tccgcagagtattactgtgctaga
+>Y08601|IGHV8S10*01|Oncorhynchus mykiss|(F)|V-REGION|55..339|285 nt|1| | | | |285+39=324| | |
+cagatcgtcctcacacag......gctgagtca...gtccaggggactcctgcaggatcc
+ctcaaactcacatgtgcctgtagtggattcactcta............agcagcataatt
+atattttggatccgccaggcacctggaaaaggacttgaatggatcatttactattattct
+gac.........agtgacaaaagcaatgcccctgtagtacag...ggtcgattcactgca
+tcaaaggac......agcagtcctttctatctccacatgagccagttgaagccagaggac
+tctgcagtgtattactgtgctagg
+>Y08889|IGHV8S11*01|Oncorhynchus mykiss|(F)|V-REGION|55..342|288 nt|1| | | | |288+36=324| | |
+caggtcgtactcacacag......gctgaacagtcagtccaggggacccctgcaggatcc
+ctcaaactcacatgtgcctgtagtggattcactcta............agcagtagttac
+atgcactggatccgccaggcacctggaaaaggacttgaatggatcatttactattactct
+gat.........agtaacaagagcaatgcccctgtagtacag...ggtcgattcactgga
+tcaaaggac......agcagtaatttctatctccacatgagccagttgaagccagaggac
+tctgcagtgtattactgtgctaga
+>X81501|IGHV8S2*01|Oncorhynchus mykiss|(F)|V-REGION|55..336|282 nt|1| | | | |282+42=324| | |
+cagattgtactcacacag......gctagtcag......ccagggactcctgcaggatcc
+ctcaaactcacatgtgcctgtagtggattcactcta............agcaggggtaat
+atgttttggatccgccaggcacctggaaaaggacttgaatggatcatttactattattct
+gac.........agtgacaagagcaatgcccctgtagtacag...ggtcgattcactgga
+tcaaaggac......agcagtaatttctatctccacatgagccagttgaagccagaggac
+tctgcagtgtattactgtgctaga
+>X81503|IGHV8S3*01|Oncorhynchus mykiss|(F)|V-REGION|55..339|285 nt|1| | | | |285+39=324| | |
+cagattgtactcacacag......gctgagtca...gtccaggggactcctgcaggatcc
+ctcaaactcacatgtgcctgtagtggattcactcta............agcagcactaat
+atgttttggatccgccaggcacctggaaaaggacttgaatggatcatttactattattct
+gac.........agtgacaagagcaatgcccctgtagtacag...ggtcgattcactgca
+tcaaaggac......agcagtaatttctatctccacatgagccagttgaagccagaggac
+tctgcagagtattactgtgcttat
+>X81499|IGHV8S4*01|Oncorhynchus mykiss|(F)|V-REGION|55..342|288 nt|1| | | | |288+36=324| | |
+caggtcgtactcacacag......actgaacagtcagtccaggggactcctgcaggatcc
+ctcaaactcacatgtgcctgtagtggattcactcta............agcagcactaat
+atgcactggatccgccaagcacctggaaaaggacttgaatggatcatttactattattct
+gac.........agtgacaagagcaatgcccctgtagtacag...ggtcgattcactgca
+tcaaaggac......agcagaaatttctatctccacatgagccagttgaagccagaggac
+tctgcagtgtattactgtgctaga
+>X81488|IGHV8S5*01|Oncorhynchus mykiss|(F)|V-REGION|1..237|237 nt|1| | | | |237+87=324|partial in 5'| |
+.........................................................tcc
+ctcaaactcacgtgtgcctgtagtggattcactcta............agcagcactaat
+atgcactggatccgccaagcacctggaaaaggacttgaatggatcatttactattattct
+gac.........agtgacaagagcaatgcccaggtagtacag...ggccgattcactgca
+tcaaaggac......agcagtaatttatatctgcacatgagccagttgaagccagaggac
+tctgcagtgtattactgtgctaga
+>X81498|IGHV8S6*01|Oncorhynchus mykiss|(F)|V-REGION|55..342|288 nt|1| | | | |288+36=324| | |
+caggtcgtactcacacag......gctgaacagtcagtccaggggacccctgcaggatcc
+ctcaaactcacatgtgcctgtagtggattcactcta............agcagtagttac
+atgcactggatccgccaggcacctggaaaaggacttgaatggatcatttactattactct
+gat.........agtaacaagagcaatgcccctgtagtacag...ggtcgattcactgaa
+tcaaaggac......agcagtaatttctatctccacatgagccagttgaagccagaggac
+tctgcagtgtattactgtgctaga
+>AY872256|IGHV8S7*01|Oncorhynchus mykiss|F|V-REGION|48580..48871|292 nt|1| | | | |292+36=328| | |
+caggtcgtactcacacag......gccgaacagtcggtccaggggacacctgggggatcc
+ctcaaactcacatgtgcctgtagtggaatcactctc............agcagctcttat
+atgcactggattcgccaagcacctggaaaaggacttgaatggataatttactattattct
+gac.........agttacaagagcaatgcccaggtagtacag...ggtcgattcactgca
+tcgaaggac......agcactaatttctatctgcacatgagccagttgaagtcagaggac
+tctgcaatgtattactgtgctagagact
+>X81502|IGHV8S7*02|Oncorhynchus mykiss|(F)|V-REGION|55..342|288 nt|1| | | | |288+36=324| | |
+caggtcgtactcacacag......gctgaacagtcggtccaggggacacctgggggatcc
+ctcaaactcacatgtgcctgtagtggaatcactctc............agcagctcttat
+atgcactggattcgccaagcacctggaaaaggacttgaatggataatttactattattct
+gac.........agttacaagagcaatgcccaggtagtacag...ggtcgattcactgca
+tcgaaggac......agcactaatttctatctgcacatgagccagttgaagtcagaggac
+tctgcaatgtattactgtgctaaa
+>X81500|IGHV8S8*01|Oncorhynchus mykiss|(F)|V-REGION|55..342|288 nt|1| | | | |288+36=324| | |
+caggtcgtactcacacag......gctgaacagtcagtccaggggacccctgcaggatcc
+ctcaaactcacatgtgcctgtagtggattcactcta............agcagcagttac
+atgcactggatccgggaggcacctgggaaaggacttgaatggataatttactattactct
+gat.........agtaacaagagcaatgcccctgtagtacag...ggtagattcacagag
+ttgaaggac......agcactaatttctatctgcacatgaacctgttgaagccagaggac
+tcggcagtgtattactgtgctaga
+>X81483|IGHV8S9*01|Oncorhynchus mykiss|(F)|V-REGION|55..342|288 nt|1| | | | |288+36=324| | |
+caggtcgtactcacacag......gctgaacagtcagtccaggggacccctgcaggatcc
+ctcaaactcacatgtgcctgtagtggattcactcta............agcagcagttac
+atgcactggatccgccaagcacctggaaaaggacttgaatggataatttactattactct
+gat.........agtaacaagagcaatgcccctgtagtacag...ggtagattcacagcg
+ttgaaggac......agcactaatttctatctgcacatgaacctgttgaagccagaggac
+tcggcagtgtattactgtgctaga
+>X81505|IGHV9S1*01|Oncorhynchus mykiss|(F)|V-REGION|52..342|291 nt|1| | | | |291+33=324| | |
+ggacagtcactcacctcc......tctgagtca...gtggtgaagaaacctggagagtca
+gtaacactgtcatgtactgtgtatggtttctccatg............ggtagctactac
+atgcactggatccgtcagaaaccagggaaaggtctagagtggattggacggattgacact
+ggc.........actggcactgtatttgctcagtccctccag...ggccagttcaccatc
+accaaagacaactccaaaaaccagttgtatttagaggtgaaaagcctgaagactgaagac
+tctgctgtttattattgtgccagg
+>X81504|IGHV9S2*01|Oncorhynchus mykiss|(F)|V-REGION|52..342|291 nt|1| | | | |291+33=324| | |
+ggacagtcactcacctcc......tctgagtca...gtggtgaagagccctggagagtca
+gtaacactgtcatgtactgtgtctggtttctccatg............gatagctactac
+atgcactggatccgtcagaaaccagggaaaggtctagagtggattggccttattgacact
+ggc.........actggcactgtatttgctcagtcccgccag...ggccagttcaccatc
+accaaagacaactccaaaaaccagttgtacttagaggtgaaaagcctgaagactgaagac
+tctgctgtttattattgtgcaaga
+>X81507|IGHV9S3*01|Oncorhynchus mykiss|(F)|V-REGION|52..342|291 nt|1| | | | |291+33=324| | |
+gggcagtcactcacctcc......tctgagcca...gtagtgaagagacctagtgagtca
+gtaacactgtcctgtactgtgtctggattctccatg............ggtagctactgg
+atgcaatggatccgtcagaaaccagggaaaggattggagtggattggattcattgacact
+gga.........accactgcttattatgcccagtctctccag...ggccagttcaccatc
+accaaagacacctccaaaaaccagctgtacttagagatgaaaagtctgaggactgaagac
+tctgctgtttattattgtgccaga
+>X81506|IGHV9S4*01|Oncorhynchus mykiss|(F)|V-REGION|52..342|291 nt|1| | | | |291+33=324| | |
+gggcagtcactcacctcc......tctgagcca...gtcgtgaagagacctagtgagtca
+gtaacactgtcctgtactgtgtctggattctccatg............ggtagttgctgg
+atgcaatggatccgtcagaaaccagggaaaggattggagtggattggattcattgacact
+gga.........accactgcttattatgcccagtctctccag...ggccagttcaccatc
+accaaagacacctccaaaaaccagctgtacttagagatgaaaagtctgaagactgaagac
+tctgctgtttattattgtgccaga
+>Y08603|IGHV9S5*01|Oncorhynchus mykiss|(F)|V-REGION|52..342|291 nt|1| | | | |291+33=324| | |
+gggcagtcactcacctcc......tctgaagcc...gtcgtgaagagacctagtgagtca
+gtaacactgtcctgtactgtgtctggattctccatg............ggtagctactgg
+atgcaatggatccgtcagaaaccagggaaaggattggagtggattggattcattgacact
+gga.........accactgcttattatgcccagtctctccag...ggccagttcaccatc
+accaaagacacctccaaaaaccagctgtacttagagatgaaaagtctgaagactgaagac
+tctgctgtttattattgtgccaga
+>Y08604|IGHV9S6*01|Oncorhynchus mykiss|(F)|V-REGION|58..348|291 nt|1| | | | |291+33=324| | |
+gggcagtcactcacctcc......tctgagcca...gtagtgaagagacctagtgagtca
+gtaacactgtcctgttctgtgtctggattctccatg............ggtagctactgg
+atgcaatggatccgtcagaaaccagggaaaggattggagtggattggattcattgacact
+gga.........accactgcttattatgcccagtctctccag...ggccagttcaccacc
+accaaagacacctccaaaaaccaggtgtacctccagatgaacagcctgaagactgaagac
+tctgctgtttattattgtgccagg
