@@ -18,7 +18,7 @@
 %    plotEntropy    &  saveEntropy
 %
 %  EXAMPLE
-%    Data1 = {}
+%    To Be Added
 %
 classdef FrequencyData < DataInterface
     properties (Access = public)
@@ -54,7 +54,8 @@ classdef FrequencyData < DataInterface
                     case 2
                         if ~iscell(Data)
                             Data = num2cell(Data);
-                        elseif ~all(cellfun(@isdouble, Data(:, 2)))
+                        end
+                        if ~all(cellfun(@isnumeric, Data(:, 2)))
                             error('%s: Input data 2nd column must be all double for frequencies.', mfilename);
                         end
                     otherwise
@@ -404,25 +405,41 @@ classdef FrequencyData < DataInterface
                 return
             end
             P = inputParser;
+            P.addParameter('PoolData', 'n', @(x) ismember(lower(x), {'y', 'n'}));
             P.addParameter('DownSample', 'n', @(x) ismember(lower(x), {'y', 'n'}));
             P.parse(varargin{:});
+            PoolData = strcmpi(P.Results.PoolData', 'y');
             DownSample = strcmpi(P.Results.DownSample, 'y');
+            
+            %Pool data first before downsampling
+            AddFigName = '';
+            if PoolData
+                [~, ~, ~, UnqGrpIdx] = unique2(O.Group);
+                TData = cell(numel(UnqGrpIdx), 1);
+                for j = 1:numel(UnqGrpIdx)
+                    TData{j} = sort(vertcat(Data{UnqGrpIdx{j}}));
+                end
+                Data = TData;
+                AddFigName = [AddFigName '_Pooled'];
+            end
 
             %Down sample to the minimum count of all Data
             if DownSample
                 DataCt = cellfun('length', Data);
                 MinCt = min(DataCt);
                 for j = 1:numel(Data)
-                    Data{j} = sort(Data{j});
+                    Data{j} = sort(Data{j}, 'descend'); %Use descend to insure you get the largest group via index 1.
                     GetIdx = round(linspace(1, DataCt(j), MinCt));
                     Data{j} = Data{j}(GetIdx);
                 end
+                AddFigName = [AddFigName sprintf('_DownSample%d', MinCt)];
             end
             
             %Make sure the confetti map matrices are made
             if ~isfield(O.ModData, 'Confetti') || isempty(O.ModData.Confetti)
                 O.ModData.Confetti = cell(1, numel(Data));
             end
+            
             %Calc and plot Confettis
             for j = 1:numel(Data)
                 if isempty(O.ModData.Confetti{j}) || ...
@@ -431,7 +448,7 @@ classdef FrequencyData < DataInterface
                     fprintf('%s: Making ConfettiMap for Data # %d.\n', mfilename, j)
                     O.ModData.Confetti{j} = makeConfettiMap(Data{j});
                 end
-                FigName = sprintf('Confetti_%d', j);
+                FigName = sprintf('Confetti_%d%s', j, AddFigName);
                 if ~O.isGxValid(FigName)
                     O.setGx(FigName, figure);
                 end
@@ -439,6 +456,26 @@ classdef FrequencyData < DataInterface
             end
             %Do not apply defaults for Confetti plots since you want the
             %WxH to be a square.
+        end
+        
+        function plotDendrogram(O, varargin)
+            %Plots the pairwise distribution differences between subjects
+            [PairDist, Method] = calcDistribDist(O.ModData.Indiv, varargin{:});
+            FigName = sprintf('Dendrogram_%s', Method);
+            if ~O.isGxValid(FigName)
+                O.setGx(FigName, figure);
+            end
+            Linkage = linkage(PairDist, 'single', 'euclidean');
+            N = size(O.ModData.Indiv, 2);
+            Labels = cell(1, N);
+            for k = 1:N
+                Labels{k} = sprintf('Grp %s (%02d)', O.GroupName{k}, k);
+            end
+            O.Gx.(FigName); %Just to highligh current figure
+            [Dx, NodeNum, NodePerm] = dendrogram(Linkage, 'Labels', Labels, 'Orientation', 'right');
+            set(Dx, 'LineWidth', 2);
+            O.setPlotTickDecimal(FigName, 3, -1)
+            O.resizeSubplots(FigName)
         end
         
         function plotEntropy(O, varargin)
@@ -615,12 +652,15 @@ classdef FrequencyData < DataInterface
                 warning('%s: No save directory set.', mfilename);
                 return
             end
-            if ~isempty(O.Gx) && isvalid(O.Gx)
-                SaveName = fullfile(O.SaveDir, [O.DataName '.png']);
-                savePlot(O.Gx, 'SaveAs', SaveName, 'DPI', 600);
-            else
-                warning('%s: No figure handle found.', mfilename);
-                return
+            Fields = fieldnames(O.Gx);
+            for f = 1:numel(Fields)
+                if isempty(O.Gx.(Fields{f})) || ~isvalid(O.Gx.(Fields{f}))
+                    continue
+                else
+                    SaveName = fullfile(O.SaveDir, sprintf('%s.%s.png', O.DataName, Fields{f}));
+                    savePlot(O.Gx.(Fields{f}), 'SaveAs', SaveName, 'DPI', 600);
+                    fprintf('Saved file: %s\n', SaveName);
+                end
             end
         end
         

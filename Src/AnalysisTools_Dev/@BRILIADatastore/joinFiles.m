@@ -1,4 +1,5 @@
-function O = joinFiles(O, Option, Level)
+function joinFiles(O, Option, Level)
+%Joins multiple data files into a single file
 if isempty(O.SaveDir)
     warning('%s: Must specify save dir before hand.', mfilename);
     return

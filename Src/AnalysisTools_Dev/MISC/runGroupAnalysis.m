@@ -29,7 +29,7 @@ function runGroupAnalysis(varargin)
 O.getDiversity;
 O.saveData('Diversity')
 
-O.getClonotypeData;
+% O.getClonotypeData;
 % O.plotFreqData;
 % O.savePlot;
 

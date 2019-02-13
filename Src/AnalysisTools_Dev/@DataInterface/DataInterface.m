@@ -209,6 +209,8 @@ classdef DataInterface < handle
             end
             if iscell(NewDir) %Only get the first one
                 O.SaveDir = NewDir{1};
+            else
+                O.SaveDir = NewDir;
             end
             %CODING_NOTE: Let subclasses make the output dir when needed.
             %Do NOT use mkdir here unless some files will actually go in.
@@ -292,7 +294,6 @@ classdef DataInterface < handle
                 end
             end
             if ~isequal(Tx, O.PrivGx) %Change PrivGx ONLY if there is a change to prevent handleChangedGx triggers.
-                fprintf('%s: triggered\n', mfilename)
                 O.PrivGx = Tx; 
             end
         end
@@ -312,7 +313,6 @@ classdef DataInterface < handle
                 end
             end
             if ~isequal(Tx, O.PrivAx) %Change PrivGx ONLY if there is a change to prevent handleChangedGx triggers.
-                fprintf('%s: triggered\n', mfilename)
                 O.PrivAx = Tx;
             end
         end
@@ -364,6 +364,13 @@ classdef DataInterface < handle
             applyAllFigures(O, 'setAxes', varargin{:});
         end
         
+        function setPlotTickDecimal(O, varargin)
+            %Sets the number of decimal in the X and/or Y axis
+            varargin = cleanCommandLineInput(varargin{:});
+            if numel(varargin) == 0; return; end
+            applyAllFigures(O, 'setPlotTickDecimal', varargin{:});
+        end
+        
         function resizeSubplots(O, varargin)
             %Resizes all subplots in every figure
             varargin = cleanCommandLineInput(varargin{:});
@@ -388,6 +395,8 @@ classdef DataInterface < handle
                 if ~isempty(CurGx) && isvalid(CurGx)
                     close(O.Gx.(Fields{j}));
                 end
+                O.Gx.(Fields{j}) = [];
+                O.Ax.(Fields{j}) = [];
             end
         end
         
@@ -421,7 +430,7 @@ classdef DataInterface < handle
         function applyDefault(O, varargin)
             %Applies default axes settings to all axes
             applyAllFigures(O, 'setAxes', varargin{:}, O.Default);
-            applyAllFigures(O, 'resizeFigure', varargin{:}, 'FigWidth', O.Width, 'FigHeight', O.Height);
+%             applyAllFigures(O, 'resizeFigure', varargin{:}, 'FigWidth', O.Width, 'FigHeight', O.Height);
             applyAllFigures(O, 'resizeSubplots', varargin{:});
         end
         

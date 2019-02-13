@@ -1,8 +1,8 @@
-%Datastore is used to track which BRILIA output files to use in the
+%BRILIADatastore is used to track which BRILIA output files to use in the
 %analysis, and which files are grouped according to the same treatment.
 %
 %  ATTRIBUTES
-%    DS          Datastore for accessing data directly from hard drive
+%    DS          BRILIADatastore for accessing data directly from hard drive
 %    Map         Structure mapping a name to column number
 %    VDJheader   Cell array of unmodified header names
 %    Idx         Cell array of cell arrays of all clonotype indices
@@ -11,7 +11,7 @@
 %    GroupName   Cell array of unique group name of size(unique(Group))
 %
 %  CONSTRUCTOR
-%    Datastore(FileNames, 'GroupBy', GroupBy, 'GroupFormat', 'GroupFormat)
+%    BRILIADatastore(FileNames, 'GroupBy', GroupBy, 'GroupFormat', 'GroupFormat)
 %      FileNames: cell array of file names. If empty, will ask user.
 %      GroupBy ['file' 'dir']: Group files by treatment group based on a 
 %        unique file name or folder name.
@@ -39,15 +39,15 @@
 %    number of columns, in the SAME order. This is not an issue for
 %    individual files.
 
-classdef Datastore < handle
+classdef BRILIADatastore < handle
     properties (AbortSet, Access = public, Dependent)
         SelectedVariableNames %This is used by the datastore
-        Group            %Group number
-        Files            %Cell array of BRILIA file names
+        Group             %Group number
+        Files             %Cell array of BRILIA file names
     end
     
     properties (AbortSet, GetAccess = public, SetAccess = private)
-        DS                %Datastore for accessing data directly from hard drive
+        DS                %BRILIADatastore for accessing data directly from hard drive
         Map               %Structure mapping a name to column number
         VDJheader         %Cell array of unmodified header names
         Idx               %Cell array of cell arrays of all clonotype indices
@@ -62,18 +62,20 @@ classdef Datastore < handle
     end
     
     methods
-        function O = Datastore(FileNames, varargin)
+        function O = BRILIADatastore(FileNames, varargin)
+            %Constructs a BRILIA Datastore object for extracting data
+            
             P = inputParser;
-            addParameter(P, 'GroupBy',      'file', @(x) ischar(x) && ismember(lower(x), {'file', 'dir', 'folder'}));
-            addParameter(P, 'GroupFormat',  'Grp#', @ischar);
-            parse(P, varargin{:});
+            P.addParameter('GroupBy',     'file', @(x) ischar(x) && ismember(lower(x), {'file', 'dir', 'folder'}));
+            P.addParameter('GroupFormat', 'Grp#', @ischar);
+            P.parse(varargin{:});
             GroupBy = P.Results.GroupBy;
             GroupFormat = P.Results.GroupFormat;
             
             if nargin < 1 || isempty(FileNames)
                 TmpFiles = getBriliaFiles('', true, false);
                 assert(~isempty(TmpFiles), '%s: No BRILIA files were chosen for the datastore.', mfilename);
-            elseif isa(FileNames, 'Datastore')
+            elseif isa(FileNames, 'BRILIADatastore')
                 TmpFiles = FileNames.Files;
             else
                 TmpFiles = FileNames;
@@ -94,9 +96,9 @@ classdef Datastore < handle
             O.reset; %Reset to beginning
             O.groupBy(GroupBy, GroupFormat); %Assign group name and number
         end
-    
-        %Read the data file-by-file, starting after last read file. 
+          
         function [Data, Map, VariableNames] = read(O, varargin)
+            %Reads the data file-by-file, starting after last read file. 
             [Data, Map, VariableNames] = deal([]);
             if ~O.DS.hasdata
                 fprintf('%s: End of file reached. Use "reset" to go to the beginning.\n', mfilename);
@@ -112,30 +114,29 @@ classdef Datastore < handle
                 Map.Chain = O.Map.Chain; %Required as Map.Chain is special, and a char.
             end
         end
-        
-        %Read all data, starting from the beggining
+                
         function [Data, Map, VariableNames] = readall(O, varargin)
+            %Reads all data, starting from the beggining
             O.SelectedVariableNames(varargin{:});
-            reset(O.DS);
+            O.DS.reset;
             Data = cell(size(O.DS.Files));
             for j = 1:size(Data, 1)
                 Data{j} = table2cell(read(O.DS));
             end
-            reset(O.DS);
+            O.DS.reset;
             if nargout >= 2
                 VariableNames = O.SelectedVariableNames;
                 Map = getVDJmapper(VariableNames);
                 Map.Chain = O.Map.Chain; %%Required as Map.Chain is special, and a char.
             end
         end
-        
-        %Go back to the beginning
-        function O = reset(O)
-            reset(O.DS);
+                
+        function reset(O)
+            %Resets the datastore to start from the beginning of the files
+            O.DS.reset;
         end
         
-        %Joins multiple data files into a single file
-        O = joinFiles(O, Option, Level);
+        joinFiles(O, Option, Level); 
     end
     
     %Get and set methods
@@ -180,6 +181,7 @@ classdef Datastore < handle
         end
         
         function setSaveDir(O, SaveDir)
+            %Sets the directory to save output images and files
             O.SaveDir = SaveDir;
         end
         
@@ -213,8 +215,8 @@ classdef Datastore < handle
             [~, ~, Group] = unique(O.GroupName, 'stable');
         end
         
-        function O = groupBy(O, Options, Format)
-            %Determine the grouping name and number
+        function groupBy(O, Options, Format)
+            %Determines how to group the files, either by file or dir name
             if strcmpi(Options, 'file') %GroupName by file name
                 GroupNameTmp = O.Files;
                 for j = 1:numel(GroupNameTmp)
@@ -254,7 +256,8 @@ classdef Datastore < handle
             O.GroupName = GroupNameTmp;
         end
         
-        function O = sortGroup(O, SortIdx)
+        function sortGroup(O, SortIdx)
+            %Sorts the group in ascending order re-ordering the files too.
             if nargin < 2
                 [O.GroupName, SortIdx] = sort(O.Group);
                 if all(diff(SortIdx) == 1); return; end %No change
@@ -274,7 +277,8 @@ classdef Datastore < handle
             end
         end
         
-        function O = setCtrlGroup(O, CtrlGroupName)
+        function setCtrlGroup(O, CtrlGroupName)
+            %Sets the control group by name or number
             if isnumeric(CtrlGroupName) && ~isnumeric(O.GroupName)
                 CtrlGroupName = num2str(CtrlGroupName);
                 CtrlLoc = strcmpi(CtrlGroupName, O.GroupName);
@@ -309,6 +313,7 @@ classdef Datastore < handle
     %Methods of data handling
     methods
         function fetchData(O, varargin)
+            %Fetches the data from output files according to DataFetcher methods
             DataFetcher.fetchData(O, varargin{:});
             if ~isempty(O.SaveDir)
                 for j = 1:numel(O.DataObj)
@@ -317,77 +322,33 @@ classdef Datastore < handle
             end
         end
         
-        %Clears all data and restarts
         function clearData(O)
+            %Clears all data objects and restarts
             O.DataObj = {};
         end
-        
-        %Plots all clonotype frequency data
+                
         function plotFreqData(O, varargin)
+            %Plots all clonotype frequency data
             for j = 1:numel(O.DataObj)
                 O.DataObj{j}.setError('minmax');
                 O.DataObj{j}.plot(varargin{:});
             end
         end
         
-        %Closes all plots
         function close(O)
+            %Closes all plots
             for j = 1:numel(O.DataObj)
                 O.DataObj{j}.close;
             end
-        end
-               
-        %Closes all plots before deleting Datastore
+        end           
+        
         function delete(O)
+            %Closes all plots before deleting BRILIADatastore
             O.close;
         end
-        
-        %Saves the underlying data in SaveDir/DataName.csv
-        function saveData(O, Field, SaveDir)
-            
-            if nargin < 2 || isempty(Field)
-                warning('%s: No field was specified, "%s"', mfilename, Field);
-                return
-            elseif ~any(strcmpi(fieldnames(O), Field))
-                warning('%s: Not a valid data field to save, "%s"', mfilename, Field);
-                return
-            end
-            ValidFields = fieldnames(O);
-            ValidLoc = strcmpi(ValidFields, Field);
-            Field = ValidFields(ValidLoc);
-            if isempty(O.SaveDir) && (nargin < 3 || isempty(SaveDir))
-                SaveDir = uiputdir2('', 'Select dir to save plots');
-                if isempty(SaveDir)
-                    warning('%s: No save directory was chosen. Aborting save.', mfilename);
-                    return
-                end
-                O.SaveDir = SaveDir;
-            end
-            [O, Success] = prepSaveDir(O);
-            if ~Success; return; end
-            for k = 1:numel(Field)
-                if isstruct(O.(Field{k})) %Need to save each subfield
-                    DataField = fieldnames(O.(Field{k}));
-                    if ~isstruct(O.(Field{k})(1).(DataField{1}))
-                        Data = struct2array(O.(Field{k}));
-                        writeDlmFile(Data, fullfile(O.SaveDir, sprintf('%s.csv', Field{k})));
-                    else
-                        for j = 1:numel(DataField)
-                            Data = O.(Field{k}).(DataField{j});
-                            if isstruct(Data)
-                                Data = struct2array(Data);
-                            end
-                            writeDlmFile(Data, fullfile(O.SaveDir, sprintf('%s.%s.csv', Field{k}, DataField{j})));
-                        end
-                    end
-                else
-                    writeDlmFile(O.(Field{k}), fullfile(O.SaveDir, sprintf('%s.csv', Field{k})));
-                end
-            end
-        end
-        
-        %Save the plots in SaveDir/DataName.png
-        function savePlot(O, SaveDir)
+                
+        function saveData(O, SaveDir)
+            %Invokes the savePlot methods on all data objects.
             if isempty(O.SaveDir) && (nargin < 2 || isempty(SaveDir))
                 SaveDir = uiputdir2('*.png', 'Select dir to save plots');
                 if isempty(SaveDir)
@@ -397,17 +358,31 @@ classdef Datastore < handle
             end
             [O, Success] = prepSaveDir(O);
             if ~Success; return; end
-            
             for j = 1:numel(O.DataObj)
-                if ~isempty(O.DataObj{j}.Gx) && isvalid(O.DataObj{j}.Gx)
-                    O.DataObj{j}.OutputDir = O.SaveDir;
-                    O.DataObj{j}.savePlot;
-                end
+                O.DataObj{j}.OutputDir = O.SaveDir;
+                O.DataObj{j}.saveData;
             end
         end
         
-        %Lists which plots are available
+        function savePlot(O, SaveDir)
+            %Invokes the savePlot methods on all data objects.
+            if isempty(O.SaveDir) && (nargin < 2 || isempty(SaveDir))
+                SaveDir = uiputdir2('*.png', 'Select dir to save plots');
+                if isempty(SaveDir)
+                    return
+                end
+                O.SaveDir = SaveDir;
+            end
+            [O, Success] = prepSaveDir(O);
+            if ~Success; return; end
+            for j = 1:numel(O.DataObj)
+                O.DataObj{j}.OutputDir = O.SaveDir;
+                O.DataObj{j}.savePlot;
+            end
+        end
+        
         function listData(O)
+            %Lists which plots are available
             ObjName = cellfun(@(x) x.DataName, O.DataObj, 'un', 0);
             ObjType = cellfun(@(x) class(x), O.DataObj, 'un', 0);
             ObjNameType = cellfun(@(x, y) [x ' (' y ')'], ObjName, ObjType, 'un', 0);
@@ -417,9 +392,9 @@ classdef Datastore < handle
                 fprintf('%s: No DataObj to list.\n', mfilename);
             end
         end
-        
-        %Returns the DataObj that was specified
+                
         function Obj = getData(O, varargin)
+            %Returns the DataObj that was specified
             if nargin == 1
                 listData(O);
                 Obj = [];
@@ -430,9 +405,9 @@ classdef Datastore < handle
                 Obj = Obj{1};
             end
         end
-        
-        %Shows a specific data plot
+               
         function plotData(O, DataNameOrNum)
+            %Shows a specific data plot
             if nargin == 1
                 for j = 1:numel(O.DataObj)
                     O.DataObj{j}.plot;
@@ -447,8 +422,8 @@ classdef Datastore < handle
     end
     
     methods (Access = private)
-        %Prepares the directory on hard drive for
         function [O, Success] = prepSaveDir(O)
+            %Prepares the directory on hard drive for saving
             Success = true;
             if isempty(O.SaveDir)
                 warning('%s: SaveDir is undefined. Use set(OBJ, ''SaveDir'', SAVE_DIR) to set SaveDir', mfilename);
@@ -465,14 +440,14 @@ classdef Datastore < handle
             end
         end
         
-        %Ensures that the MapNum columns are char for datastore reading
         function O = fixTextscanFormats(O)
+            %Ensures that the MapNum columns are char for datastore reading
             CharIdx = nonzeros([O.Map.hGeneNum; O.Map.lGeneNum; O.Map.hOverSeq5; O.Map.hOverSeq3; O.Map.lOverSeq5; O.Map.lOverSeq3]);
             O.DS.TextscanFormats(CharIdx) = {'%q'}; %Correct the GeneNum "[# # #]" formats to Str. This will no longer be used in future releases.
         end
         
-        %Find the number of the DataObj based on data name or number
         function ObjNum = findDataObj(O, DataNameOrNum)
+            %Finds the number of the DataObj based on data name or number
             if isnumeric(DataNameOrNum)
                 ObjNum = DataNameOrNum;
             else

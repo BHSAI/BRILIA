@@ -1,5 +1,5 @@
 %calcDistribDist will compute the pairwise distance matrix for
-%distrubutions, in which the distance matrix reveals how divergent two
+%distributions, in which the distance matrix reveals how divergent two
 %distributions are from each other.
 %
 %  DistMat = calcDivergeDist(Ydata)
@@ -8,7 +8,7 @@
 %
 %  INPUT
 %    Ydata: MxN matrix containing M value entries for N distributions
-%      Example, Ydata = [ 0.1 0.2;  %2 distributions, 4 bins.
+%      Example, Ydata = [ 0.1 0.2;  %4 bins, 2 distributions.
 %                         0.2 0.4;
 %                         0.3 0.2;
 %                         0.4 0.4]
@@ -22,10 +22,10 @@
 %  OUTPUT
 %    DistMat: NxN pairwise distance for the N distributions
 
-function DistMat = calcDistribDist(Ydata, varargin)
+function [DistMat, Method] = calcDistribDist(Ydata, varargin)
 P = inputParser;
-addParameter(P, 'Method', 'overl', @(x) ischar(x) && ismember(lower(x), {'overl', 'bhatt'}));
-parse(P, varargin{:})
+P.addParameter('Method', 'overl', @(x) ischar(x) && ismember(lower(x), {'overl', 'bhatt'}));
+P.parse(varargin{:})
 Method = P.Results.Method;
 
 switch Method(1:5)

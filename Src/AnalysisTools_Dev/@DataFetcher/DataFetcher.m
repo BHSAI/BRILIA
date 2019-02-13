@@ -273,9 +273,9 @@ classdef DataFetcher < handle
 %                         case 'diversity' %Plots confetti map, entropy bar, diversity bar, template scatters
 %                             DataObj{q} = DiversityData({FetchedData.(Fields{f})}, 'Group', O.Group, 'DataName', Fields{f}, 'CtrlGroup', 1); %CtrlGroup is always 1
 %                             q = q + 1;
-%                         case 'convergence' %Plots NxN correlation matrix for CDR3, bar of convergent CDR3s, dendrogram, etc
-%                             DataObj{q} = ConvergenceData({FetchedData.(Fields{f})}, 'Group', O.Group, 'DataName', Fields{f}, 'CtrlGroup', 1); %CtrlGroup is always 1
-%                             q = q + 1;
+                           case 'convergence' %Plots NxN correlation matrix for CDR3, bar of convergent CDR3s, dendrogram, etc
+                              DataObj{q} = ConvergenceData({FetchedData.(Fields{f})}, 'Group', O.Group, 'DataName', Fields{f}, 'CtrlGroup', 1); %CtrlGroup is always 1
+                              q = q + 1;
 %                         case 'stacked'
 %                             DataObj{q} = StackedData({FetchedData.(Fields{f})}, 'Group', O.Group, 'DataName', Fields{f}, 'CtrlGroup', 1); %CtrlGroup is always 1
 %                             q = q + 1;
