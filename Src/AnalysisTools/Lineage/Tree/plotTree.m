@@ -224,7 +224,7 @@ MaxHorzCoord = max(TreeCoord(:, 1));
 MaxVertCoord = max(TreeCoord(:, 2));
 
 %Determine the legend and colors
-if strcmpi(Legend, 'y') && ~isempty(CDR3Name)
+if ~isempty(CDR3Name)
     [CDR3legend, UnqCDR3seq] = makeTreeLegend_CDR3(CDR3Name);
     [DotColor, UnqDotColor] = mapDotColor_CDR3(CDR3Name, UnqCDR3seq, 'ColorMap', DotColorMap);
 end
@@ -418,7 +418,7 @@ end
 
 %Draw tree nodes and leaves next
 [~, IdxT] = sort(DotSizes, 'descend'); %Sort to prevent covering up smaller dot
-if strcmpi(Legend, 'y') && ~isempty(CDR3Name)
+if ~isempty(CDR3Name)
     scatter(Ax, TreeCoord(IdxT, 1), TreeCoord(IdxT, 2), DotSizes(IdxT, :), DotColor(IdxT, :), 'fill');
 else
     scatter(Ax, TreeCoord(IdxT, 1), TreeCoord(IdxT, 2), DotSizes(IdxT, :), [0 0 0], 'fill');

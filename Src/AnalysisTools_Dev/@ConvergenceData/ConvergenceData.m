@@ -25,16 +25,9 @@
 %  NOTE: this is done for ALL lineages PER REPERTOIRE
 %
 classdef ConvergenceData < DataInterface
-    properties (Dependent)
-        Group double    %grouping of data
-    end
-    
     properties (Access = public)
-        CtrlGroup %Ctrl group
         Level %Clustering level of template: Clone, Clonotype, CDR3, Kmer, etc
         Color %Color map Mx3 matrix
-        Width          double %width in inch of figure
-        Height         double %height in inch of figure
         Heatmap
     end
      
