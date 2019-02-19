@@ -11,8 +11,8 @@
 %  OUTPUT
 %    Heatmap: structure of various NxN matrix of repertoire comparison
 %    metrics/premetrics
-%      .Ovlp          # entities overlap / total # entities
-%      .OvlpWt        # weighted entities overlap / total # weighted entities
+%      .Ovlerlap      # entities overlap / total # entities
+%      .WtOverlap     # weighted entities overlap / total # weighted entities
 %      .BhattDist     Bhattacharya distance of weights of overlapping entities
 %      .KLDivergence  Kullback-Leibner diverence of weights of overlapping entities
 %
@@ -21,12 +21,12 @@
 %    Mat{2} = {'a' 1; 'b' 2; 'e' 1; 'f' 7};
 %    Mat{3} = {'c' 1; 'd' 3; 'e' 1; 'f' 7}; 
 %    Conv = calcConvMatrix(Mat{:});
-%    Conv.Ovlp = 
+%    Conv.SeqOvlerlap = 
 %     0         0.5000    0.5000
 %     0.5000         0    0.5000
 %     0.5000    0.5000         0
 %
-%    Conv.OvlpWt = 
+%    Conv.CellOverlap = 
 %          0    0.4286    0.5714
 %     0.2727         0    0.7273
 %     0.3333    0.6667         0
@@ -93,24 +93,27 @@ end
     
 function Out = calcConv(Data, Weight, Lookup, LookupWeight)
 N = numel(Data);
-Out.Ovlp = zeros(N);
-Out.OvlpWt = zeros(N);
+Out.SeqOverlap = zeros(N);
+Out.CellOverlap = zeros(N);
 Out.BhattDist = zeros(N);
 Out.KLDivergence = zeros(N);
+Out.CellOverSeqRatio = zeros(N);
+Out.MorisitaHorn = zeros(N);
 for r = 2:N
     for c = 1:r-1
-        Out.Ovlp(r, c) = numel(vertcat(Lookup{r, c})) / (numel(Data{r}) + numel(Data{c}) - numel(vertcat(Lookup{r, c}))); 
-        Out.Ovlp(c, r) = Out.Ovlp(r, c); %numel(vertcat(Lookup{c, r})) / numel(Data{c}); 
+        Out.SeqOverlap(r, c) = numel(vertcat(Lookup{r, c})) / (numel(Data{r}) + numel(Data{c}) - numel(vertcat(Lookup{r, c}))) * 100; %In percentage 
+        Out.SeqOverlap(c, r) = Out.SeqOverlap(r, c); 
         
-        WeightOvlpCt = min([vertcat(LookupWeight{r, c}), vertcat(LookupWeight{c, r})], [], 2); %Need min, as you're doing overlap of cells
-        Out.OvlpWt(r, c) = sum(WeightOvlpCt) / (sum(Weight{r}) + sum(Weight{c}) - sum(WeightOvlpCt));
-        Out.OvlpWt(c, r) = Out.OvlpWt(r, c);
-        %
-        %Out.OvlpWt(c, r) = sum(vertcat(LookupWeight{c, r})) / sum(Weight{c}); 
+        WeightSeqOverlapCt = min([vertcat(LookupWeight{r, c}), vertcat(LookupWeight{c, r})], [], 2); %Need min, as you're doing overlap of cells
+        Out.CellOverlap(r, c) = sum(WeightSeqOverlapCt) / (sum(Weight{r}) + sum(Weight{c}) - sum(WeightSeqOverlapCt)) * 100; %In percentage
+        Out.CellOverlap(c, r) = Out.CellOverlap(r, c);
         
         Out.BhattDist(r, c) = calcBhattStat(LookupWeight{r, c}, LookupWeight{c, r});
         Out.BhattDist(c, r) = Out.BhattDist(r, c);
         [Out.KLDivergence(r, c), Out.KLDivergence(c,r)] = calcKullbackLeibler(LookupWeight{r, c}, LookupWeight{c, r});
+        
+        Out.MorisitaHorn(r, c) = calcMorisitaHorn(LookupWeight{r, c}, LookupWeight{c, r});
+        Out.MorisitaHorn(c, r) = Out.MorisitaHorn(r, c);
     end
 end
-Out.OvlpWt = Out.OvlpWt ./ Out.Ovlp / 100;
+Out.CellOverSeqRatio = Out.CellOverlap ./ Out.SeqOverlap;

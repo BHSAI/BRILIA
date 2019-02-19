@@ -102,10 +102,6 @@ classdef FrequencyData < DataInterface
         function O = FrequencyData(varargin)
             %Creates a FrequencyData object
             O = O@DataInterface; %Use superclass constructor (REQUIRED)
-            O.setGx('PDF', []);
-            O.setGx('CDF', []);
-            O.setGx('Confetti', []);
-            O.setGx('Diversity', []);
             
             %Extract and add the Data to object
             DataIdx = find(cellfun(@ischar, varargin), 1)-1;
@@ -117,10 +113,10 @@ classdef FrequencyData < DataInterface
             P = inputParser;
             P.addParameter('DataName', mfilename, @ischar);
             P.addParameter('Group', [], @isnumeric);
-            P.addParameter('GroupName', {}, @isnumeric);
+            P.addParameter('GroupName', {}, @iscell);
             P.addParameter('CtrlGroup',  1, @isnumeric);
-            P.addParameter('Width',  6, @(x) isnumeric(x) && x > 0.1);
-            P.addParameter('Height', 3, @(x) isnumeric(x) && x > 0.1);
+            P.addParameter('Width',  6, @(x) isnumeric(x) && x > 1);
+            P.addParameter('Height', 3, @(x) isnumeric(x) && x > 1);
             P.addParameter('Alpha', 0.05, @(x) isnumeric(x) && x > 0 && x < 1);
             P.parse(varargin{:});
             
@@ -132,6 +128,10 @@ classdef FrequencyData < DataInterface
             O.Width  = P.Results.Width;
             O.Height = P.Results.Height;
             O.Alpha  = P.Results.Alpha;
+            O.setGx('PDF', []);
+            O.setGx('CDF', []);
+            O.setGx('Confetti', []);
+            O.setGx('Diversity', []);
             
             O.reset;  %Resets the ModData field
         end

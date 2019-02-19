@@ -36,4 +36,6 @@ end
 Out.GrpNum = cell2mat(VDJdata(:, Map.GrpNum));
 Out.Template = cell2mat(VDJdata(:, Map.Template));
 
-varargout{1} = Out;
+OutCell = [Out.hCDR3 num2cell(Out.Template)];
+
+varargout{1} = OutCell;

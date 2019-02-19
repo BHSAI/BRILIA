@@ -40,6 +40,7 @@ end
 CellData(cellfun('isempty', CellData)) = {''};
 NumLoc = cellfun('isclass', CellData, 'double');
 StrLoc = ~NumLoc;
+
 CellData(NumLoc) = cellfun(@mat2str, CellData(NumLoc), 'un', 0); 
 if contains(Delimiter, '\t') %To \t from becoming tab
     CellData(StrLoc) = strrep(CellData(StrLoc), '\t', '\\t');
