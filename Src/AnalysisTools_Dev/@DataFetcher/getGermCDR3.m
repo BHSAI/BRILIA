@@ -47,5 +47,6 @@ for c = 1:numel(Map.Chain)
 end
 Out.GrpNum = cell2mat(VDJdata(GrpIdx, Map.GrpNum));
 Out.Template = regroupTemplate(cell2mat(VDJdata(:, Map.Template)), cell2mat(VDJdata(:, Map.GrpNum)));
+OutCell = [Out.hCDR3 num2cell(Out.Template)];
 
-varargout{1} = Out;
+varargout{1} = OutCell;

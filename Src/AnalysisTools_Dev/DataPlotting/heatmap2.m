@@ -160,8 +160,8 @@ set(zObj, 'ActionPostCallback', @(obj,evd)updateLabels(evd.Axes,true));
 pObj = pan(p.hFig);
 % set(pObj, 'ActionPreCallback',  @prePan);
 set(pObj, 'ActionPostCallback', @(obj,evd)updateLabels(evd.Axes,true));
-
-set(p.hFig, 'ResizeFcn', @resize2)
+% 
+% set(p.hFig, 'ResizeFcn', @resize2)
 
 % Set outputs
 hImage = p.hImage;

@@ -134,6 +134,7 @@ classdef DataFetcher < handle
         varargout = getIntraDiversity(varargin)
         varargout = getGermCDR3(varargin)
         varargout = getAllCDR3(varargin)
+        varargout = getUnqCDR3(varargin)
         varargout = getClonotypeLevel(varargin)
         
         %List the methods
@@ -263,7 +264,7 @@ classdef DataFetcher < handle
                             if isstruct(ExtData{1}) %This one outputs a structure with field S.Data, S.Idx, etc. take out S.Data.
                                 ExtData = cellfun(@(x) x.Data, ExtData, 'un', 0);
                             end
-                            DataObj{q} = FrequencyData(ExtData{:}, 'Group', O.Group, 'DataName', Fields{f}, 'CtrlGroup', 1); %CtrlGroup is always 1
+                            DataObj{q} = FrequencyData(FetchedData.(Fields{f}), 'Group', O.Group, 'DataName', Fields{f}, 'CtrlGroup', 1); %CtrlGroup is always 1
                             for g = 1:numel(GroupSteps)
                                 Steps = strsplit(GroupSteps{g}, {'=', '-', ':'});
                                 Steps = cleanCommandLineInput(Steps{:});
@@ -274,7 +275,7 @@ classdef DataFetcher < handle
 %                             DataObj{q} = DiversityData({FetchedData.(Fields{f})}, 'Group', O.Group, 'DataName', Fields{f}, 'CtrlGroup', 1); %CtrlGroup is always 1
 %                             q = q + 1;
                            case 'convergence' %Plots NxN correlation matrix for CDR3, bar of convergent CDR3s, dendrogram, etc
-                              DataObj{q} = ConvergenceData({FetchedData.(Fields{f})}, 'Group', O.Group, 'DataName', Fields{f}, 'CtrlGroup', 1); %CtrlGroup is always 1
+                              DataObj{q} = ConvergenceData(FetchedData.(Fields{f}), 'Group', O.Group, 'DataName', Fields{f}, 'CtrlGroup', 1); %CtrlGroup is always 1
                               q = q + 1;
 %                         case 'stacked'
 %                             DataObj{q} = StackedData({FetchedData.(Fields{f})}, 'Group', O.Group, 'DataName', Fields{f}, 'CtrlGroup', 1); %CtrlGroup is always 1

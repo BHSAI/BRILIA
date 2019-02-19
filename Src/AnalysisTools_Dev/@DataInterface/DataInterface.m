@@ -219,7 +219,7 @@ classdef DataInterface < handle
         function set.Data(O, Data)
             if isempty(Data)
                 return
-            elseif isstruct(Data) %Probabily initializing Data
+            elseif isstruct(Data) && isfield(Data, 'Data') %Probabily initializing Data
                 O.Data = Data;
                 return 
             end
@@ -374,7 +374,6 @@ classdef DataInterface < handle
         function resizeSubplots(O, varargin)
             %Resizes all subplots in every figure
             varargin = cleanCommandLineInput(varargin{:});
-            if numel(varargin) == 0; return; end
             applyAllFigures(O, 'resizeSubplots', varargin{:});
         end
         

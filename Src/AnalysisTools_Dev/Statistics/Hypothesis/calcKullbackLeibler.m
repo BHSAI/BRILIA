@@ -1,7 +1,7 @@
 %calcKullbackLeibler will calculate the Kullback-Leibler Divergence
 %for comparing two discrete propbability distibutions.
 %
-%  [Dpq, Dqp] = calcBhattStat(P, Q)
+%  [Dpq, Dqp] = calcKullbackLeibler(P, Q)
 %
 %  INPUTS
 %    P: Mx1 matrix of frequencies of dataset 1
