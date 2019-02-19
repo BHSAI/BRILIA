@@ -3,13 +3,13 @@
 %   
 %  IMlogo = drawWebLogo(Seq)
 %
-%  IMlogo = drawWebLogo(Seq,PosNums)
+%  IMlogo = drawWebLogo(Seq, Range)
 %
 %  [IMlogo, IMmap] = drawWebLogo(Seq,...) 
 %
 %  INPUT
 %    Seq: set of an amino acid sequences to draw a web logo for
-%    PosNums: range of sequences to draw the web logos for 
+%    Range: range of sequences to draw the web logos for 
 %
 %  OUTPUT
 %    IMlogo: web logo image
@@ -27,50 +27,50 @@
 %        IMlogo = drawWebLogo(Seq,1:3);
 %        imshow(IMlogo)
 
-function varargout = drawWebLogo(Seq,varargin)
+function varargout = drawWebLogo(Seq, varargin)
 if iscell(Seq)
     Seq = cell2mat(Seq);
 end
-if length(varargin) == 1
-    PosNums = varargin{1};
+if numel(varargin) == 1
+    Range = varargin{1};
 else
-    PosNums = 1:size(Seq,2);
+    Range = 1:size(Seq, 2);
 end
 
 FontPath = fullfile(fileparts(mfilename('fullfile')), 'Font');
 
 %Generate weblogo
-H = 200; %pixels
-Wf = 100; %Width per font.
+LogoH = 600; %Pixel height of logo
+FontW = 300; %Pixel width of each letter
 
 IMlogo = [];
-for kk = 1:length(PosNums)
+for kk = 1:length(Range)
 
-    PosNum = PosNums(kk);
-    AAFreq = cell2mat(struct2cell(aacount(Seq(:,PosNum))));
-    KeepStuff = (AAFreq > 0);
-    AAkeep = int2aa(find(KeepStuff == 1));
-    AAfreq = AAFreq(KeepStuff)/sum(AAFreq);
+    PosNum = Range(kk);
+    AaFreq = cell2mat(struct2cell(aacount(Seq(:, PosNum))));
+    KeepLoc = (AaFreq > 0);
+    AaKeep = int2aa(find(KeepLoc == 1));
+    AaFreqNorm = AaFreq(KeepLoc)/sum(AaFreq);
     
     %Sort, largest item top
-    AAall = sortrows([AAfreq (1:length(AAkeep))']);
-    AAfreq = AAall(:,1);
-    AAkeep = AAkeep(AAall(:,2));
+    AaAll = sortrows([AaFreqNorm (1:length(AaKeep))']);
+    AaFreqNorm = AaAll(:,1);
+    AaKeep = AaKeep(AaAll(:,2));
 
     IMcol = [];
     FontHeightTot = 0;
-    for qq = 1:length(AAkeep)
-        FontFile = fullfile(FontPath, [AAkeep(qq) '.png']);
+    for qq = 1:length(AaKeep)
+        FontFile = fullfile(FontPath, [AaKeep(qq) '.png']);
         IM1 = imread(FontFile);
-        FontHeight = round(H*AAfreq(qq));
-        if qq == length(AAkeep)
-            FontHeight = H - FontHeightTot;
+        FontHeight = round(LogoH*AaFreqNorm(qq));
+        if qq == length(AaKeep)
+            FontHeight = LogoH - FontHeightTot;
         end
         if FontHeight < 1
             continue
         end
         FontHeightTot = FontHeightTot+FontHeight;
-        IM1 = shrinkImage(im2double(IM1), FontHeight, Wf);
+        IM1 = shrinkImage(im2double(IM1), FontHeight, FontW);
         if isempty(IMcol)
             IMcol = IM1;
         else
@@ -85,16 +85,12 @@ for kk = 1:length(PosNums)
 end
 
 %Generate clickermap
-PosLen = length(PosNums);
+PosLen = length(Range);
 Width = size(IMlogo,2)/PosLen;
 IMmap = zeros(size(IMlogo));
 for j = 1:PosLen
     IMmap(:,1+(j-1)*Width:j*Width) = j;
 end
 
-if nargout >= 1
-    varargout{1} = IMlogo;
-    if nargout == 2
-        varargout{2} = IMmap;
-    end
-end
+varargout{1} = IMlogo;
+varargout{2} = IMmap;
