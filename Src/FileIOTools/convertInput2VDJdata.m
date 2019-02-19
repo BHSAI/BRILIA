@@ -117,9 +117,9 @@ switch lower(FileType)
         %Note: Only delimited files can take in paired sequences
         
         %Determine the sequence nucleotide loctaion in delimited file
-        InHSeqIdx = find(startsWith(InHeader, 'hseq'), 1);
-        InLSeqIdx = find(startsWith(InHeader, 'lseq'), 1);
-        InXSeqIdx = find(startsWith(InHeader,  'seq'), 1);
+        InHSeqIdx = find(ismember(InHeader, 'hseq'), 1);
+        InLSeqIdx = find(ismember(InHeader, 'lseq'), 1);
+        InXSeqIdx = find(ismember(InHeader,  'seq'), 1);
         if isempty(InHSeqIdx) && isempty(InLSeqIdx) && isempty(InXSeqIdx)
             error('%s: Could not find the "Seq", "H-Seq", or "L-Seq" column header in "%s".', mfilename, FileName);
         end
